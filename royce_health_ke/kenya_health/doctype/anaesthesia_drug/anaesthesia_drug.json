@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "creation": "2026-11-08 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-08 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Anaesthesia Drug",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "time",
+   "fieldtype": "Time",
+   "label": "Time",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "drug",
+   "fieldtype": "Data",
+   "label": "Drug",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item",
+   "in_list_view": 1,
+   "columns": 2,
+   "description": "To charge or issue from stock."
+  },
+  {
+   "fieldname": "dose",
+   "fieldtype": "Data",
+   "label": "Dose",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Select",
+   "label": "Route",
+   "options": "\nIV\nIM\nInhalation\nSpinal\nEpidural\nSC\nOral\nInfiltration",
+   "in_list_view": 1,
+   "columns": 2
+  }
+ ],
+ "field_order": [
+  "time",
+  "drug",
+  "item_code",
+  "dose",
+  "route"
+ ],
+ "istable": 1,
+ "editable_grid": 1,
+ "permissions": []
+}

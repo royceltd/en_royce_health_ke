@@ -1,0 +1,337 @@
+{
+ "actions": [],
+ "creation": "2026-11-08 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-08 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Anaesthesia Record",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "ANR-.YYYY.-",
+   "default": "ANR-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "theatre_booking",
+   "fieldtype": "Link",
+   "label": "Theatre Booking",
+   "options": "Theatre Booking",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "fetch_from": "theatre_booking.patient",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "theatre_booking.patient_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "procedure_template",
+   "fieldtype": "Link",
+   "label": "Procedure",
+   "options": "Clinical Procedure Template",
+   "fetch_from": "theatre_booking.procedure_template",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "anaesthetist",
+   "fieldtype": "Link",
+   "label": "Anaesthetist",
+   "options": "Healthcare Practitioner",
+   "reqd": 1,
+   "fetch_from": "theatre_booking.anaesthetist",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "assessment_section",
+   "fieldtype": "Section Break",
+   "label": "Pre-anaesthetic Assessment"
+  },
+  {
+   "fieldname": "asa_class",
+   "fieldtype": "Select",
+   "label": "ASA Class",
+   "options": "ASA I\nASA II\nASA III\nASA IV\nASA V\nASA VI",
+   "reqd": 1
+  },
+  {
+   "fieldname": "asa_emergency",
+   "fieldtype": "Check",
+   "label": "Emergency (E)"
+  },
+  {
+   "fieldname": "fasting_confirmed",
+   "fieldtype": "Check",
+   "label": "Fasting confirmed"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "weight",
+   "fieldtype": "Float",
+   "label": "Weight (kg)"
+  },
+  {
+   "fieldname": "airway_assessment",
+   "fieldtype": "Data",
+   "label": "Airway Assessment (e.g. Mallampati)"
+  },
+  {
+   "fieldname": "assessment_notes",
+   "fieldtype": "Small Text",
+   "label": "Assessment Notes"
+  },
+  {
+   "fieldname": "technique_section",
+   "fieldtype": "Section Break",
+   "label": "Technique"
+  },
+  {
+   "fieldname": "anaesthesia_type",
+   "fieldtype": "Select",
+   "label": "Anaesthesia Type",
+   "reqd": 1,
+   "options": "General\nSpinal\nEpidural\nCombined spinal-epidural\nRegional block\nLocal\nSedation"
+  },
+  {
+   "fieldname": "airway",
+   "fieldtype": "Select",
+   "label": "Airway",
+   "options": "\nFace mask\nLaryngeal mask\nEndotracheal tube\nNone"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "induction_time",
+   "fieldtype": "Datetime",
+   "label": "Induction / Start"
+  },
+  {
+   "fieldname": "end_time",
+   "fieldtype": "Datetime",
+   "label": "End of Anaesthesia"
+  },
+  {
+   "fieldname": "drugs_section",
+   "fieldtype": "Section Break",
+   "label": "Drugs"
+  },
+  {
+   "fieldname": "drugs",
+   "fieldtype": "Table",
+   "label": "Drugs",
+   "options": "Anaesthesia Drug"
+  },
+  {
+   "fieldname": "vitals_section",
+   "fieldtype": "Section Break",
+   "label": "Intra-operative Monitoring"
+  },
+  {
+   "fieldname": "vitals",
+   "fieldtype": "Table",
+   "label": "Vitals",
+   "options": "Anaesthesia Vital"
+  },
+  {
+   "fieldname": "balance_section",
+   "fieldtype": "Section Break",
+   "label": "Fluids and Losses"
+  },
+  {
+   "fieldname": "fluids_ml",
+   "fieldtype": "Int",
+   "label": "IV Fluids (ml)"
+  },
+  {
+   "fieldname": "blood_loss_ml",
+   "fieldtype": "Int",
+   "label": "Blood Loss (ml)"
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "urine_output_ml",
+   "fieldtype": "Int",
+   "label": "Urine Output (ml)"
+  },
+  {
+   "fieldname": "blood_transfused",
+   "fieldtype": "Data",
+   "label": "Blood Transfused"
+  },
+  {
+   "fieldname": "complications",
+   "fieldtype": "Small Text",
+   "label": "Anaesthetic Complications"
+  },
+  {
+   "fieldname": "recovery_section",
+   "fieldtype": "Section Break",
+   "label": "Recovery"
+  },
+  {
+   "fieldname": "aldrete_score",
+   "fieldtype": "Int",
+   "label": "Aldrete Score at Discharge (0-10)"
+  },
+  {
+   "fieldname": "recovery_discharge_time",
+   "fieldtype": "Datetime",
+   "label": "Discharged from Recovery"
+  },
+  {
+   "fieldname": "cb4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "recovery_notes",
+   "fieldtype": "Small Text",
+   "label": "Recovery Notes"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Anaesthesia Record",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1
+  }
+ ],
+ "field_order": [
+  "naming_series",
+  "theatre_booking",
+  "patient",
+  "patient_name",
+  "procedure_template",
+  "cb0",
+  "anaesthetist",
+  "assessment_section",
+  "asa_class",
+  "asa_emergency",
+  "fasting_confirmed",
+  "cb1",
+  "weight",
+  "airway_assessment",
+  "assessment_notes",
+  "technique_section",
+  "anaesthesia_type",
+  "airway",
+  "cb2",
+  "induction_time",
+  "end_time",
+  "drugs_section",
+  "drugs",
+  "vitals_section",
+  "vitals",
+  "balance_section",
+  "fluids_ml",
+  "blood_loss_ml",
+  "cb3",
+  "urine_output_ml",
+  "blood_transfused",
+  "complications",
+  "recovery_section",
+  "aldrete_score",
+  "recovery_discharge_time",
+  "cb4",
+  "recovery_notes",
+  "amended_from"
+ ],
+ "autoname": "naming_series:",
+ "naming_rule": "By \"Naming Series\" field",
+ "title_field": "patient_name",
+ "is_submittable": 1,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  }
+ ]
+}

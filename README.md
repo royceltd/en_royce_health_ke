@@ -13,7 +13,8 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 | 2. SHA / HIE connector | Waiting for AfyaConnect sandbox approval |
 | 3. Billing and private insurance | Done: bed nights, insured visits on Marley's model, claim rejections. Slade360 and separate insurer invoices pending |
 | 4. Maternity | ANC, labour and delivery, newborn, PNC done (to align with the client's forms); maternity billing packages pending |
-| 5. Theatre, 6. Radiology | Planned |
+| 5. Theatre | Booking, consent, WHO checklist, anaesthesia record, operation note done |
+| 6. Radiology | Planned |
 | 7. MOH reports, KHIS, dashboards | MOH 705A/B and 717 done (mappings to confirm with the HRIO); KHIS submission and dashboards pending |
 | 8. Kitchen, laundry | Planned |
 | 9. Go-live readiness | Planned |
@@ -65,6 +66,18 @@ Open: whether insurers need an eTIMS invoice addressed to them (separate insurer
 - MOH 717 now counts ANC and PNC visits, deliveries by mode, births, stillbirths, neonatal deaths, low birth weight and maternal deaths.
 
 Fields follow the MOH ANC, maternity and PNC registers (as in KenyaEMR) - align with the hospital's own forms.
+
+### Theatre
+
+Around Marley's Clinical Procedure (which carries the procedure's price and consumables):
+
+- **Theatre Booking**: theatre (a service unit whose type is an OT), scheduled start and duration, surgeon, assistant, anaesthetist, priority, insurance pre-authorisation. Clashes on the theatre, surgeon, anaesthetist or patient are refused.
+- **Surgical Consent** (submitted): what was explained, risks, alternatives, anaesthesia and transfusion consent, who consented, witness, scanned form.
+- **Surgical Safety Checklist**: the WHO Sign In, Time Out and Sign Out items; each phase is Done when every item is answered, only after the one before, and time-stamped.
+- **Anaesthesia Record** (submitted): ASA class, technique, airway, drugs and intra-operative vitals, fluids and losses, Aldrete score at recovery discharge.
+- **Operation note** on the Clinical Procedure: indication, findings, procedure details, blood loss, specimens, implants, complications, post-op instructions.
+- **Into Theatre** needs submitted consent, Sign In done and no pending/declined pre-authorisation (an emergency may proceed while pending); it creates and starts the Clinical Procedure. **Complete** needs Time Out, Sign Out and the operation note; it completes the procedure and issues its consumables from the theatre's warehouse.
+- **Theatre List** report: the day's list per theatre with consent, checklist and anaesthesia status.
 
 ### MOH reports
 

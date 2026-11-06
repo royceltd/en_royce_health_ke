@@ -1,0 +1,341 @@
+{
+ "actions": [],
+ "creation": "2026-11-08 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-08 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Surgical Safety Checklist",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "SSC-.YYYY.-",
+   "default": "SSC-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "theatre_booking",
+   "fieldtype": "Link",
+   "label": "Theatre Booking",
+   "options": "Theatre Booking",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "fetch_from": "theatre_booking.patient",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "theatre_booking.patient_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "procedure_template",
+   "fieldtype": "Link",
+   "label": "Procedure",
+   "options": "Clinical Procedure Template",
+   "fetch_from": "theatre_booking.procedure_template",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sign_in_status",
+   "fieldtype": "Select",
+   "label": "Sign In",
+   "options": "Pending\nDone",
+   "default": "Pending",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "time_out_status",
+   "fieldtype": "Select",
+   "label": "Time Out",
+   "options": "Pending\nDone",
+   "default": "Pending",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "sign_out_status",
+   "fieldtype": "Select",
+   "label": "Sign Out",
+   "options": "Pending\nDone",
+   "default": "Pending",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "sign_in_section",
+   "fieldtype": "Section Break",
+   "label": "Sign In (before induction of anaesthesia)"
+  },
+  {
+   "fieldname": "si_identity_confirmed",
+   "fieldtype": "Check",
+   "label": "Patient has confirmed identity, site, procedure and consent"
+  },
+  {
+   "fieldname": "si_site_marked",
+   "fieldtype": "Select",
+   "label": "Site marked",
+   "options": "\nYes\nNot applicable"
+  },
+  {
+   "fieldname": "si_anaesthesia_check",
+   "fieldtype": "Check",
+   "label": "Anaesthesia machine and medication check complete"
+  },
+  {
+   "fieldname": "si_pulse_oximeter",
+   "fieldtype": "Check",
+   "label": "Pulse oximeter on patient and functioning"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "si_known_allergy",
+   "fieldtype": "Select",
+   "label": "Known allergy",
+   "options": "\nNo\nYes"
+  },
+  {
+   "fieldname": "si_difficult_airway",
+   "fieldtype": "Select",
+   "label": "Difficult airway / aspiration risk",
+   "options": "\nNo\nYes, and equipment/assistance available"
+  },
+  {
+   "fieldname": "si_blood_loss_risk",
+   "fieldtype": "Select",
+   "label": "Risk of >500 ml blood loss (7 ml/kg in children)",
+   "options": "\nNo\nYes, and two IVs/central access and fluids planned"
+  },
+  {
+   "fieldname": "sign_in_by",
+   "fieldtype": "Data",
+   "label": "Sign In Done By"
+  },
+  {
+   "fieldname": "sign_in_time",
+   "fieldtype": "Datetime",
+   "label": "Sign In Time"
+  },
+  {
+   "fieldname": "time_out_section",
+   "fieldtype": "Section Break",
+   "label": "Time Out (before skin incision)"
+  },
+  {
+   "fieldname": "to_team_introduced",
+   "fieldtype": "Check",
+   "label": "All team members introduced by name and role"
+  },
+  {
+   "fieldname": "to_confirmed",
+   "fieldtype": "Check",
+   "label": "Surgeon, anaesthetist and nurse confirm patient, site and procedure"
+  },
+  {
+   "fieldname": "to_antibiotic",
+   "fieldtype": "Select",
+   "label": "Antibiotic prophylaxis given within the last 60 minutes",
+   "options": "\nYes\nNot applicable"
+  },
+  {
+   "fieldname": "to_imaging",
+   "fieldtype": "Select",
+   "label": "Essential imaging displayed",
+   "options": "\nYes\nNot applicable"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "to_surgeon_events",
+   "fieldtype": "Check",
+   "label": "Surgeon: critical or non-routine steps, duration, anticipated blood loss reviewed"
+  },
+  {
+   "fieldname": "to_anaesthetist_concerns",
+   "fieldtype": "Check",
+   "label": "Anaesthetist: patient-specific concerns reviewed"
+  },
+  {
+   "fieldname": "to_nursing_sterility",
+   "fieldtype": "Check",
+   "label": "Nursing: sterility confirmed, equipment issues or concerns raised"
+  },
+  {
+   "fieldname": "time_out_by",
+   "fieldtype": "Data",
+   "label": "Time Out Led By"
+  },
+  {
+   "fieldname": "time_out_time",
+   "fieldtype": "Datetime",
+   "label": "Time Out Time"
+  },
+  {
+   "fieldname": "sign_out_section",
+   "fieldtype": "Section Break",
+   "label": "Sign Out (before patient leaves the operating room)"
+  },
+  {
+   "fieldname": "so_procedure_recorded",
+   "fieldtype": "Check",
+   "label": "Name of the procedure recorded"
+  },
+  {
+   "fieldname": "so_counts_correct",
+   "fieldtype": "Check",
+   "label": "Instrument, sponge and needle counts correct"
+  },
+  {
+   "fieldname": "so_specimen_labelled",
+   "fieldtype": "Select",
+   "label": "Specimen labelled (with patient name)",
+   "options": "\nYes\nNot applicable"
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "so_equipment_problems",
+   "fieldtype": "Small Text",
+   "label": "Equipment problems to be addressed"
+  },
+  {
+   "fieldname": "so_recovery_reviewed",
+   "fieldtype": "Check",
+   "label": "Key concerns for recovery and management reviewed"
+  },
+  {
+   "fieldname": "sign_out_by",
+   "fieldtype": "Data",
+   "label": "Sign Out Done By"
+  },
+  {
+   "fieldname": "sign_out_time",
+   "fieldtype": "Datetime",
+   "label": "Sign Out Time"
+  }
+ ],
+ "field_order": [
+  "naming_series",
+  "theatre_booking",
+  "patient",
+  "patient_name",
+  "procedure_template",
+  "cb0",
+  "sign_in_status",
+  "time_out_status",
+  "sign_out_status",
+  "sign_in_section",
+  "si_identity_confirmed",
+  "si_site_marked",
+  "si_anaesthesia_check",
+  "si_pulse_oximeter",
+  "cb1",
+  "si_known_allergy",
+  "si_difficult_airway",
+  "si_blood_loss_risk",
+  "sign_in_by",
+  "sign_in_time",
+  "time_out_section",
+  "to_team_introduced",
+  "to_confirmed",
+  "to_antibiotic",
+  "to_imaging",
+  "cb2",
+  "to_surgeon_events",
+  "to_anaesthetist_concerns",
+  "to_nursing_sterility",
+  "time_out_by",
+  "time_out_time",
+  "sign_out_section",
+  "so_procedure_recorded",
+  "so_counts_correct",
+  "so_specimen_labelled",
+  "cb3",
+  "so_equipment_problems",
+  "so_recovery_reviewed",
+  "sign_out_by",
+  "sign_out_time"
+ ],
+ "autoname": "naming_series:",
+ "naming_rule": "By \"Naming Series\" field",
+ "title_field": "patient_name",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ]
+}

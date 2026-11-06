@@ -231,8 +231,82 @@ MOH = {
 }
 
 
+OPERATION_NOTE = [
+	{
+		"fieldname": "ke_theatre_booking",
+		"fieldtype": "Link",
+		"label": "Theatre Booking",
+		"options": "Theatre Booking",
+		"insert_after": "service_request",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "ke_operation_note_section",
+		"fieldtype": "Section Break",
+		"label": "Operation Note",
+		"insert_after": "notes",
+	},
+	{
+		"fieldname": "ke_indication",
+		"fieldtype": "Small Text",
+		"label": "Indication",
+		"insert_after": "ke_operation_note_section",
+	},
+	{
+		"fieldname": "ke_findings",
+		"fieldtype": "Small Text",
+		"label": "Findings",
+		"insert_after": "ke_indication",
+	},
+	{
+		"fieldname": "ke_procedure_details",
+		"fieldtype": "Text Editor",
+		"label": "Procedure Details",
+		"insert_after": "ke_findings",
+		"description": "Incision, steps, closure. Required to complete a theatre booking.",
+	},
+	{
+		"fieldname": "ke_operation_note_cb",
+		"fieldtype": "Column Break",
+		"insert_after": "ke_procedure_details",
+	},
+	{
+		"fieldname": "ke_estimated_blood_loss_ml",
+		"fieldtype": "Int",
+		"label": "Estimated Blood Loss (ml)",
+		"insert_after": "ke_operation_note_cb",
+	},
+	{
+		"fieldname": "ke_specimens",
+		"fieldtype": "Small Text",
+		"label": "Specimens Sent",
+		"insert_after": "ke_estimated_blood_loss_ml",
+	},
+	{
+		"fieldname": "ke_implants",
+		"fieldtype": "Small Text",
+		"label": "Implants / Drains",
+		"insert_after": "ke_specimens",
+	},
+	{
+		"fieldname": "ke_intraop_complications",
+		"fieldtype": "Small Text",
+		"label": "Complications",
+		"insert_after": "ke_implants",
+	},
+	{
+		"fieldname": "ke_post_op_instructions",
+		"fieldtype": "Small Text",
+		"label": "Post-operative Instructions",
+		"insert_after": "ke_intraop_complications",
+	},
+]
+for _field in OPERATION_NOTE:
+	_field["allow_on_submit"] = 1  # the procedure is submitted when theatre starts
+
+
 def apply():
-	for fields in (PATIENT, PRACTITIONER, CLAIM_COVERAGE, *MOH.values()):
+	for fields in (PATIENT, PRACTITIONER, CLAIM_COVERAGE, OPERATION_NOTE, *MOH.values()):
 		for field in fields:
 			field.setdefault("module", MODULE)
 	create_custom_fields(
@@ -240,6 +314,7 @@ def apply():
 			"Patient": PATIENT,
 			"Healthcare Practitioner": PRACTITIONER,
 			"Insurance Claim Coverage": CLAIM_COVERAGE,
+			"Clinical Procedure": OPERATION_NOTE,
 			**MOH,
 		},
 		update=True,

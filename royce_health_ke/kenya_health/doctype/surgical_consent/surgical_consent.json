@@ -1,0 +1,270 @@
+{
+ "actions": [],
+ "creation": "2026-11-08 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-08 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Surgical Consent",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "CONS-.YYYY.-",
+   "default": "CONS-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "theatre_booking",
+   "fieldtype": "Link",
+   "label": "Theatre Booking",
+   "options": "Theatre Booking",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "fetch_from": "theatre_booking.patient",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "theatre_booking.patient_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "procedure_template",
+   "fieldtype": "Link",
+   "label": "Procedure",
+   "options": "Clinical Procedure Template",
+   "fetch_from": "theatre_booking.procedure_template",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "consent_datetime",
+   "fieldtype": "Datetime",
+   "label": "Consent Date and Time",
+   "reqd": 1,
+   "default": "now"
+  },
+  {
+   "fieldname": "explained_by",
+   "fieldtype": "Link",
+   "label": "Explained By",
+   "options": "Healthcare Practitioner",
+   "reqd": 1
+  },
+  {
+   "fieldname": "explained_section",
+   "fieldtype": "Section Break",
+   "label": "What Was Explained"
+  },
+  {
+   "fieldname": "procedure_explained",
+   "fieldtype": "Small Text",
+   "label": "Procedure and Expected Benefit",
+   "reqd": 1
+  },
+  {
+   "fieldname": "risks_explained",
+   "fieldtype": "Small Text",
+   "label": "Risks and Complications",
+   "reqd": 1
+  },
+  {
+   "fieldname": "alternatives_explained",
+   "fieldtype": "Small Text",
+   "label": "Alternatives (including no treatment)"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "anaesthesia_consent",
+   "fieldtype": "Check",
+   "label": "Consents to Anaesthesia"
+  },
+  {
+   "fieldname": "blood_transfusion_consent",
+   "fieldtype": "Check",
+   "label": "Consents to Blood Transfusion if Needed"
+  },
+  {
+   "fieldname": "additional_procedures_consent",
+   "fieldtype": "Check",
+   "label": "Consents to Additional Necessary Procedures"
+  },
+  {
+   "fieldname": "consenter_section",
+   "fieldtype": "Section Break",
+   "label": "Consent Given By"
+  },
+  {
+   "fieldname": "consent_by",
+   "fieldtype": "Select",
+   "label": "Consent Given By",
+   "options": "Patient\nParent\nGuardian\nNext of kin",
+   "default": "Patient",
+   "reqd": 1
+  },
+  {
+   "fieldname": "consenter_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "relationship",
+   "fieldtype": "Data",
+   "label": "Relationship to Patient",
+   "depends_on": "eval:doc.consent_by!='Patient'"
+  },
+  {
+   "fieldname": "reason_not_patient",
+   "fieldtype": "Small Text",
+   "label": "Why the Patient Is Not Consenting",
+   "depends_on": "eval:doc.consent_by!='Patient'",
+   "description": "E.g. a minor, unconscious, lacks capacity."
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "witness_name",
+   "fieldtype": "Data",
+   "label": "Witness",
+   "reqd": 1
+  },
+  {
+   "fieldname": "interpreter",
+   "fieldtype": "Data",
+   "label": "Interpreter / Language"
+  },
+  {
+   "fieldname": "signed_form",
+   "fieldtype": "Attach",
+   "label": "Signed Form (scan)"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Surgical Consent",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1
+  }
+ ],
+ "field_order": [
+  "naming_series",
+  "theatre_booking",
+  "patient",
+  "patient_name",
+  "procedure_template",
+  "cb1",
+  "consent_datetime",
+  "explained_by",
+  "explained_section",
+  "procedure_explained",
+  "risks_explained",
+  "alternatives_explained",
+  "cb2",
+  "anaesthesia_consent",
+  "blood_transfusion_consent",
+  "additional_procedures_consent",
+  "consenter_section",
+  "consent_by",
+  "consenter_name",
+  "relationship",
+  "reason_not_patient",
+  "cb3",
+  "witness_name",
+  "interpreter",
+  "signed_form",
+  "amended_from"
+ ],
+ "autoname": "naming_series:",
+ "naming_rule": "By \"Naming Series\" field",
+ "title_field": "patient_name",
+ "is_submittable": 1,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  }
+ ]
+}

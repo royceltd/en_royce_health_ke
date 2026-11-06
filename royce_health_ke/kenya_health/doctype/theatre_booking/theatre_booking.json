@@ -1,0 +1,326 @@
+{
+ "actions": [],
+ "creation": "2026-11-08 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-08 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Theatre Booking",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "THB-.YYYY.-",
+   "default": "THB-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "patient.patient_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "procedure_template",
+   "fieldtype": "Link",
+   "label": "Procedure",
+   "options": "Clinical Procedure Template",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "label": "Priority",
+   "options": "Elective\nUrgent\nEmergency",
+   "default": "Elective",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Scheduled\nIn Theatre\nCompleted\nPostponed\nCancelled",
+   "default": "Scheduled",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "inpatient_record",
+   "fieldtype": "Link",
+   "label": "Inpatient Record",
+   "options": "Inpatient Record"
+  },
+  {
+   "fieldname": "service_request",
+   "fieldtype": "Link",
+   "label": "Service Request",
+   "options": "Service Request"
+  },
+  {
+   "fieldname": "schedule_section",
+   "fieldtype": "Section Break",
+   "label": "Schedule"
+  },
+  {
+   "fieldname": "theatre",
+   "fieldtype": "Link",
+   "label": "Theatre",
+   "options": "Healthcare Service Unit",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "scheduled_start",
+   "fieldtype": "Datetime",
+   "label": "Scheduled Start",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "duration_minutes",
+   "fieldtype": "Int",
+   "label": "Duration (minutes)",
+   "description": "Defaults to the procedure's duration, or 60."
+  },
+  {
+   "fieldname": "scheduled_end",
+   "fieldtype": "Datetime",
+   "label": "Scheduled End",
+   "read_only": 1
+  },
+  {
+   "fieldname": "team_section",
+   "fieldtype": "Section Break",
+   "label": "Team"
+  },
+  {
+   "fieldname": "surgeon",
+   "fieldtype": "Link",
+   "label": "Surgeon",
+   "options": "Healthcare Practitioner",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "assistant",
+   "fieldtype": "Link",
+   "label": "Assistant Surgeon",
+   "options": "Healthcare Practitioner"
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "anaesthetist",
+   "fieldtype": "Link",
+   "label": "Anaesthetist",
+   "options": "Healthcare Practitioner"
+  },
+  {
+   "fieldname": "scrub_nurse",
+   "fieldtype": "Data",
+   "label": "Scrub Nurse"
+  },
+  {
+   "fieldname": "authorisation_section",
+   "fieldtype": "Section Break",
+   "label": "Insurance Pre-authorisation"
+  },
+  {
+   "fieldname": "pre_authorisation",
+   "fieldtype": "Select",
+   "label": "Pre-authorisation",
+   "options": "Not required\nPending\nApproved\nDeclined",
+   "default": "Not required"
+  },
+  {
+   "fieldname": "cb4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pre_authorisation_reference",
+   "fieldtype": "Data",
+   "label": "Pre-authorisation Reference",
+   "depends_on": "eval:doc.pre_authorisation!='Not required'"
+  },
+  {
+   "fieldname": "records_section",
+   "fieldtype": "Section Break",
+   "label": "Theatre Records"
+  },
+  {
+   "fieldname": "surgical_consent",
+   "fieldtype": "Link",
+   "label": "Surgical Consent",
+   "options": "Surgical Consent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "safety_checklist",
+   "fieldtype": "Link",
+   "label": "Surgical Safety Checklist",
+   "options": "Surgical Safety Checklist",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "anaesthesia_record",
+   "fieldtype": "Link",
+   "label": "Anaesthesia Record",
+   "options": "Anaesthesia Record",
+   "read_only": 1
+  },
+  {
+   "fieldname": "clinical_procedure",
+   "fieldtype": "Link",
+   "label": "Clinical Procedure",
+   "options": "Clinical Procedure",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes_section",
+   "fieldtype": "Section Break",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "status_reason",
+   "fieldtype": "Small Text",
+   "label": "Postponed / Cancelled Reason",
+   "depends_on": "eval:['Postponed','Cancelled'].includes(doc.status)"
+  }
+ ],
+ "field_order": [
+  "naming_series",
+  "patient",
+  "patient_name",
+  "procedure_template",
+  "priority",
+  "cb1",
+  "status",
+  "company",
+  "inpatient_record",
+  "service_request",
+  "schedule_section",
+  "theatre",
+  "scheduled_start",
+  "cb2",
+  "duration_minutes",
+  "scheduled_end",
+  "team_section",
+  "surgeon",
+  "assistant",
+  "cb3",
+  "anaesthetist",
+  "scrub_nurse",
+  "authorisation_section",
+  "pre_authorisation",
+  "cb4",
+  "pre_authorisation_reference",
+  "records_section",
+  "surgical_consent",
+  "safety_checklist",
+  "cb5",
+  "anaesthesia_record",
+  "clinical_procedure",
+  "notes_section",
+  "notes",
+  "status_reason"
+ ],
+ "autoname": "naming_series:",
+ "naming_rule": "By \"Naming Series\" field",
+ "title_field": "patient_name",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ]
+}

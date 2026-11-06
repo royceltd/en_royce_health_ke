@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "creation": "2026-11-08 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-08 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Anaesthesia Vital",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "time",
+   "fieldtype": "Time",
+   "label": "Time",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "pulse",
+   "fieldtype": "Int",
+   "label": "Pulse",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "bp_systolic",
+   "fieldtype": "Int",
+   "label": "BP Sys",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "bp_diastolic",
+   "fieldtype": "Int",
+   "label": "BP Dia",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "spo2",
+   "fieldtype": "Int",
+   "label": "SpO2 %",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "etco2",
+   "fieldtype": "Int",
+   "label": "EtCO2",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "temperature",
+   "fieldtype": "Float",
+   "label": "Temp",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Data",
+   "label": "Remarks",
+   "in_list_view": 1,
+   "columns": 3
+  }
+ ],
+ "field_order": [
+  "time",
+  "pulse",
+  "bp_systolic",
+  "bp_diastolic",
+  "spo2",
+  "etco2",
+  "temperature",
+  "remarks"
+ ],
+ "istable": 1,
+ "editable_grid": 1,
+ "permissions": []
+}
