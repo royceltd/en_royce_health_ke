@@ -153,8 +153,38 @@ PRACTITIONER = [
 ]
 
 
+CLAIM_COVERAGE = [
+	{
+		"fieldname": "ke_rejection_settlement",
+		"fieldtype": "Select",
+		"label": "Rejection Settled By",
+		"options": "\nBill Patient\nWrite Off",
+		"insert_after": "payment_error_reason",
+		"read_only": 1,
+		"allow_on_submit": 1,
+		"in_list_view": 1,
+	},
+	{
+		"fieldname": "ke_settlement_entry",
+		"fieldtype": "Link",
+		"label": "Settlement Entry",
+		"options": "Journal Entry",
+		"insert_after": "ke_rejection_settlement",
+		"read_only": 1,
+		"allow_on_submit": 1,
+	},
+]
+
+
 def apply():
-	for fields in (PATIENT, PRACTITIONER):
+	for fields in (PATIENT, PRACTITIONER, CLAIM_COVERAGE):
 		for field in fields:
 			field.setdefault("module", MODULE)
-	create_custom_fields({"Patient": PATIENT, "Healthcare Practitioner": PRACTITIONER}, update=True)
+	create_custom_fields(
+		{
+			"Patient": PATIENT,
+			"Healthcare Practitioner": PRACTITIONER,
+			"Insurance Claim Coverage": CLAIM_COVERAGE,
+		},
+		update=True,
+	)

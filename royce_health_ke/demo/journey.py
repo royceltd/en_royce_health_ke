@@ -347,11 +347,13 @@ def _register():
 
 
 def _services(patient, customer, company):
-	"""What Marley's 'Get Items from Healthcare Services' offers the cashier."""
+	"""What Marley's 'Get Items from Healthcare Services' offers the cashier,
+	with every key it returns (insurance coverage included) passed through."""
 	from healthcare.healthcare.utils import get_healthcare_services_to_invoice
 
 	return [
 		{
+			**s,
 			"dn": s["reference_name"],
 			"dt": s["reference_type"],
 			"item": s["service"],
@@ -385,8 +387,6 @@ def _bill(company, patient, customer, posting_date, remarks, lines, extra=(), wa
 	for row in si.items:
 		if row.item_code in DISPENSED:
 			row.qty = DISPENSED[row.item_code]
-		if row.reference_dt == "Inpatient Occupancy":
-			row.qty = nights(row.reference_dn)
 		if warehouse:
 			row.warehouse = warehouse
 	si.set_missing_values()
@@ -398,15 +398,6 @@ def _bill(company, patient, customer, posting_date, remarks, lines, extra=(), wa
 	si.insert(ignore_permissions=True)
 	si.submit()
 	return si
-
-
-def nights(occupancy):
-	"""Bed charge by nights, as Kenyan hospitals bill: midnights between
-	check-in and check-out (or now), at least one. Marley bills hours / 24,
-	a fraction ("Nos" refuses it). TODO workstream 3: make this the product's
-	bed-day rule, configurable per hospital."""
-	check_in, check_out = frappe.db.get_value("Inpatient Occupancy", occupancy, ["check_in", "check_out"])
-	return max(1, (getdate(check_out or now_datetime()) - getdate(check_in)).days)
 
 
 def _pay(si, reference):

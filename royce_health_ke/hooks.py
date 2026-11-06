@@ -21,7 +21,11 @@ after_migrate = "royce_health_ke.setup.install.after_migrate"
 doc_events = {
 	"Patient": {"validate": "royce_health_ke.identity.validate_patient"},
 	"Healthcare Practitioner": {"validate": "royce_health_ke.identity.validate_practitioner"},
+	"Sales Invoice": {"before_validate": "royce_health_ke.billing.apply_bed_charge_basis"},
+	"Journal Entry": {"on_cancel": "royce_health_ke.claims.on_settlement_cancel"},
 }
+
+doctype_js = {"Insurance Claim": "public/js/insurance_claim.js"}
 
 scheduler_events = {
 	"daily": ["royce_health_ke.identity.remind_licence_expiry"],

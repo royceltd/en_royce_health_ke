@@ -11,7 +11,7 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 | 0. Foundation: app, Marley fixes, demo loader | Done |
 | 1. Kenyan identifiers and code sets (ICD-11/10, LOINC, PPB) | Done (ICD-10, LOINC, PPB lists to load from source files) |
 | 2. SHA / HIE connector | Waiting for AfyaConnect sandbox approval |
-| 3. Billing and private insurance | Next |
+| 3. Billing and private insurance | Done: bed nights, insured visits on Marley's model, claim rejections. Slade360 and separate insurer invoices pending |
 | 4. Maternity, 5. Theatre, 6. Radiology | Planned |
 | 7. MOH reports, KHIS, dashboards | Planned |
 | 8. Kitchen, laundry | Planned |
@@ -45,6 +45,15 @@ Stored in Marley's Code System / Code Value, FHIR-shaped (system URI + code + di
 | PPB product codes | Pharmacy and Poisons Board register | `import_csv("PPB Product Code", <file url>)` |
 
 `royce_health_ke.codes.set_coding(doc, system, code)` attaches a code to a Diagnosis, Lab Test Template or Medication.
+
+### Billing and insurance
+
+- **Bed charge basis** (Kenya Health Settings): *Per night* (default) charges one bed day per midnight in the ward, at least one; *Per 24 hours* keeps Marley's hours / 24.
+- **Insured patients** use Marley's model: services ordered under a policy get a Patient Insurance Coverage (automatic, or manual = pre-authorisation); the patient's invoice carries the insurer's share per line and a journal entry moves it to the insurer's claims receivable, so the cashier collects only the copay. One eTIMS invoice, to the patient, for the full amount.
+- **Insurance Claim** per visit: approve or reject each line, then the insurer's payment.
+- **Rejected lines** (missing in Marley): *Settle Rejected Lines* on the claim either bills the patient (no new eTIMS invoice needed) or writes the amount off to the insurer's Rejected Claims expense account. Cancelling the settlement entry reopens the line.
+
+Open: whether insurers need an eTIMS invoice addressed to them (separate insurer invoice), pending a tax adviser's view; Slade360 integration pending API access.
 
 ### Marley fixes
 

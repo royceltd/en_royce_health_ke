@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "creation": "2026-11-07 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "billing_section",
+  "bed_charge_basis"
+ ],
+ "fields": [
+  {
+   "fieldname": "billing_section",
+   "fieldtype": "Section Break",
+   "label": "Billing"
+  },
+  {
+   "fieldname": "bed_charge_basis",
+   "fieldtype": "Select",
+   "label": "Bed Charge Basis",
+   "options": "Per night\nPer 24 hours",
+   "default": "Per night",
+   "description": "Per night: one charge for each midnight in the ward (at least one), as Kenyan hospitals bill. Per 24 hours: Marley's default, hours in the bed divided by the unit type's hours."
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-07 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Kenya Health Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "share": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
