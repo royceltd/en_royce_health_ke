@@ -5,7 +5,13 @@
  "engine": "InnoDB",
  "field_order": [
   "billing_section",
-  "bed_charge_basis"
+  "bed_charge_basis",
+  "pharmacy_section",
+  "pharmacy_item_group",
+  "pharmacy_warehouse",
+  "pharmacy_column",
+  "expiry_warning_days",
+  "min_days_of_cover"
  ],
  "fields": [
   {
@@ -20,11 +26,49 @@
    "options": "Per night\nPer 24 hours",
    "default": "Per night",
    "description": "Per night: one charge for each midnight in the ward (at least one), as Kenyan hospitals bill. Per 24 hours: Marley's default, hours in the bed divided by the unit type's hours."
+  },
+  {
+   "fieldname": "pharmacy_section",
+   "fieldtype": "Section Break",
+   "label": "Pharmacy Stock Dashboard"
+  },
+  {
+   "fieldname": "pharmacy_item_group",
+   "fieldtype": "Link",
+   "options": "Item Group",
+   "label": "Medicines Item Group",
+   "default": "Drug",
+   "description": "Stock items in this group (and its sub-groups) are the medicines the pharmacy dashboard tracks."
+  },
+  {
+   "fieldname": "pharmacy_warehouse",
+   "fieldtype": "Link",
+   "options": "Warehouse",
+   "label": "Pharmacy Warehouse",
+   "description": "The pharmacy's store, or a group warehouse that holds all pharmacy stores. Blank = every warehouse of the company."
+  },
+  {
+   "fieldname": "pharmacy_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "expiry_warning_days",
+   "fieldtype": "Int",
+   "label": "Expiry Warning (Days)",
+   "default": "90",
+   "description": "A medicine with a batch in stock that expires within this many days shows as Expiring."
+  },
+  {
+   "fieldname": "min_days_of_cover",
+   "fieldtype": "Int",
+   "label": "Minimum Days of Cover",
+   "default": "14",
+   "description": "Stock that lasts fewer days than this at the last 30 days' rate of use shows as Low Cover."
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-07 12:00:00.000000",
+ "modified": "2026-11-07 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

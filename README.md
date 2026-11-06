@@ -15,7 +15,7 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 | 4. Maternity | ANC, labour and delivery, newborn, PNC done (to align with the client's forms); maternity billing packages pending |
 | 5. Theatre | Booking, consent, WHO checklist, anaesthesia record, operation note done |
 | 6. Radiology | Worklist, perform/report/verify, accession numbers, MOH 717 imaging done; PACS/modality integration pending |
-| 7. MOH reports, KHIS, dashboards | MOH 705A/B and 717 done (mappings to confirm with the HRIO); KHIS submission and dashboards pending |
+| 7. MOH reports, KHIS, dashboards | MOH 705A/B and 717 done (mappings to confirm with the HRIO); management dashboards done; MOH 711/710 and KHIS submission pending |
 | 8. Kitchen, laundry | Planned |
 | 9. Go-live readiness | Planned |
 
@@ -90,6 +90,20 @@ Built on Marley's imaging Observations (Observation Template category *Imaging*,
 
 DICOM/HL7 integration with the hospital's X-ray and ultrasound equipment comes once their equipment is known; until then images are attached or linked.
 
+### Management dashboards
+
+The **Kenya Health** workspace (sidebar: Kenya Health > Home) opens on the hospital's management dashboard. Each chart has Company and Period filters (Today, This Week, This Month, Last Month, This Quarter, This Year, Last 30 Days, Last 12 Months).
+
+| Dashboard | Shows | Worked out from |
+|---|---|---|
+| Revenue by department | Net sales (before VAT, credit notes deducted) per department, split into the patients' and the insurers' share | What each invoice line was for: consultation, lab test, imaging, procedure, medicine, bed; hand-added charges while admitted count as Inpatient. An Item Group's *Revenue Department* overrides this |
+| Bed occupancy | Occupied and vacant beds per ward now; daily occupancy % (midnight census); average occupancy over 30 days | Healthcare Service Units that take inpatient occupancy, and Marley's inpatient occupancy rows |
+| SHA and insurance claims | Per payor: not yet claimed, awaiting payment, paid, rejected | Patient Insurance Coverage (invoiced, on no submitted claim) and Insurance Claims |
+| Practitioner activity | Consultations, procedures and admissions per practitioner (top 15) | Submitted encounters, completed clinical procedures, inpatient records |
+| Pharmacy stock | Medicines out of stock, below reorder level and expiring; stock value | **Pharmacy Stock Status** report: stock, reorder level, daily use over 30 days, days of cover, nearest batch expiry |
+
+Kenya Health Settings sets the medicines item group (default Drug), the pharmacy warehouse (a group warehouse covers several stores), the expiry warning (90 days) and the minimum days of cover (14). Each card and chart needs read access to its records (Sales Invoice, Inpatient Record, Insurance Claim, Patient Encounter, Bin), so a nurse doesn't see revenue.
+
 ### MOH reports
 
 - **MOH 705 Outpatient Summary** (705A under 5 / 705B 5 and over): one row per indicator, days 1-31 and total. Rows are **MOH 705 Indicator** records, mapped to ICD-10/ICD-11 code prefixes, specific Diagnoses or lab tests, so the Health Records Officer can correct them. A diagnosis counts on its longest matching prefix; unmatched ones go to "All other diseases". New cases only (once per patient per indicator per month); first attendance = first outpatient day of the calendar year.
@@ -112,6 +126,8 @@ A fictional private hospital, **Kijani Valley Hospital Ltd**, and one patient's 
 bench --site <demo-site> set-config royce_health_demo 1
 bench --site <demo-site> execute royce_health_ke.demo.load
 ```
+
+The demo pharmacy has reorder levels, so the dashboard shows amoxicillin below its level.
 
 The loader refuses to run unless the site opts in, so it can't touch a client's live data. It is safe to run again.
 

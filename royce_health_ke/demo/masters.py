@@ -437,6 +437,30 @@ def _pharmacy(company):
 				}
 			).insert(ignore_permissions=True)
 		set_item_tax(company, code)
+		# Marley names the item after its code; the pharmacy report reads better with the medicine
+		if frappe.db.get_value("Item", code, "item_name") == code:
+			frappe.db.set_value("Item", code, "item_name", f"{generic} {strength}mg {form}")
+	_reorder_levels(company)
+
+
+def _reorder_levels(company):
+	"""Reorder levels in the pharmacy store, so the pharmacy dashboard has
+	something to flag: amoxicillin's level sits above the stock the demo buys."""
+	warehouse = f"Stores - {abbr(company)}"
+	for code, level, qty in (("DRG-AMX500", 600, 1000), ("DRG-PCM500", 200, 1000), ("DRG-AL20120", 100, 300)):
+		if not frappe.db.exists("Item", code) or frappe.db.exists("Item Reorder", {"parent": code}):
+			continue
+		item = frappe.get_doc("Item", code)
+		item.append(
+			"reorder_levels",
+			{
+				"warehouse": warehouse,
+				"warehouse_reorder_level": level,
+				"warehouse_reorder_qty": qty,
+				"material_request_type": "Purchase",
+			},
+		)
+		item.save(ignore_permissions=True)
 
 
 def medication(item_code):

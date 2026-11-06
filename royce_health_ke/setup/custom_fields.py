@@ -453,8 +453,20 @@ for _field in IMAGING_OBSERVATION:
 	_field["allow_on_submit"] = 1
 
 
+ITEM_GROUP = [
+	{
+		"fieldname": "ke_revenue_department",
+		"fieldtype": "Data",
+		"label": "Revenue Department",
+		"insert_after": "parent_item_group",
+		"description": "Department the management dashboard counts this group's sales under. Blank = worked out from what was ordered (consultation, lab test, imaging, procedure, medicine, bed).",
+	},
+]
+
+
 def apply():
 	for fields in (
+		ITEM_GROUP,
 		PATIENT,
 		PRACTITIONER,
 		CLAIM_COVERAGE,
@@ -473,6 +485,7 @@ def apply():
 			"Clinical Procedure": OPERATION_NOTE,
 			"Observation Template": IMAGING_TEMPLATE,
 			"Observation": IMAGING_OBSERVATION,
+			"Item Group": ITEM_GROUP,
 			**MOH,
 		},
 		update=True,
