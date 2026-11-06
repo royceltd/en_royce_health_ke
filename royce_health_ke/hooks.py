@@ -15,8 +15,17 @@ required_apps = ["frappe/erpnext", "healthcare"]
 # Installation
 # ------------
 
-after_install = "royce_health_ke.setup.marley_fixes.apply"
-after_migrate = "royce_health_ke.setup.marley_fixes.apply"
+after_install = "royce_health_ke.setup.install.after_install"
+after_migrate = "royce_health_ke.setup.install.after_migrate"
+
+doc_events = {
+	"Patient": {"validate": "royce_health_ke.identity.validate_patient"},
+	"Healthcare Practitioner": {"validate": "royce_health_ke.identity.validate_practitioner"},
+}
+
+scheduler_events = {
+	"daily": ["royce_health_ke.identity.remind_licence_expiry"],
+}
 
 # Apps
 # ------------------

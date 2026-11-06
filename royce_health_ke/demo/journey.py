@@ -32,6 +32,16 @@ DEMO_ITEMS = (
 	"DRG-PCM500",
 	"DRG-AMX500",
 )
+IDENTIFIERS = {
+	"ke_id_type": "National ID",
+	"ke_id_number": "0001234",
+	"ke_sha_number": "DEMO-SHA-001",
+	"ke_county": "Nakuru",
+	"ke_sub_county": "Nakuru East",
+	"ke_nok_name": "John Mwangi",
+	"ke_nok_relationship": "Spouse",
+	"ke_nok_phone": "0712 000 002",
+}
 LAB_RESULTS = {
 	"Malaria Blood Slide (BS for MPS)": "P. falciparum seen (++), trophozoites",
 	"Haemoglobin (Hb)": "10.8",
@@ -47,6 +57,10 @@ def run(company):
 		"Patient", {"first_name": PATIENT["first_name"], "last_name": PATIENT["last_name"]}
 	)
 	if existing:
+		if not frappe.db.get_value("Patient", existing, "ke_id_type"):
+			patient = frappe.get_doc("Patient", existing)
+			patient.update(IDENTIFIERS)
+			patient.save(ignore_permissions=True)
 		return {"patient": existing, "created": False}
 
 	a = masters.abbr(company)
@@ -110,7 +124,7 @@ def run(company):
 			"encounter_date": day1,
 			"encounter_time": "10:20:00",
 			"symptoms": [{"complaint": c} for c in ("Fever", "Headache", "Chills", "Joint pains")],
-			"diagnosis": [{"diagnosis": "Malaria, uncomplicated (ICD-10 B54)"}],
+			"diagnosis": [{"diagnosis": "Malaria due to P. falciparum, uncomplicated"}],
 			"lab_test_prescription": [{"lab_test_code": name} for name in LAB_RESULTS],
 			"drug_prescription": [
 				{
@@ -172,8 +186,8 @@ def run(company):
 			"encounter_time": "12:30:00",
 			"symptoms": [{"complaint": "Vomiting"}, {"complaint": "Fever"}],
 			"diagnosis": [
-				{"diagnosis": "Malaria, uncomplicated (ICD-10 B54)"},
-				{"diagnosis": "Anaemia, unspecified (ICD-10 D64.9)"},
+				{"diagnosis": "Malaria due to P. falciparum, uncomplicated"},
+				{"diagnosis": "Anaemia, unspecified"},
 			],
 			"encounter_comment": "Results: BS for MPS P. falciparum ++, Hb 10.8 g/dL, WBC 6.2. Vomited x2 in the "
 			"waiting bay, unable to keep oral meds. Admit for observation, antiemetic and supervised first AL doses.",
@@ -217,7 +231,7 @@ def run(company):
 			"company": company,
 			"encounter_date": day1,
 			"encounter_time": "18:00:00",
-			"diagnosis": [{"diagnosis": "Malaria, uncomplicated (ICD-10 B54)"}],
+			"diagnosis": [{"diagnosis": "Malaria due to P. falciparum, uncomplicated"}],
 			"encounter_comment": "Ward round: no further vomiting, tolerating AL. T 37.4. Plan discharge in the "
 			"morning with remaining AL doses; OPD review in 7 days with repeat Hb.",
 		},
@@ -326,8 +340,8 @@ def _register():
 			"occupation": "Teacher",
 			"marital_status": "Married",
 			"allergies": "No known drug allergies",
-			"patient_details": "DEMO PATIENT - fictional. National ID: DEMO-29384756. SHA No: DEMO-SHA-001. "
-			"Next of kin: John Mwangi (husband) +254712000002",
+			"patient_details": "DEMO PATIENT - fictional person and identifiers.",
+			**IDENTIFIERS,
 		}
 	).name
 

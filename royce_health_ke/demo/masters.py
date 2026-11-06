@@ -5,8 +5,9 @@
 medicines and prices for the fictional Kijani Valley Hospital."""
 
 import frappe
-from frappe.utils import getdate
+from frappe.utils import add_days, getdate, today
 
+from royce_health_ke.codes import ICD10, ICD11, LOINC, set_coding
 from royce_health_ke.utils import installed
 
 # KRA's sandbox only lists 26 item classifications (animals, zero-rated goods),
@@ -30,6 +31,23 @@ LAB_TESTS = (
 	("LAB-HB", "Haemoglobin (Hb)", 400, "g/dL", "F 12.0 - 15.5 / M 13.5 - 17.5", "Whole Blood (EDTA)"),
 	("LAB-WBC", "White Cell Count (WBC)", 400, "x10^9/L", "4.0 - 11.0", "Whole Blood (EDTA)"),
 )
+
+# Diagnosis -> (ICD-11 MMS, ICD-10, ICD-10 title). ICD-11 is loaded from WHO;
+# ICD-10 codes are created on demand with these titles.
+DIAGNOSES = {
+	"Malaria due to P. falciparum, uncomplicated": (
+		"1F40.Z",
+		"B50.9",
+		"Plasmodium falciparum malaria, unspecified",
+	),
+	"Anaemia, unspecified": ("3A9Z", "D64.9", "Anaemia, unspecified"),
+}
+# Lab test code -> LOINC (code, long common name).
+LAB_LOINC = {
+	"LAB-BSMPS": ("32700-7", "Microscopic observation [Identifier] in Blood by Malaria smear"),
+	"LAB-HB": ("718-7", "Hemoglobin [Mass/volume] in Blood"),
+	"LAB-WBC": ("6690-2", "Leukocytes [#/volume] in Blood by Automated count"),
+}
 
 MEDICINES = (
 	# generic name, class, strength (mg), form, item code, price per unit (KES), cost
@@ -162,8 +180,13 @@ def load(company):
 	_lab(company)
 	_pharmacy(company)
 
-	for dx in ("Malaria, uncomplicated (ICD-10 B54)", "Anaemia, unspecified (ICD-10 D64.9)"):
-		ensure("Diagnosis", dx, {"diagnosis": dx})
+	for dx, (icd11, icd10, icd10_title) in DIAGNOSES.items():
+		diagnosis = ensure("Diagnosis", dx, {"diagnosis": dx})
+		if not diagnosis.get("codification_table"):
+			set_coding(diagnosis, ICD11, icd11, dx)
+			set_coding(diagnosis, ICD10, icd10, icd10_title)
+			diagnosis.save(ignore_permissions=True)
+	_facility(company, a)
 	for complaint in ("Fever", "Headache", "Chills", "Joint pains", "Vomiting"):
 		ensure("Complaint", complaint, {"complaints": complaint})
 
@@ -266,8 +289,32 @@ def _practitioners(a):
 			],
 		},
 	)
+	registration = {
+		"Amina": {
+			"ke_cadre": "Medical Officer",
+			"ke_registration_number": "DEMO-A1234",
+			"ke_licence_number": "DEMO-L-1001",
+		},
+		"Brian": {
+			"ke_cadre": "Specialist",
+			"ke_registration_number": "DEMO-B5678",
+			"ke_licence_number": "DEMO-L-1002",
+		},
+	}
+	# Brian's licence runs out in 14 days, so the expiry reminder shows today.
+	licence_days = {"Amina": 200, "Brian": 14}
 	for first, last, gender in (("Amina", "Achieng", "Female"), ("Brian", "Kiprotich", "Male")):
-		if frappe.db.exists("Healthcare Practitioner", {"first_name": first, "last_name": last}):
+		reg = {
+			**registration[first],
+			"ke_regulator": "KMPDC",
+			"ke_licence_expiry": add_days(today(), licence_days[first]),
+		}
+		existing = frappe.db.get_value("Healthcare Practitioner", {"first_name": first, "last_name": last})
+		if existing:
+			if not frappe.db.get_value("Healthcare Practitioner", existing, "ke_licence_number"):
+				doc = frappe.get_doc("Healthcare Practitioner", existing)
+				doc.update(reg)
+				doc.save(ignore_permissions=True)
 			continue
 		frappe.get_doc(
 			{
@@ -284,8 +331,31 @@ def _practitioners(a):
 				"practitioner_schedules": [
 					{"schedule": "OPD Daily 08-17", "service_unit": f"OPD Room 1 - {a}"}
 				],
+				**reg,
 			}
 		).insert(ignore_permissions=True)
+
+
+def _facility(company, a):
+	"""The demo's one facility. KMHFL 00000 and the SHA code are placeholders."""
+	if frappe.db.exists("Health Facility", {"company": company}):
+		return
+	branch = "Kijani Valley Hospital - Main (00)"
+	frappe.get_doc(
+		{
+			"doctype": "Health Facility",
+			"facility_name": "Kijani Valley Hospital - Main",
+			"company": company,
+			"keph_level": "Level 4",
+			"ownership": "Private",
+			"kmhfl_code": "00000",
+			"sha_facility_code": "DEMO-FID-0001",
+			"county": "Nakuru",
+			"sub_county": "Nakuru East",
+			"branch": branch if frappe.db.exists("Branch", branch) else None,
+			"healthcare_service_unit": f"Kijani Valley Hospital - {a}",
+		}
+	).insert(ignore_permissions=True)
 
 
 def _lab(company):
@@ -312,7 +382,11 @@ def _lab(company):
 					"sample_uom": "mL",
 				}
 			).insert(ignore_permissions=True)
-		set_item_tax(company, frappe.db.get_value("Lab Test Template", name, "item"))
+		template = frappe.get_doc("Lab Test Template", name)
+		set_item_tax(company, template.item)
+		if code in LAB_LOINC and not template.get("codification_table"):
+			set_coding(template, LOINC, *LAB_LOINC[code])
+			template.save(ignore_permissions=True)
 
 
 def _pharmacy(company):

@@ -9,9 +9,9 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 | Workstream | State |
 |---|---|
 | 0. Foundation: app, Marley fixes, demo loader | Done |
-| 1. Kenyan identifiers and code sets (ICD-11/10, LOINC, PPB) | Next |
+| 1. Kenyan identifiers and code sets (ICD-11/10, LOINC, PPB) | Done (ICD-10, LOINC, PPB lists to load from source files) |
 | 2. SHA / HIE connector | Waiting for AfyaConnect sandbox approval |
-| 3. Billing and private insurance | Planned |
+| 3. Billing and private insurance | Next |
 | 4. Maternity, 5. Theatre, 6. Radiology | Planned |
 | 7. MOH reports, KHIS, dashboards | Planned |
 | 8. Kitchen, laundry | Planned |
@@ -26,6 +26,25 @@ bench --site <site> install-app erpnext healthcare royce_health_ke
 ```
 
 Install the other RoyceERP apps first if the hospital uses them. A company must exist before `kenyan_accountant` and `royce_payroll_ke` can set it up: run their `provision(company)` after the setup wizard.
+
+### Kenyan identifiers
+
+- **Patient:** ID type and number (copied to Marley's unique UID, duplicates refused with the existing patient named), SHA member number, Client Registry ID (from the HIE), county and sub-county, next of kin. Kenyan phone numbers are normalised to +254.
+- **Healthcare Practitioner:** cadre, regulator (KMPDC, NCK, COC, PPB, KMLTTB), registration and practising licence numbers, licence expiry, Health Worker Registry ID (from the HIE). Healthcare Administrators get a notification 30, 14, 7 and 1 day(s) before a licence expires, then weekly once expired.
+- **Health Facility** (new): one per site - company, KEPH level, KMHFL code, SHA facility code, county, branch (and so the eTIMS branch), service unit group.
+
+### Code sets
+
+Stored in Marley's Code System / Code Value, FHIR-shaped (system URI + code + display) for the HIE.
+
+| Code system | Source | Load with |
+|---|---|---|
+| ICD-11 MMS | WHO, downloaded at setup (CC BY-ND 3.0 IGO, not bundled) | `bench --site <site> execute royce_health_ke.codes.sync_icd11` (35,664 codes, about 5 s) |
+| ICD-10 | WHO ICD-10 file the hospital holds | `royce_health_ke.codes.import_csv("ICD-10", <file url>)` |
+| LOINC | LoincTableCore.csv (free loinc.org account) | `import_csv("LOINC", <file url>, "LOINC_NUM", "LONG_COMMON_NAME")` |
+| PPB product codes | Pharmacy and Poisons Board register | `import_csv("PPB Product Code", <file url>)` |
+
+`royce_health_ke.codes.set_coding(doc, system, code)` attaches a code to a Diagnosis, Lab Test Template or Medication.
 
 ### Marley fixes
 
