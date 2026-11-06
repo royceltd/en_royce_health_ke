@@ -25,6 +25,8 @@ DEMO_ITEMS = (
 	"NURS-IP",
 	"KIT-ADM",
 	"WARD-GEN",
+	"MAT-PKG-NVD",
+	"MAT-PKG-CS",
 	"LAB-BSMPS",
 	"LAB-HB",
 	"LAB-WBC",

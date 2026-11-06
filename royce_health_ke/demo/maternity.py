@@ -32,9 +32,15 @@ MOTHER = {
 
 
 def run(company):
+	setup_packages(company)
 	existing = frappe.db.get_value("Patient", {"first_name": "Faith", "last_name": "Wambui"})
 	if existing:
-		return {"patient": existing, "created": False, "family_planning": family_planning(company, existing)}
+		return {
+			"patient": existing,
+			"created": False,
+			"family_planning": family_planning(company, existing),
+			"discharge_bill": discharge_bill(company, existing),
+		}
 	amina = frappe.db.get_value("Healthcare Practitioner", {"first_name": "Amina"})
 	mother = journey._insert({"doctype": "Patient", **MOTHER, "dob": f"{getdate().year - 27}-02-10"}).name
 	lmp = add_days(today(), -276)  # 39 weeks 3 days today
@@ -190,6 +196,7 @@ def run(company):
 	)
 	delivery.reload()
 	fp = family_planning(company, mother)
+	bill = discharge_bill(company, mother)
 	return {
 		"patient": mother,
 		"created": True,
@@ -198,6 +205,7 @@ def run(company):
 		"baby": delivery.babies[0].baby_patient,
 		"labour_alerts": [r.alert for r in delivery.labour_observations if r.alert],
 		"family_planning": fp,
+		"discharge_bill": bill,
 	}
 
 
@@ -223,3 +231,73 @@ def family_planning(company, mother):
 		},
 		submit=True,
 	).name
+
+
+# Demo prices, not SHA's tariff: a hospital enters its own and SHA's current rates.
+PACKAGES = (
+	("Normal Delivery (Cash)", "Vaginal delivery", "MAT-PKG-NVD", "Normal Delivery Package", 25000, 2),
+	("Caesarean Section (Cash)", "Caesarean section", "MAT-PKG-CS", "Caesarean Section Package", 85000, 4),
+)
+
+
+def setup_packages(company):
+	from royce_health_ke.demo import masters
+
+	for name, kind, code, item_name, rate, nights in PACKAGES:
+		masters.item(company, code, item_name, "Services", rate)
+		if frappe.db.exists("Maternity Package", name):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Maternity Package",
+				"package_name": name,
+				"delivery_type": kind,
+				"item": code,
+				"rate": rate,
+				"included_nights": nights,
+				"covered": [
+					{"item_group": "Drug"},
+					{"item_code": "NURS-IP"},
+					{"item_code": "KIT-ADM"},
+				],
+				"notes": "DEMO PRICE - not an SHA tariff.",
+			}
+		).insert(ignore_permissions=True)
+
+
+def discharge_bill(company, mother):
+	"""Faith's discharge bill: the normal delivery package, with her nursing
+	care and paracetamol included at zero."""
+	from royce_health_ke.packages import choose_package
+
+	delivery = frappe.get_doc("Delivery Record", {"patient": mother, "docstatus": 1})
+	if delivery.invoiced:
+		name = frappe.db.get_value(
+			"Sales Invoice Item",
+			{"reference_dt": "Delivery Record", "reference_dn": delivery.name, "docstatus": 1},
+			"parent",
+		)
+		if (
+			journey._etims_active(company)
+			and frappe.db.get_value("Sales Invoice", name, "royce_etims_status") != "Sent"
+		):
+			journey._register_items(company)
+			journey._sign(frappe.get_doc("Sales Invoice", name))
+		return name
+	if not delivery.maternity_package:
+		choose_package(delivery)
+		delivery.db_set("maternity_package", delivery.maternity_package)
+	bill = journey._bill(
+		company,
+		mother,
+		frappe.db.get_value("Patient", mother, "customer"),
+		today(),
+		"Discharge: normal delivery",
+		[],
+		extra=(("NURS-IP", 1), ("DRG-PCM500", 10)),
+	)
+	journey._pay(bill, "TKF7DEMO06")
+	if journey._etims_active(company):
+		journey._register_items(company)
+		journey._sign(bill)
+	return bill.name

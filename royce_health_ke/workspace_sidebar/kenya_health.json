@@ -341,6 +341,18 @@
    "icon": "",
    "indent": 0,
    "keep_closed": 0,
+   "label": "Maternity Package",
+   "link_to": "Maternity Package",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "",
+   "indent": 0,
+   "keep_closed": 0,
    "label": "MOH 705 Indicator",
    "link_to": "MOH 705 Indicator",
    "link_type": "DocType",

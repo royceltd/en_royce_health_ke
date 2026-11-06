@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-07 18:00:00.000000",
+ "modified": "2026-11-08 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Delivery Record",
@@ -264,6 +264,39 @@
    "label": "Notes"
   },
   {
+   "fieldname": "billing_section",
+   "fieldtype": "Section Break",
+   "label": "Billing",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "maternity_package",
+   "fieldtype": "Link",
+   "label": "Maternity Package",
+   "options": "Maternity Package",
+   "allow_on_submit": 1,
+   "description": "Chosen from the mode of delivery and the admission's insurer; change it before the discharge bill if needed."
+  },
+  {
+   "fieldname": "billing_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "invoiced",
+   "fieldtype": "Check",
+   "label": "Package Invoiced",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "package_coverage",
+   "fieldtype": "Link",
+   "label": "Package Insurance Coverage",
+   "options": "Patient Insurance Coverage",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -317,6 +350,11 @@
   "babies",
   "number_of_babies",
   "notes",
+  "billing_section",
+  "maternity_package",
+  "billing_cb",
+  "invoiced",
+  "package_coverage",
   "amended_from"
  ],
  "autoname": "naming_series:",

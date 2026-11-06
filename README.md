@@ -12,7 +12,7 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 | 1. Kenyan identifiers and code sets (ICD-11/10, LOINC, PPB) | Done (ICD-10, LOINC, PPB lists to load from source files) |
 | 2. SHA / HIE connector | Waiting for AfyaConnect sandbox approval |
 | 3. Billing and private insurance | Done: bed nights, insured visits on Marley's model, claim rejections. Slade360 and separate insurer invoices pending |
-| 4. Maternity | ANC, labour and delivery, newborn, PNC, family planning done (to align with the client's forms); maternity billing packages pending |
+| 4. Maternity | ANC, labour and delivery, newborn, PNC, family planning, maternity packages done (to align with the client's forms) |
 | 5. Theatre | Booking, consent, WHO checklist, anaesthesia record, operation note done |
 | 6. Radiology | Worklist, perform/report/verify, accession numbers, MOH 717 imaging done; PACS/modality integration pending |
 | 7. MOH reports, KHIS, dashboards | MOH 705A/B, 711 and 717 done (mappings to confirm with the HRIO); management dashboards done; MOH 710 (needs immunisation records) and KHIS submission pending |
@@ -65,6 +65,14 @@ Open: whether insurers need an eTIMS invoice addressed to them (separate insurer
 - **PNC Visit**: visit number and MOH timing bucket (within 48 hours / 3 days to under 6 weeks / after).
 - **Family Planning Visit**: method (pills, DMPA, condoms, implants, IUCDs, BTL, vasectomy, natural FP), insertion / reinsertion / removal for implants and IUCDs, New or Revisit (worked out from earlier visits for the same method), first-ever user, and timing (interval, immediate postpartum, postpartum, post abortion). Women-only and men-only methods are checked against the patient's sex.
 - MOH 717 now counts ANC and PNC visits, deliveries by mode, births, stillbirths, neonatal deaths, low birth weight and maternal deaths.
+
+**Maternity packages** (one price for a delivery instead of itemised charges):
+
+- **Maternity Package**: delivery type (vaginal / caesarean section), billing item and price, insurer (SHA or another payor; blank = the cash package), included ward nights, and the items or item groups it includes. Enter SHA's current tariffs for the facility's level yourself - none are shipped.
+- The **Delivery Record** picks the package for its delivery type and the admission's insurer, else the cash one; it can be changed, also after submitting.
+- The **discharge bill** (the patient's first invoice dated on or after the delivery) gets the package line. Included charges stay on the bill at zero ("Included in ...") so the services are marked invoiced and the patient sees what the price covered; ward nights after the included ones are billed as usual. The package line references the Delivery Record, so it can't be billed twice.
+- With an insurer, the package line gets a Patient Insurance Coverage from the insurer's eligibility for the package item (set one up on the plan, e.g. 100% for SHA), so the insurer's share goes to its receivable and onto the claim. Without an eligibility or an active policy the package is billed to the patient, with a message.
+- eTIMS: register the package item like any other; KRA accepts the zero-priced included lines.
 
 Fields follow the MOH ANC, maternity and PNC registers (as in KenyaEMR) - align with the hospital's own forms.
 
@@ -129,7 +137,7 @@ bench --site <demo-site> set-config royce_health_demo 1
 bench --site <demo-site> execute royce_health_ke.demo.load
 ```
 
-The demo pharmacy has reorder levels, so the dashboard shows amoxicillin below its level.
+The demo pharmacy has reorder levels, so the dashboard shows amoxicillin below its level. Faith is discharged on the cash normal delivery package (demo price, not an SHA tariff).
 
 The loader refuses to run unless the site opts in, so it can't touch a client's live data. It is safe to run again.
 

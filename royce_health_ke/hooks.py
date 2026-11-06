@@ -21,7 +21,12 @@ after_migrate = "royce_health_ke.setup.install.after_migrate"
 doc_events = {
 	"Patient": {"validate": "royce_health_ke.identity.validate_patient"},
 	"Healthcare Practitioner": {"validate": "royce_health_ke.identity.validate_practitioner"},
-	"Sales Invoice": {"before_validate": "royce_health_ke.billing.apply_bed_charge_basis"},
+	"Sales Invoice": {
+		"before_validate": [
+			"royce_health_ke.billing.apply_bed_charge_basis",
+			"royce_health_ke.packages.apply_maternity_package",
+		]
+	},
 	"Journal Entry": {"on_cancel": "royce_health_ke.claims.on_settlement_cancel"},
 	"Observation": {"before_insert": "royce_health_ke.radiology.before_insert_observation"},
 }

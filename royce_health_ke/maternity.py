@@ -97,6 +97,9 @@ def validate_delivery(doc):
 		frappe.throw(_("Delivery date and time can't be in the future."))
 	doc.gestation_weeks = gestation_weeks(pregnancy.lmp, get_datetime(doc.delivery_datetime).date())
 	doc.number_of_babies = len(doc.babies)
+	from royce_health_ke.packages import choose_package
+
+	choose_package(doc)
 	for row in doc.labour_observations:
 		row.alert = labour_alert(row)
 

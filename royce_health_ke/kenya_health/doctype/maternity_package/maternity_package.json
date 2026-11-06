@@ -1,0 +1,161 @@
+{
+ "actions": [],
+ "creation": "2026-11-08 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-08 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Maternity Package",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "field:package_name",
+ "naming_rule": "By fieldname",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "print": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "report": 1,
+   "print": 1
+  },
+  {
+   "role": "Accounts Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Accounts User",
+   "read": 1,
+   "report": 1,
+   "print": 1
+  }
+ ],
+ "fields": [
+  {
+   "fieldname": "package_name",
+   "fieldtype": "Data",
+   "label": "Package Name",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "delivery_type",
+   "fieldtype": "Select",
+   "label": "Delivery Type",
+   "options": "Vaginal delivery\nCaesarean section",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Vaginal delivery covers spontaneous, assisted and breech deliveries."
+  },
+  {
+   "fieldname": "insurance_payor",
+   "fieldtype": "Link",
+   "label": "Insurance Payor",
+   "options": "Insurance Payor",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "SHA or an insurer whose tariff this is. Blank = the cash package."
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Billing Item",
+   "options": "Item",
+   "reqd": 1,
+   "description": "A non-stock service item. For an insurer, give it an Item Insurance Eligibility on the insurer's plan."
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "label": "Package Price",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "The tariff, e.g. SHA's current rate for this facility level."
+  },
+  {
+   "fieldname": "included_nights",
+   "fieldtype": "Int",
+   "label": "Included Nights",
+   "default": "2",
+   "description": "Ward nights the price includes; nights after these are billed as usual."
+  },
+  {
+   "fieldname": "coverage_section",
+   "fieldtype": "Section Break",
+   "label": "What the Package Includes"
+  },
+  {
+   "fieldname": "covered",
+   "fieldtype": "Table",
+   "label": "Included Charges",
+   "options": "Maternity Package Coverage",
+   "description": "Charges for these items on the discharge bill are included (shown at zero). Anything else is billed as usual."
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "field_order": [
+  "package_name",
+  "delivery_type",
+  "insurance_payor",
+  "disabled",
+  "cb1",
+  "item",
+  "rate",
+  "included_nights",
+  "coverage_section",
+  "covered",
+  "notes"
+ ]
+}
