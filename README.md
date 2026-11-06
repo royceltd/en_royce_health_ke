@@ -12,7 +12,8 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 | 1. Kenyan identifiers and code sets (ICD-11/10, LOINC, PPB) | Done (ICD-10, LOINC, PPB lists to load from source files) |
 | 2. SHA / HIE connector | Waiting for AfyaConnect sandbox approval |
 | 3. Billing and private insurance | Done: bed nights, insured visits on Marley's model, claim rejections. Slade360 and separate insurer invoices pending |
-| 4. Maternity, 5. Theatre, 6. Radiology | Planned |
+| 4. Maternity | ANC, labour and delivery, newborn, PNC done (to align with the client's forms); maternity billing packages pending |
+| 5. Theatre, 6. Radiology | Planned |
 | 7. MOH reports, KHIS, dashboards | MOH 705A/B and 717 done (mappings to confirm with the HRIO); KHIS submission and dashboards pending |
 | 8. Kitchen, laundry | Planned |
 | 9. Go-live readiness | Planned |
@@ -54,6 +55,16 @@ Stored in Marley's Code System / Code Value, FHIR-shaped (system URI + code + di
 - **Rejected lines** (missing in Marley): *Settle Rejected Lines* on the claim either bills the patient (no new eTIMS invoice needed) or writes the amount off to the insurer's Rejected Claims expense account. Cancelling the settlement entry reopens the line.
 
 Open: whether insurers need an eTIMS invoice addressed to them (separate insurer invoice), pending a tax adviser's view; Slade360 integration pending API access.
+
+### Maternity
+
+- **Pregnancy Record**: one per pregnancy - LMP and EDD (LMP + 280 days), gravida/parity, booking screening (blood group, Hb, HIV, syphilis, hepatitis B), risk factors, status.
+- **ANC Visit**: contact number and gestation worked out; examination, IPTp-SP, Td, iron/folate, ITN, danger signs.
+- **Delivery Record**: labour observations with WHO Labour Care Guide alerts (FHR, pulse, BP, temperature, contractions, liquor), mode of delivery, uterotonic, blood loss, perineum, complications (APH, PPH, eclampsia, ruptured uterus, obstructed labour, sepsis), mother's condition, and the babies (weight, APGAR, outcome, essential newborn care). On submit, each live-born baby gets a Patient record linked to the mother.
+- **PNC Visit**: visit number and MOH timing bucket (within 48 hours / 3 days to under 6 weeks / after).
+- MOH 717 now counts ANC and PNC visits, deliveries by mode, births, stillbirths, neonatal deaths, low birth weight and maternal deaths.
+
+Fields follow the MOH ANC, maternity and PNC registers (as in KenyaEMR) - align with the hospital's own forms.
 
 ### MOH reports
 

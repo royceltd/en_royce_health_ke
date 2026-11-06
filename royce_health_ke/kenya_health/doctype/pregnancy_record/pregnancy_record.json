@@ -1,0 +1,272 @@
+{
+ "actions": [],
+ "creation": "2026-11-07 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-07 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Pregnancy Record",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "PREG-.YYYY.-",
+   "default": "PREG-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "patient.patient_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Active\nDelivered\nEnded\nTransferred Out",
+   "default": "Active",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "anc_number",
+   "fieldtype": "Data",
+   "label": "ANC Number"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "health_facility",
+   "fieldtype": "Link",
+   "label": "Health Facility",
+   "options": "Health Facility"
+  },
+  {
+   "fieldname": "booking_date",
+   "fieldtype": "Date",
+   "label": "Booking Date",
+   "default": "Today"
+  },
+  {
+   "fieldname": "obstetric_section",
+   "fieldtype": "Section Break",
+   "label": "Obstetric History and Dates"
+  },
+  {
+   "fieldname": "gravida",
+   "fieldtype": "Int",
+   "label": "Gravida"
+  },
+  {
+   "fieldname": "parity",
+   "fieldtype": "Data",
+   "label": "Parity",
+   "description": "Births + abortions, e.g. 1+0."
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lmp",
+   "fieldtype": "Date",
+   "label": "LMP"
+  },
+  {
+   "fieldname": "edd",
+   "fieldtype": "Date",
+   "label": "EDD",
+   "read_only": 1,
+   "description": "LMP + 280 days."
+  },
+  {
+   "fieldname": "ultrasound_edd",
+   "fieldtype": "Date",
+   "label": "EDD by Ultrasound"
+  },
+  {
+   "fieldname": "screening_section",
+   "fieldtype": "Section Break",
+   "label": "Booking Screening"
+  },
+  {
+   "fieldname": "blood_group",
+   "fieldtype": "Select",
+   "label": "Blood Group and Rhesus",
+   "options": "\nA+\nA-\nB+\nB-\nAB+\nAB-\nO+\nO-"
+  },
+  {
+   "fieldname": "haemoglobin",
+   "fieldtype": "Float",
+   "label": "Haemoglobin (g/dL)"
+  },
+  {
+   "fieldname": "hepatitis_b",
+   "fieldtype": "Select",
+   "label": "Hepatitis B",
+   "options": "\nNot done\nNegative\nPositive"
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "hiv_status",
+   "fieldtype": "Select",
+   "label": "HIV Status",
+   "options": "\nUnknown\nNegative\nPositive\nKnown Positive"
+  },
+  {
+   "fieldname": "syphilis",
+   "fieldtype": "Select",
+   "label": "Syphilis (VDRL/RPR)",
+   "options": "\nNot done\nNon-reactive\nReactive"
+  },
+  {
+   "fieldname": "syphilis_treated",
+   "fieldtype": "Check",
+   "label": "Syphilis Treated",
+   "depends_on": "eval:doc.syphilis=='Reactive'"
+  },
+  {
+   "fieldname": "risk_section",
+   "fieldtype": "Section Break",
+   "label": "Risk"
+  },
+  {
+   "fieldname": "risk_factors",
+   "fieldtype": "Small Text",
+   "label": "Risk Factors"
+  },
+  {
+   "fieldname": "outcome_section",
+   "fieldtype": "Section Break",
+   "label": "Outcome"
+  },
+  {
+   "fieldname": "delivery_record",
+   "fieldtype": "Link",
+   "label": "Delivery Record",
+   "options": "Delivery Record",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ended_reason",
+   "fieldtype": "Small Text",
+   "label": "Ended / Transferred Reason",
+   "depends_on": "eval:['Ended','Transferred Out'].includes(doc.status)"
+  }
+ ],
+ "field_order": [
+  "naming_series",
+  "patient",
+  "patient_name",
+  "status",
+  "anc_number",
+  "cb1",
+  "company",
+  "health_facility",
+  "booking_date",
+  "obstetric_section",
+  "gravida",
+  "parity",
+  "cb2",
+  "lmp",
+  "edd",
+  "ultrasound_edd",
+  "screening_section",
+  "blood_group",
+  "haemoglobin",
+  "hepatitis_b",
+  "cb3",
+  "hiv_status",
+  "syphilis",
+  "syphilis_treated",
+  "risk_section",
+  "risk_factors",
+  "outcome_section",
+  "delivery_record",
+  "ended_reason"
+ ],
+ "autoname": "naming_series:",
+ "naming_rule": "By \"Naming Series\" field",
+ "title_field": "patient_name",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ]
+}

@@ -1,0 +1,191 @@
+# Copyright (c) 2026, Royce Technologies LTD and contributors
+# For license information, please see license.txt
+
+"""Demo maternity: Faith books for ANC, attends three contacts, delivers a
+baby girl normally in the early hours of yesterday (one labour observation
+raises a fetal heart rate alert), and is seen for PNC today."""
+
+import frappe
+from frappe.utils import add_days, getdate, today
+
+from royce_health_ke.demo import journey
+
+MOTHER = {
+	"first_name": "Faith",
+	"middle_name": "Njeri",
+	"last_name": "Wambui",
+	"sex": "Female",
+	"mobile": "0712 000 005",
+	"occupation": "Trader",
+	"marital_status": "Married",
+	"ke_id_type": "National ID",
+	"ke_id_number": "0009012",
+	"ke_sha_number": "DEMO-SHA-003",
+	"ke_county": "Nakuru",
+	"ke_sub_county": "Nakuru West",
+	"ke_nok_name": "James Kariuki",
+	"ke_nok_relationship": "Spouse",
+	"ke_nok_phone": "0712 000 006",
+	"patient_details": "DEMO PATIENT - fictional person and identifiers.",
+}
+
+
+def run(company):
+	existing = frappe.db.get_value("Patient", {"first_name": "Faith", "last_name": "Wambui"})
+	if existing:
+		return {"patient": existing, "created": False}
+	amina = frappe.db.get_value("Healthcare Practitioner", {"first_name": "Amina"})
+	mother = journey._insert({"doctype": "Patient", **MOTHER, "dob": f"{getdate().year - 27}-02-10"}).name
+	lmp = add_days(today(), -276)  # 39 weeks 3 days today
+	pregnancy = journey._insert(
+		{
+			"doctype": "Pregnancy Record",
+			"patient": mother,
+			"company": company,
+			"health_facility": frappe.db.get_value("Health Facility", {"company": company}),
+			"anc_number": "DEMO-ANC-0001",
+			"booking_date": add_days(lmp, 84),
+			"gravida": 2,
+			"parity": "1+0",
+			"lmp": lmp,
+			"blood_group": "O+",
+			"haemoglobin": 11.8,
+			"hepatitis_b": "Negative",
+			"hiv_status": "Negative",
+			"syphilis": "Non-reactive",
+		}
+	)
+	for weeks, weight, bp, fh, fhr, extras in (
+		(12, 61.0, (110, 70), None, None, {"td_dose": "Td1", "iron_folate": 1, "itn_given": 1}),
+		(
+			28,
+			66.5,
+			(115, 72),
+			28,
+			144,
+			{"ipt_dose": "IPTp-SP 2", "td_dose": "Td2", "iron_folate": 1, "deworming": 1},
+		),
+		(
+			38,
+			70.0,
+			(118, 76),
+			37,
+			140,
+			{"ipt_dose": "IPTp-SP 4", "presentation": "Cephalic", "ppfp_counselling": 1},
+		),
+	):
+		journey._insert(
+			{
+				"doctype": "ANC Visit",
+				"pregnancy_record": pregnancy.name,
+				"visit_date": add_days(lmp, weeks * 7),
+				"practitioner": amina,
+				"weight": weight,
+				"bp_systolic": bp[0],
+				"bp_diastolic": bp[1],
+				"fundal_height": fh,
+				"fetal_heart_rate": fhr,
+				"tb_screening": "No signs",
+				**extras,
+			},
+			submit=True,
+		)
+
+	day = add_days(today(), -1)
+	delivery = journey._insert(
+		{
+			"doctype": "Delivery Record",
+			"pregnancy_record": pregnancy.name,
+			"delivered_by": amina,
+			"admission_datetime": f"{add_days(day, -1)} 21:30:00",
+			"onset_of_labour": "Spontaneous",
+			"duration_of_labour_hours": 7,
+			"lcg_used": 1,
+			"labour_observations": [
+				{
+					"time": f"{add_days(day, -1)} 22:00:00",
+					"cervical_dilatation_cm": 5,
+					"fetal_heart_rate": 138,
+					"contractions_per_10min": 3,
+					"maternal_pulse": 88,
+					"bp_systolic": 118,
+					"bp_diastolic": 76,
+					"temperature": 36.8,
+					"liquor": "Intact",
+					"moulding": "0",
+				},
+				{
+					"time": f"{day} 01:00:00",
+					"cervical_dilatation_cm": 7,
+					"fetal_heart_rate": 165,
+					"contractions_per_10min": 4,
+					"maternal_pulse": 92,
+					"liquor": "Clear",
+					"moulding": "0",
+					"remarks": "Left lateral position, FHR rechecked",
+				},
+				{
+					"time": f"{day} 03:30:00",
+					"cervical_dilatation_cm": 10,
+					"fetal_heart_rate": 142,
+					"contractions_per_10min": 5,
+					"maternal_pulse": 90,
+					"liquor": "Clear",
+					"moulding": "0",
+				},
+			],
+			"delivery_datetime": f"{day} 04:30:00",
+			"mode_of_delivery": "Spontaneous vaginal delivery",
+			"placenta_complete": 1,
+			"uterotonic": "Oxytocin",
+			"blood_loss_ml": 250,
+			"perineum": "1st degree tear",
+			"maternal_condition": "Alive",
+			"babies": [
+				{
+					"sex": "Female",
+					"birth_weight_g": 3200,
+					"outcome": "Live birth",
+					"apgar_1": 8,
+					"apgar_5": 9,
+					"breastfeeding_1hr": 1,
+					"vitamin_k": 1,
+					"teo": 1,
+					"chlorhexidine": 1,
+					"condition_at_discharge": "Alive",
+					"birth_notification_number": "DEMO-BN-0001",
+				}
+			],
+		},
+		submit=True,
+	)
+	journey._insert(
+		{
+			"doctype": "PNC Visit",
+			"delivery_record": delivery.name,
+			"visit_date": today(),
+			"practitioner": amina,
+			"temperature": 36.7,
+			"pulse": 84,
+			"bp_systolic": 116,
+			"bp_diastolic": 74,
+			"breasts": "Normal",
+			"uterus": "Well contracted",
+			"lochia": "Normal",
+			"wound": "Healing well",
+			"fp_counselled": 1,
+			"baby_reviewed": 1,
+			"baby_feeding": "Exclusive breastfeeding",
+			"cord": "Clean and dry",
+		},
+		submit=True,
+	)
+	delivery.reload()
+	return {
+		"patient": mother,
+		"created": True,
+		"pregnancy": pregnancy.name,
+		"delivery": delivery.name,
+		"baby": delivery.babies[0].baby_patient,
+		"labour_alerts": [r.alert for r in delivery.labour_observations if r.alert],
+	}

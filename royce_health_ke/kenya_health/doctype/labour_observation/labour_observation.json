@@ -1,0 +1,114 @@
+{
+ "actions": [],
+ "creation": "2026-11-07 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-07 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Labour Observation",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "time",
+   "fieldtype": "Datetime",
+   "label": "Time",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "cervical_dilatation_cm",
+   "fieldtype": "Float",
+   "label": "Cervix (cm)",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "fetal_heart_rate",
+   "fieldtype": "Int",
+   "label": "FHR",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "contractions_per_10min",
+   "fieldtype": "Int",
+   "label": "Contractions /10 min",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "maternal_pulse",
+   "fieldtype": "Int",
+   "label": "Pulse",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "bp_systolic",
+   "fieldtype": "Int",
+   "label": "BP Sys",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "bp_diastolic",
+   "fieldtype": "Int",
+   "label": "BP Dia",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "temperature",
+   "fieldtype": "Float",
+   "label": "Temp (C)"
+  },
+  {
+   "fieldname": "liquor",
+   "fieldtype": "Select",
+   "label": "Liquor",
+   "options": "\nIntact\nClear\nMeconium\nBlood-stained\nAbsent"
+  },
+  {
+   "fieldname": "moulding",
+   "fieldtype": "Select",
+   "label": "Moulding",
+   "options": "\n0\n+\n++\n+++"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Data",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "alert",
+   "fieldtype": "Data",
+   "label": "Alert",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  }
+ ],
+ "field_order": [
+  "time",
+  "cervical_dilatation_cm",
+  "fetal_heart_rate",
+  "contractions_per_10min",
+  "maternal_pulse",
+  "bp_systolic",
+  "bp_diastolic",
+  "temperature",
+  "liquor",
+  "moulding",
+  "remarks",
+  "alert"
+ ],
+ "istable": 1,
+ "editable_grid": 1,
+ "permissions": []
+}

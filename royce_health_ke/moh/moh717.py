@@ -60,30 +60,7 @@ WARDS = (
 )
 OUTCOMES = ("Discharged", "Referred Out", "Absconded", "Died")
 NOT_CAPTURED = {
-	"Maternal and Child Health": [
-		"New CWC Visits",
-		"CWC RE-ATT",
-		"New ANC Visits",
-		"ANC RE-ATT",
-		"New PNC Visits",
-		"PNC RE-ATT",
-		"FP NEW",
-		"FP RE-ATT",
-	],
-	"Maternity": [
-		"Normal Deliveries",
-		"Caesarean sections",
-		"Breech Deliveries",
-		"Assisted Vaginal Delivery",
-		"Born before arrival",
-		"Maternal deaths",
-		"Maternal deaths Audited",
-		"Live births",
-		"Still births",
-		"Neonatal deaths",
-		"Low Birth weight babies",
-		"Total Discharges (new born)",
-	],
+	"Child Welfare and Family Planning": ["New CWC Visits", "CWC RE-ATT", "FP NEW", "FP RE-ATT"],
 	"Procedures": [
 		"Dressings",
 		"Removal of Stitches",
@@ -189,6 +166,7 @@ def compute(company, year, month):
 	section("Laboratory")
 	add("Number of Laboratory tests", len(lab_tests(company, start, end)))
 
+	_maternity(company, start, end, section, add)
 	_inpatient(company, start, end, section, add)
 
 	for title, indicators in NOT_CAPTURED.items():
@@ -251,3 +229,67 @@ def _inpatient(company, start, end, section, add):
 	):
 		for w in WARDS:
 			add(f"{label} ({w})", outcomes[(w, outcome)])
+
+
+MODES = {
+	"Spontaneous vaginal delivery": "Normal Deliveries",
+	"Caesarean section": "Caesarean sections",
+	"Breech delivery": "Breech Deliveries",
+	"Assisted vaginal delivery": "Assisted Vaginal Delivery",
+}
+LOW_BIRTH_WEIGHT_G = 2500
+
+
+def _maternity(company, start, end, section, add):
+	section("Maternal and Child Health")
+	for doctype, label, field in (
+		("ANC Visit", "ANC", "contact_number"),
+		("PNC Visit", "PNC", "visit_number"),
+	):
+		visits = frappe.get_all(
+			doctype,
+			filters={"company": company, "docstatus": 1, "visit_date": ["between", [start, end]]},
+			pluck=field,
+		)
+		add(f"New {label} Visits", sum(1 for n in visits if n == 1))
+		add(f"{label} RE-ATT", sum(1 for n in visits if n and n > 1))
+
+	deliveries = frappe.get_all(
+		"Delivery Record",
+		filters={
+			"company": company,
+			"docstatus": 1,
+			"delivery_datetime": ["between", [f"{start} 00:00:00", f"{end} 23:59:59"]],
+		},
+		fields=[
+			"name",
+			"mode_of_delivery",
+			"place_of_delivery",
+			"maternal_condition",
+			"maternal_death_audited",
+		],
+	)
+	babies = frappe.get_all(
+		"Delivery Newborn",
+		filters={"parenttype": "Delivery Record", "parent": ["in", [d.name for d in deliveries] or [""]]},
+		fields=["outcome", "birth_weight_g", "condition_at_discharge"],
+	)
+	section("Maternity")
+	modes = Counter(d.mode_of_delivery for d in deliveries if d.place_of_delivery != "Born before arrival")
+	for mode, label in MODES.items():
+		add(label, modes[mode])
+	add("Born before arrival", sum(1 for d in deliveries if d.place_of_delivery == "Born before arrival"))
+	add("Maternal deaths", sum(1 for d in deliveries if d.maternal_condition == "Died"))
+	add(
+		"Maternal deaths Audited",
+		sum(1 for d in deliveries if d.maternal_condition == "Died" and d.maternal_death_audited),
+	)
+	live = [b for b in babies if b.outcome == "Live birth"]
+	add("Live births", len(live))
+	add("Still births", sum(1 for b in babies if b.outcome != "Live birth"))
+	add("Neonatal deaths", sum(1 for b in live if b.condition_at_discharge == "Died"))
+	add(
+		"Low Birth weight babies",
+		sum(1 for b in live if b.birth_weight_g and b.birth_weight_g < LOW_BIRTH_WEIGHT_G),
+	)
+	add("Total Discharges (new born)", sum(1 for b in live if b.condition_at_discharge == "Alive"))

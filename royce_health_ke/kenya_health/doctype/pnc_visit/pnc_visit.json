@@ -1,0 +1,320 @@
+{
+ "actions": [],
+ "creation": "2026-11-07 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-07 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "PNC Visit",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "PNC-.YYYY.-",
+   "default": "PNC-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "delivery_record",
+   "fieldtype": "Link",
+   "label": "Delivery Record",
+   "options": "Delivery Record",
+   "reqd": 1
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "fetch_from": "delivery_record.patient",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "delivery_record.patient_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "fetch_from": "delivery_record.company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "visit_date",
+   "fieldtype": "Date",
+   "label": "Visit Date",
+   "reqd": 1,
+   "default": "Today",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "visit_number",
+   "fieldtype": "Int",
+   "label": "PNC Visit Number",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "timing",
+   "fieldtype": "Select",
+   "label": "Timing",
+   "read_only": 1,
+   "in_list_view": 1,
+   "options": "\nWithin 48 hours\n3 days to under 6 weeks\n6 weeks and after"
+  },
+  {
+   "fieldname": "practitioner",
+   "fieldtype": "Link",
+   "label": "Practitioner",
+   "options": "Healthcare Practitioner"
+  },
+  {
+   "fieldname": "mother_section",
+   "fieldtype": "Section Break",
+   "label": "Mother"
+  },
+  {
+   "fieldname": "temperature",
+   "fieldtype": "Float",
+   "label": "Temperature (C)"
+  },
+  {
+   "fieldname": "pulse",
+   "fieldtype": "Int",
+   "label": "Pulse"
+  },
+  {
+   "fieldname": "bp_systolic",
+   "fieldtype": "Int",
+   "label": "BP Systolic"
+  },
+  {
+   "fieldname": "bp_diastolic",
+   "fieldtype": "Int",
+   "label": "BP Diastolic"
+  },
+  {
+   "fieldname": "pallor",
+   "fieldtype": "Check",
+   "label": "Pallor"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "breasts",
+   "fieldtype": "Select",
+   "label": "Breasts",
+   "options": "\nNormal\nEngorged\nCracked nipples\nMastitis"
+  },
+  {
+   "fieldname": "uterus",
+   "fieldtype": "Select",
+   "label": "Uterus",
+   "options": "\nWell contracted\nNot contracted\nTender"
+  },
+  {
+   "fieldname": "lochia",
+   "fieldtype": "Select",
+   "label": "Lochia",
+   "options": "\nNormal\nFoul smelling\nExcessive"
+  },
+  {
+   "fieldname": "wound",
+   "fieldtype": "Select",
+   "label": "CS Site / Episiotomy",
+   "options": "\nNot applicable\nHealing well\nInfected\nGaping"
+  },
+  {
+   "fieldname": "fistula_screening",
+   "fieldtype": "Select",
+   "label": "Fistula Screening",
+   "options": "\nNot done\nNo fistula\nSuspected fistula"
+  },
+  {
+   "fieldname": "fp_section",
+   "fieldtype": "Section Break",
+   "label": "Family Planning"
+  },
+  {
+   "fieldname": "fp_counselled",
+   "fieldtype": "Check",
+   "label": "Counselled on FP"
+  },
+  {
+   "fieldname": "fp_method",
+   "fieldtype": "Data",
+   "label": "FP Method Received"
+  },
+  {
+   "fieldname": "baby_section",
+   "fieldtype": "Section Break",
+   "label": "Baby"
+  },
+  {
+   "fieldname": "baby_reviewed",
+   "fieldtype": "Check",
+   "label": "Baby Reviewed"
+  },
+  {
+   "fieldname": "baby_feeding",
+   "fieldtype": "Select",
+   "label": "Feeding",
+   "options": "\nExclusive breastfeeding\nMixed feeding\nReplacement feeding"
+  },
+  {
+   "fieldname": "cord",
+   "fieldtype": "Select",
+   "label": "Cord",
+   "options": "\nClean and dry\nInfected"
+  },
+  {
+   "fieldname": "baby_notes",
+   "fieldtype": "Small Text",
+   "label": "Baby Notes"
+  },
+  {
+   "fieldname": "notes_section",
+   "fieldtype": "Section Break",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "referred_to",
+   "fieldtype": "Data",
+   "label": "Referred To"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "PNC Visit",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1
+  }
+ ],
+ "field_order": [
+  "naming_series",
+  "delivery_record",
+  "patient",
+  "patient_name",
+  "company",
+  "cb1",
+  "visit_date",
+  "visit_number",
+  "timing",
+  "practitioner",
+  "mother_section",
+  "temperature",
+  "pulse",
+  "bp_systolic",
+  "bp_diastolic",
+  "pallor",
+  "cb2",
+  "breasts",
+  "uterus",
+  "lochia",
+  "wound",
+  "fistula_screening",
+  "fp_section",
+  "fp_counselled",
+  "fp_method",
+  "baby_section",
+  "baby_reviewed",
+  "baby_feeding",
+  "cord",
+  "baby_notes",
+  "notes_section",
+  "notes",
+  "referred_to",
+  "amended_from"
+ ],
+ "autoname": "naming_series:",
+ "naming_rule": "By \"Naming Series\" field",
+ "title_field": "patient_name",
+ "is_submittable": 1,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  }
+ ]
+}

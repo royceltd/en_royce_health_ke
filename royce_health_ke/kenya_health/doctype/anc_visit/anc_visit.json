@@ -1,0 +1,344 @@
+{
+ "actions": [],
+ "creation": "2026-11-07 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-07 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "ANC Visit",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "ANC-.YYYY.-",
+   "default": "ANC-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "pregnancy_record",
+   "fieldtype": "Link",
+   "label": "Pregnancy Record",
+   "options": "Pregnancy Record",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "fetch_from": "pregnancy_record.patient",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "pregnancy_record.patient_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "visit_date",
+   "fieldtype": "Date",
+   "label": "Visit Date",
+   "reqd": 1,
+   "default": "Today",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "contact_number",
+   "fieldtype": "Int",
+   "label": "ANC Contact",
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "1 = first (new) ANC visit for this pregnancy."
+  },
+  {
+   "fieldname": "gestation_weeks",
+   "fieldtype": "Int",
+   "label": "Gestation (weeks)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "practitioner",
+   "fieldtype": "Link",
+   "label": "Practitioner",
+   "options": "Healthcare Practitioner"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "fetch_from": "pregnancy_record.company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "exam_section",
+   "fieldtype": "Section Break",
+   "label": "Examination"
+  },
+  {
+   "fieldname": "weight",
+   "fieldtype": "Float",
+   "label": "Weight (kg)"
+  },
+  {
+   "fieldname": "muac",
+   "fieldtype": "Float",
+   "label": "MUAC (cm)"
+  },
+  {
+   "fieldname": "bp_systolic",
+   "fieldtype": "Int",
+   "label": "BP Systolic"
+  },
+  {
+   "fieldname": "bp_diastolic",
+   "fieldtype": "Int",
+   "label": "BP Diastolic"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fundal_height",
+   "fieldtype": "Float",
+   "label": "Fundal Height (cm)"
+  },
+  {
+   "fieldname": "fetal_heart_rate",
+   "fieldtype": "Int",
+   "label": "Fetal Heart Rate (bpm)"
+  },
+  {
+   "fieldname": "presentation",
+   "fieldtype": "Select",
+   "label": "Presentation",
+   "options": "\nCephalic\nBreech\nTransverse\nNot determined"
+  },
+  {
+   "fieldname": "tests_section",
+   "fieldtype": "Section Break",
+   "label": "Tests"
+  },
+  {
+   "fieldname": "haemoglobin",
+   "fieldtype": "Float",
+   "label": "Haemoglobin (g/dL)"
+  },
+  {
+   "fieldname": "urinalysis",
+   "fieldtype": "Data",
+   "label": "Urinalysis"
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tb_screening",
+   "fieldtype": "Select",
+   "label": "TB Screening",
+   "options": "\nNot done\nNo signs\nPresumed TB\nOn TB treatment"
+  },
+  {
+   "fieldname": "interventions_section",
+   "fieldtype": "Section Break",
+   "label": "Interventions"
+  },
+  {
+   "fieldname": "ipt_dose",
+   "fieldtype": "Select",
+   "label": "IPTp-SP Dose",
+   "options": "\nIPTp-SP 1\nIPTp-SP 2\nIPTp-SP 3\nIPTp-SP 4\nIPTp-SP 5"
+  },
+  {
+   "fieldname": "td_dose",
+   "fieldtype": "Select",
+   "label": "Td Dose",
+   "options": "\nTd1\nTd2\nTd3\nTd4\nTd5"
+  },
+  {
+   "fieldname": "iron_folate",
+   "fieldtype": "Check",
+   "label": "Iron and Folate Given"
+  },
+  {
+   "fieldname": "cb4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "deworming",
+   "fieldtype": "Check",
+   "label": "Dewormed"
+  },
+  {
+   "fieldname": "itn_given",
+   "fieldtype": "Check",
+   "label": "ITN Given"
+  },
+  {
+   "fieldname": "ppfp_counselling",
+   "fieldtype": "Check",
+   "label": "Postpartum FP Counselling"
+  },
+  {
+   "fieldname": "notes_section",
+   "fieldtype": "Section Break",
+   "label": "Assessment"
+  },
+  {
+   "fieldname": "danger_signs",
+   "fieldtype": "Small Text",
+   "label": "Danger Signs"
+  },
+  {
+   "fieldname": "clinical_notes",
+   "fieldtype": "Small Text",
+   "label": "Clinical Notes"
+  },
+  {
+   "fieldname": "cb5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "next_visit_date",
+   "fieldtype": "Date",
+   "label": "Next Visit"
+  },
+  {
+   "fieldname": "referred_to",
+   "fieldtype": "Data",
+   "label": "Referred To"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "ANC Visit",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1
+  }
+ ],
+ "field_order": [
+  "naming_series",
+  "pregnancy_record",
+  "patient",
+  "patient_name",
+  "cb1",
+  "visit_date",
+  "contact_number",
+  "gestation_weeks",
+  "practitioner",
+  "company",
+  "exam_section",
+  "weight",
+  "muac",
+  "bp_systolic",
+  "bp_diastolic",
+  "cb2",
+  "fundal_height",
+  "fetal_heart_rate",
+  "presentation",
+  "tests_section",
+  "haemoglobin",
+  "urinalysis",
+  "cb3",
+  "tb_screening",
+  "interventions_section",
+  "ipt_dose",
+  "td_dose",
+  "iron_folate",
+  "cb4",
+  "deworming",
+  "itn_given",
+  "ppfp_counselling",
+  "notes_section",
+  "danger_signs",
+  "clinical_notes",
+  "cb5",
+  "next_visit_date",
+  "referred_to",
+  "amended_from"
+ ],
+ "autoname": "naming_series:",
+ "naming_rule": "By \"Naming Series\" field",
+ "title_field": "patient_name",
+ "is_submittable": 1,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  }
+ ]
+}

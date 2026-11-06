@@ -1,0 +1,141 @@
+{
+ "actions": [],
+ "creation": "2026-11-07 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-07 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Delivery Newborn",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "sex",
+   "fieldtype": "Select",
+   "label": "Sex",
+   "options": "Female\nMale\nIndeterminate",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "birth_weight_g",
+   "fieldtype": "Int",
+   "label": "Birth Weight (g)",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "outcome",
+   "fieldtype": "Select",
+   "label": "Outcome",
+   "options": "Live birth\nFresh stillbirth\nMacerated stillbirth",
+   "default": "Live birth",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "apgar_1",
+   "fieldtype": "Int",
+   "label": "APGAR 1 min",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "apgar_5",
+   "fieldtype": "Int",
+   "label": "APGAR 5 min",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "apgar_10",
+   "fieldtype": "Int",
+   "label": "APGAR 10 min"
+  },
+  {
+   "fieldname": "resuscitated",
+   "fieldtype": "Check",
+   "label": "Resuscitated"
+  },
+  {
+   "fieldname": "deformity",
+   "fieldtype": "Data",
+   "label": "Deformity"
+  },
+  {
+   "fieldname": "breastfeeding_1hr",
+   "fieldtype": "Check",
+   "label": "Breastfed within 1 hour"
+  },
+  {
+   "fieldname": "vitamin_k",
+   "fieldtype": "Check",
+   "label": "Vitamin K"
+  },
+  {
+   "fieldname": "teo",
+   "fieldtype": "Check",
+   "label": "TEO"
+  },
+  {
+   "fieldname": "chlorhexidine",
+   "fieldtype": "Check",
+   "label": "Chlorhexidine to Cord"
+  },
+  {
+   "fieldname": "kangaroo_care",
+   "fieldtype": "Check",
+   "label": "Kangaroo Mother Care"
+  },
+  {
+   "fieldname": "condition_at_discharge",
+   "fieldtype": "Select",
+   "label": "Condition at Discharge",
+   "options": "\nAlive\nDied\nReferred",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "birth_notification_number",
+   "fieldtype": "Data",
+   "label": "Birth Notification No."
+  },
+  {
+   "fieldname": "baby_patient",
+   "fieldtype": "Link",
+   "label": "Baby's Patient Record",
+   "options": "Patient",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  }
+ ],
+ "field_order": [
+  "sex",
+  "birth_weight_g",
+  "outcome",
+  "apgar_1",
+  "apgar_5",
+  "apgar_10",
+  "resuscitated",
+  "deformity",
+  "breastfeeding_1hr",
+  "vitamin_k",
+  "teo",
+  "chlorhexidine",
+  "kangaroo_care",
+  "condition_at_discharge",
+  "birth_notification_number",
+  "baby_patient"
+ ],
+ "istable": 1,
+ "editable_grid": 0,
+ "permissions": []
+}
