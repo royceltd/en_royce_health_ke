@@ -18,6 +18,9 @@ from royce_health_ke.kenya import (
 from royce_health_ke.moh.moh717 import CLINICS as MOH717_CLINICS
 from royce_health_ke.moh.moh717 import OUTCOMES as MOH717_OUTCOMES
 from royce_health_ke.moh.moh717 import WARDS as MOH717_WARDS
+from royce_health_ke.radiology import EXAM_STATUSES as RADIOLOGY_STATUSES
+from royce_health_ke.radiology import MODALITIES as RADIOLOGY_MODALITIES
+from royce_health_ke.radiology import MOH717_IMAGING as RADIOLOGY_MOH717
 
 MODULE = "Kenya Health"
 
@@ -305,8 +308,161 @@ for _field in OPERATION_NOTE:
 	_field["allow_on_submit"] = 1  # the procedure is submitted when theatre starts
 
 
+IMAGING_TEMPLATE = [
+	{
+		"fieldname": "ke_modality",
+		"fieldtype": "Select",
+		"label": "Modality",
+		"options": select(RADIOLOGY_MODALITIES),
+		"insert_after": "observation_category",
+		"depends_on": "eval:doc.observation_category=='Imaging'",
+	},
+	{
+		"fieldname": "ke_moh717_imaging",
+		"fieldtype": "Select",
+		"label": "MOH 717 Imaging Row",
+		"options": select(RADIOLOGY_MOH717),
+		"insert_after": "ke_modality",
+		"depends_on": "eval:doc.observation_category=='Imaging'",
+	},
+]
+_imaging = "eval:doc.observation_category=='Imaging'"
+IMAGING_OBSERVATION = [
+	{
+		"fieldname": "ke_radiology_section",
+		"fieldtype": "Section Break",
+		"label": "Radiology",
+		"insert_after": "observation_category",
+		"depends_on": _imaging,
+	},
+	{
+		"fieldname": "ke_accession_number",
+		"fieldtype": "Data",
+		"label": "Accession Number",
+		"insert_after": "ke_radiology_section",
+		"read_only": 1,
+		"in_standard_filter": 1,
+		"search_index": 1,
+	},
+	{
+		"fieldname": "ke_modality",
+		"fieldtype": "Select",
+		"label": "Modality",
+		"options": select(RADIOLOGY_MODALITIES),
+		"insert_after": "ke_accession_number",
+	},
+	{
+		"fieldname": "ke_priority",
+		"fieldtype": "Select",
+		"label": "Priority",
+		"options": "Routine\nUrgent\nSTAT",
+		"default": "Routine",
+		"insert_after": "ke_modality",
+	},
+	{
+		"fieldname": "ke_exam_status",
+		"fieldtype": "Select",
+		"label": "Exam Status",
+		"options": select(RADIOLOGY_STATUSES),
+		"insert_after": "ke_priority",
+		"read_only": 1,
+		"in_standard_filter": 1,
+	},
+	{"fieldname": "ke_radiology_cb1", "fieldtype": "Column Break", "insert_after": "ke_exam_status"},
+	{
+		"fieldname": "ke_radiographer",
+		"fieldtype": "Data",
+		"label": "Radiographer",
+		"insert_after": "ke_radiology_cb1",
+	},
+	{
+		"fieldname": "ke_performed_at",
+		"fieldtype": "Datetime",
+		"label": "Performed At",
+		"insert_after": "ke_radiographer",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "ke_contrast",
+		"fieldtype": "Check",
+		"label": "Contrast Given",
+		"insert_after": "ke_performed_at",
+	},
+	{
+		"fieldname": "ke_contrast_agent",
+		"fieldtype": "Data",
+		"label": "Contrast Agent and Dose",
+		"insert_after": "ke_contrast",
+		"depends_on": "ke_contrast",
+	},
+	{
+		"fieldname": "ke_radiation_dose",
+		"fieldtype": "Data",
+		"label": "Radiation Dose",
+		"insert_after": "ke_contrast_agent",
+	},
+	{"fieldname": "ke_radiology_cb2", "fieldtype": "Column Break", "insert_after": "ke_radiation_dose"},
+	{"fieldname": "ke_images", "fieldtype": "Attach", "label": "Images", "insert_after": "ke_radiology_cb2"},
+	{
+		"fieldname": "ke_pacs_link",
+		"fieldtype": "Data",
+		"label": "PACS Viewer Link",
+		"options": "URL",
+		"insert_after": "ke_images",
+	},
+	{
+		"fieldname": "ke_report_section",
+		"fieldtype": "Section Break",
+		"label": "Radiology Report",
+		"insert_after": "ke_pacs_link",
+		"depends_on": _imaging,
+		"description": "Findings are kept in the observation's Result.",
+	},
+	{
+		"fieldname": "ke_impression",
+		"fieldtype": "Small Text",
+		"label": "Impression",
+		"insert_after": "ke_report_section",
+	},
+	{"fieldname": "ke_report_cb", "fieldtype": "Column Break", "insert_after": "ke_impression"},
+	{
+		"fieldname": "ke_reported_by",
+		"fieldtype": "Link",
+		"label": "Reported By",
+		"options": "Healthcare Practitioner",
+		"insert_after": "ke_report_cb",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "ke_reported_at",
+		"fieldtype": "Datetime",
+		"label": "Reported At",
+		"insert_after": "ke_reported_by",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "ke_verified_by",
+		"fieldtype": "Link",
+		"label": "Verified By",
+		"options": "Healthcare Practitioner",
+		"insert_after": "ke_reported_at",
+		"read_only": 1,
+	},
+]
+for _field in IMAGING_OBSERVATION:
+	_field["allow_on_submit"] = 1
+
+
 def apply():
-	for fields in (PATIENT, PRACTITIONER, CLAIM_COVERAGE, OPERATION_NOTE, *MOH.values()):
+	for fields in (
+		PATIENT,
+		PRACTITIONER,
+		CLAIM_COVERAGE,
+		OPERATION_NOTE,
+		IMAGING_TEMPLATE,
+		IMAGING_OBSERVATION,
+		*MOH.values(),
+	):
 		for field in fields:
 			field.setdefault("module", MODULE)
 	create_custom_fields(
@@ -315,6 +471,8 @@ def apply():
 			"Healthcare Practitioner": PRACTITIONER,
 			"Insurance Claim Coverage": CLAIM_COVERAGE,
 			"Clinical Procedure": OPERATION_NOTE,
+			"Observation Template": IMAGING_TEMPLATE,
+			"Observation": IMAGING_OBSERVATION,
 			**MOH,
 		},
 		update=True,

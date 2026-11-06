@@ -31,6 +31,10 @@ DEMO_ITEMS = (
 	"DRG-AL20120",
 	"DRG-PCM500",
 	"DRG-AMX500",
+	"IMG-CXR",
+	"IMG-ABUS",
+	"IMG-OBUS",
+	"PROC-APPX",
 )
 IDENTIFIERS = {
 	"ke_id_type": "National ID",
@@ -482,7 +486,7 @@ def _register_items(company):
 	from royce_etims.utils.id_mapping import get_etims_id
 
 	for code in DEMO_ITEMS:
-		if not get_etims_id(frappe.get_doc("Item", code), company):
+		if frappe.db.exists("Item", code) and not get_etims_id(frappe.get_doc("Item", code), company):
 			sync_item(code, company)
 			frappe.db.commit()
 

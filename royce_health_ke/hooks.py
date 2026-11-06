@@ -23,9 +23,13 @@ doc_events = {
 	"Healthcare Practitioner": {"validate": "royce_health_ke.identity.validate_practitioner"},
 	"Sales Invoice": {"before_validate": "royce_health_ke.billing.apply_bed_charge_basis"},
 	"Journal Entry": {"on_cancel": "royce_health_ke.claims.on_settlement_cancel"},
+	"Observation": {"before_insert": "royce_health_ke.radiology.before_insert_observation"},
 }
 
-doctype_js = {"Insurance Claim": "public/js/insurance_claim.js"}
+doctype_js = {
+	"Insurance Claim": "public/js/insurance_claim.js",
+	"Observation": "public/js/observation.js",
+}
 
 scheduler_events = {
 	"daily": ["royce_health_ke.identity.remind_licence_expiry"],

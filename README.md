@@ -14,7 +14,7 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 | 3. Billing and private insurance | Done: bed nights, insured visits on Marley's model, claim rejections. Slade360 and separate insurer invoices pending |
 | 4. Maternity | ANC, labour and delivery, newborn, PNC done (to align with the client's forms); maternity billing packages pending |
 | 5. Theatre | Booking, consent, WHO checklist, anaesthesia record, operation note done |
-| 6. Radiology | Planned |
+| 6. Radiology | Worklist, perform/report/verify, accession numbers, MOH 717 imaging done; PACS/modality integration pending |
 | 7. MOH reports, KHIS, dashboards | MOH 705A/B and 717 done (mappings to confirm with the HRIO); KHIS submission and dashboards pending |
 | 8. Kitchen, laundry | Planned |
 | 9. Go-live readiness | Planned |
@@ -78,6 +78,17 @@ Around Marley's Clinical Procedure (which carries the procedure's price and cons
 - **Operation note** on the Clinical Procedure: indication, findings, procedure details, blood loss, specimens, implants, complications, post-op instructions.
 - **Into Theatre** needs submitted consent, Sign In done and no pending/declined pre-authorisation (an emergency may proceed while pending); it creates and starts the Clinical Procedure. **Complete** needs Time Out, Sign Out and the operation note; it completes the procedure and issues its consumables from the theatre's warehouse.
 - **Theatre List** report: the day's list per theatre with consent, checklist and anaesthesia status.
+
+### Radiology
+
+Built on Marley's imaging Observations (Observation Template category *Imaging*, ordered from an encounter like a lab test):
+
+- Templates carry a **Modality** and the **MOH 717 Imaging Row** they count in.
+- Each imaging observation gets an **accession number** (RAD-YYYYMMDD-####) and an exam status: *Requested* -> **Exam Performed** (radiographer, contrast, dose, images or PACS link) -> **Report** (findings into Marley's result, impression, radiologist) -> **Verify and Release** (status Final, submitted, service request completed).
+- **Radiology Worklist** report: open exams, STAT and urgent first, with waiting time.
+- MOH 717 imaging rows count exams performed in the month.
+
+DICOM/HL7 integration with the hospital's X-ray and ultrasound equipment comes once their equipment is known; until then images are attached or linked.
 
 ### MOH reports
 

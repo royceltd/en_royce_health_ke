@@ -69,15 +69,6 @@ NOT_CAPTURED = {
 		"Physiotherapy Treatments",
 		"Occupational Therapy Treatments",
 	],
-	"Imaging": [
-		"Plain XRay without contrast enhancement",
-		"General ultrasound",
-		"Contrast enhanced examinations",
-		"Magnetic Resonance Imaging",
-		"Computerized Tomography",
-		"Mammography",
-		"Obstetric ultrasound",
-	],
 }
 
 
@@ -167,6 +158,7 @@ def compute(company, year, month):
 	add("Number of Laboratory tests", len(lab_tests(company, start, end)))
 
 	_maternity(company, start, end, section, add)
+	_imaging(company, start, end, section, add)
 	_inpatient(company, start, end, section, add)
 
 	for title, indicators in NOT_CAPTURED.items():
@@ -293,3 +285,36 @@ def _maternity(company, start, end, section, add):
 		sum(1 for b in live if b.birth_weight_g and b.birth_weight_g < LOW_BIRTH_WEIGHT_G),
 	)
 	add("Total Discharges (new born)", sum(1 for b in live if b.condition_at_discharge == "Alive"))
+
+
+def _imaging(company, start, end, section, add):
+	"""Imaging exams performed in the month, by their template's MOH 717 Imaging Row."""
+	from royce_health_ke.radiology import MOH717_IMAGING
+
+	exams = frappe.get_all(
+		"Observation",
+		filters={
+			"company": company,
+			"docstatus": ["!=", 2],
+			"ke_performed_at": ["between", [f"{start} 00:00:00", f"{end} 23:59:59"]],
+		},
+		pluck="observation_template",
+	)
+	row_of = dict(
+		frappe.get_all(
+			"Observation Template",
+			filters={"name": ["in", list(set(exams)) or [""]]},
+			fields=["name", "ke_moh717_imaging"],
+			as_list=True,
+		)
+	)
+	counts = Counter(row_of.get(t) for t in exams)
+	section("Imaging")
+	for row in MOH717_IMAGING:
+		add(row, counts[row])
+	if counts[None]:
+		add(
+			"Imaging exams without an MOH 717 row",
+			counts[None],
+			"Set the MOH 717 Imaging Row on the template",
+		)
