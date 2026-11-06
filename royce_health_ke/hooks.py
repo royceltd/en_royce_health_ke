@@ -8,6 +8,19 @@ app_license = "mit"
 # Apps
 # ------------------
 
+# healthcare = Marley Health v16. eTIMS, M-Pesa, Kenyan accounting and payroll
+# are used when installed but not required, so a clinic can start smaller.
+required_apps = ["frappe/erpnext", "healthcare"]
+
+# Installation
+# ------------
+
+after_install = "royce_health_ke.setup.marley_fixes.apply"
+after_migrate = "royce_health_ke.setup.marley_fixes.apply"
+
+# Apps
+# ------------------
+
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
@@ -276,4 +289,3 @@ app_license = "mit"
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-
