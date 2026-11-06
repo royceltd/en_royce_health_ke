@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-07 18:00:00.000000",
+ "modified": "2026-11-08 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Delivery Newborn",
@@ -103,6 +103,14 @@
    "columns": 1
   },
   {
+   "fieldname": "died_on",
+   "fieldtype": "Datetime",
+   "label": "Date of Death",
+   "depends_on": "eval:doc.condition_at_discharge == 'Died'",
+   "mandatory_depends_on": "eval:doc.condition_at_discharge == 'Died'",
+   "description": "For perinatal (0-7 days) and neonatal (0-28 days) deaths on MOH 711."
+  },
+  {
    "fieldname": "birth_notification_number",
    "fieldtype": "Data",
    "label": "Birth Notification No."
@@ -132,6 +140,7 @@
   "chlorhexidine",
   "kangaroo_care",
   "condition_at_discharge",
+  "died_on",
   "birth_notification_number",
   "baby_patient"
  ],

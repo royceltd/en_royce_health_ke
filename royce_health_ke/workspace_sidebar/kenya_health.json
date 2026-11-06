@@ -113,6 +113,18 @@
    "type": "Link"
   },
   {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Family Planning Visit",
+   "link_to": "Family Planning Visit",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
    "child": 0,
    "collapsible": 1,
    "icon": "scissors",
@@ -260,6 +272,18 @@
    "keep_closed": 0,
    "label": "MOH 705 Outpatient Summary",
    "link_to": "MOH 705 Outpatient Summary",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "MOH 711 Integrated Summary",
+   "link_to": "MOH 711 Integrated Summary",
    "link_type": "Report",
    "show_arrow": 0,
    "type": "Link"

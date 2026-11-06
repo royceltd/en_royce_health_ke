@@ -1,0 +1,261 @@
+{
+ "actions": [],
+ "creation": "2026-11-08 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-08 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Family Planning Visit",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "naming_series:",
+ "naming_rule": "By \"Naming Series\" field",
+ "title_field": "patient_name",
+ "is_submittable": 1,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  }
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "FP-.YYYY.-",
+   "default": "FP-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "patient.patient_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "sex",
+   "fieldtype": "Link",
+   "label": "Sex",
+   "options": "Gender",
+   "fetch_from": "patient.sex",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "visit_date",
+   "fieldtype": "Date",
+   "label": "Visit Date",
+   "reqd": 1,
+   "default": "Today",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "practitioner",
+   "fieldtype": "Link",
+   "label": "Provider",
+   "options": "Healthcare Practitioner"
+  },
+  {
+   "fieldname": "referred_from_community",
+   "fieldtype": "Check",
+   "label": "Referred from Community Unit"
+  },
+  {
+   "fieldname": "method_section",
+   "fieldtype": "Section Break",
+   "label": "Method"
+  },
+  {
+   "fieldname": "method",
+   "fieldtype": "Select",
+   "label": "Method",
+   "options": "Progestin only pills\nCombined oral contraceptive pills\nEmergency contraceptive pill\nDMPA-IM\nDMPA-SC\nMale condoms\nFemale condoms\nMale and female condoms\nNatural FP counselling\nCycle beads\nImplant (1 rod)\nImplant (2 rods)\nHormonal IUCD\nNon-hormonal IUCD\nBTL\nVasectomy",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "procedure",
+   "fieldtype": "Select",
+   "label": "Procedure",
+   "options": "\nInsertion\nReinsertion\nRemoval",
+   "depends_on": "eval:[\"Implant (1 rod)\", \"Implant (2 rods)\", \"Hormonal IUCD\", \"Non-hormonal IUCD\"].includes(doc.method)",
+   "mandatory_depends_on": "eval:[\"Implant (1 rod)\", \"Implant (2 rods)\", \"Hormonal IUCD\", \"Non-hormonal IUCD\"].includes(doc.method)",
+   "description": "Insertion = first time this client has this method; Reinsertion = replacing one."
+  },
+  {
+   "fieldname": "visit_type",
+   "fieldtype": "Select",
+   "label": "Visit Type",
+   "options": "\nNew\nRevisit",
+   "description": "Blank = worked out: Revisit if the client has had this method here before."
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "first_ever_user",
+   "fieldtype": "Check",
+   "label": "First Ever User of Contraception"
+  },
+  {
+   "fieldname": "timing",
+   "fieldtype": "Select",
+   "label": "Timing",
+   "options": "Interval\nImmediate postpartum (within 48 hours)\nPostpartum (3 days to 6 weeks)\nPost abortion",
+   "default": "Interval"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Float",
+   "label": "Quantity Given",
+   "description": "Cycles of pills, pieces of condoms, doses."
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Data",
+   "label": "Batch / Lot Number"
+  },
+  {
+   "fieldname": "notes_section",
+   "fieldtype": "Section Break",
+   "label": "Follow-up"
+  },
+  {
+   "fieldname": "side_effects",
+   "fieldtype": "Small Text",
+   "label": "Side Effects / Concerns"
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "next_visit_date",
+   "fieldtype": "Date",
+   "label": "Next Visit"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Family Planning Visit",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1
+  }
+ ],
+ "field_order": [
+  "naming_series",
+  "patient",
+  "patient_name",
+  "sex",
+  "company",
+  "cb1",
+  "visit_date",
+  "practitioner",
+  "referred_from_community",
+  "method_section",
+  "method",
+  "procedure",
+  "visit_type",
+  "cb2",
+  "first_ever_user",
+  "timing",
+  "quantity",
+  "batch_no",
+  "notes_section",
+  "side_effects",
+  "cb3",
+  "next_visit_date",
+  "notes",
+  "amended_from"
+ ]
+}

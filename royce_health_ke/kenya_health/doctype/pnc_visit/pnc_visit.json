@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-07 18:00:00.000000",
+ "modified": "2026-11-08 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "PNC Visit",
@@ -85,6 +85,11 @@
    "fieldtype": "Link",
    "label": "Practitioner",
    "options": "Healthcare Practitioner"
+  },
+  {
+   "fieldname": "referred_from_community",
+   "fieldtype": "Check",
+   "label": "Referred from Community Unit"
   },
   {
    "fieldname": "mother_section",
@@ -228,6 +233,7 @@
   "visit_number",
   "timing",
   "practitioner",
+  "referred_from_community",
   "mother_section",
   "temperature",
   "pulse",

@@ -12,10 +12,10 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 | 1. Kenyan identifiers and code sets (ICD-11/10, LOINC, PPB) | Done (ICD-10, LOINC, PPB lists to load from source files) |
 | 2. SHA / HIE connector | Waiting for AfyaConnect sandbox approval |
 | 3. Billing and private insurance | Done: bed nights, insured visits on Marley's model, claim rejections. Slade360 and separate insurer invoices pending |
-| 4. Maternity | ANC, labour and delivery, newborn, PNC done (to align with the client's forms); maternity billing packages pending |
+| 4. Maternity | ANC, labour and delivery, newborn, PNC, family planning done (to align with the client's forms); maternity billing packages pending |
 | 5. Theatre | Booking, consent, WHO checklist, anaesthesia record, operation note done |
 | 6. Radiology | Worklist, perform/report/verify, accession numbers, MOH 717 imaging done; PACS/modality integration pending |
-| 7. MOH reports, KHIS, dashboards | MOH 705A/B and 717 done (mappings to confirm with the HRIO); management dashboards done; MOH 711/710 and KHIS submission pending |
+| 7. MOH reports, KHIS, dashboards | MOH 705A/B, 711 and 717 done (mappings to confirm with the HRIO); management dashboards done; MOH 710 (needs immunisation records) and KHIS submission pending |
 | 8. Kitchen, laundry | Planned |
 | 9. Go-live readiness | Planned |
 
@@ -63,6 +63,7 @@ Open: whether insurers need an eTIMS invoice addressed to them (separate insurer
 - **ANC Visit**: contact number and gestation worked out; examination, IPTp-SP, Td, iron/folate, ITN, danger signs.
 - **Delivery Record**: labour observations with WHO Labour Care Guide alerts (FHR, pulse, BP, temperature, contractions, liquor), mode of delivery, uterotonic, blood loss, perineum, complications (APH, PPH, eclampsia, ruptured uterus, obstructed labour, sepsis), mother's condition, and the babies (weight, APGAR, outcome, essential newborn care). On submit, each live-born baby gets a Patient record linked to the mother.
 - **PNC Visit**: visit number and MOH timing bucket (within 48 hours / 3 days to under 6 weeks / after).
+- **Family Planning Visit**: method (pills, DMPA, condoms, implants, IUCDs, BTL, vasectomy, natural FP), insertion / reinsertion / removal for implants and IUCDs, New or Revisit (worked out from earlier visits for the same method), first-ever user, and timing (interval, immediate postpartum, postpartum, post abortion). Women-only and men-only methods are checked against the patient's sex.
 - MOH 717 now counts ANC and PNC visits, deliveries by mode, births, stillbirths, neonatal deaths, low birth weight and maternal deaths.
 
 Fields follow the MOH ANC, maternity and PNC registers (as in KenyaEMR) - align with the hospital's own forms.
@@ -107,6 +108,7 @@ Kenya Health Settings sets the medicines item group (default Drug), the pharmacy
 ### MOH reports
 
 - **MOH 705 Outpatient Summary** (705A under 5 / 705B 5 and over): one row per indicator, days 1-31 and total. Rows are **MOH 705 Indicator** records, mapped to ICD-10/ICD-11 code prefixes, specific Diagnoses or lab tests, so the Health Records Officer can correct them. A diagnosis counts on its longest matching prefix; unmatched ones go to "All other diseases". New cases only (once per patient per indicator per month); first attendance = first outpatient day of the calendar year.
+- **MOH 711 Integrated Summary**: ANC/PMTCT, maternity and newborn, PNC and family planning from the maternity and FP records; first ANC visits and maternal deaths by the mother's age (10-14, 15-19, 20-24, 25+). Cervical cancer screening, child health and nutrition, SGBV, TB screening, psychiatry and physiotherapy are listed as "Not captured yet".
 - **MOH 717 Service Workload**: outpatient attendances by clinic, sex and age; laboratory tests; admissions, discharges, deaths, abscondees and referrals per ward category. Maternity, MCH, procedures and imaging rows are listed as "Not captured yet" until those modules exist.
 - Set the **MOH 717 Clinic** on Medical Departments, the **MOH 717 Ward** on inpatient Service Unit Types, and the **Discharge Outcome** on Inpatient Records.
 

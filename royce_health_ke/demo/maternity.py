@@ -3,7 +3,8 @@
 
 """Demo maternity: Faith books for ANC, attends three contacts, delivers a
 baby girl normally in the early hours of yesterday (one labour observation
-raises a fetal heart rate alert), and is seen for PNC today."""
+raises a fetal heart rate alert), is seen for PNC today and has an implant
+inserted before she goes home (immediate postpartum family planning)."""
 
 import frappe
 from frappe.utils import add_days, getdate, today
@@ -33,7 +34,7 @@ MOTHER = {
 def run(company):
 	existing = frappe.db.get_value("Patient", {"first_name": "Faith", "last_name": "Wambui"})
 	if existing:
-		return {"patient": existing, "created": False}
+		return {"patient": existing, "created": False, "family_planning": family_planning(company, existing)}
 	amina = frappe.db.get_value("Healthcare Practitioner", {"first_name": "Amina"})
 	mother = journey._insert({"doctype": "Patient", **MOTHER, "dob": f"{getdate().year - 27}-02-10"}).name
 	lmp = add_days(today(), -276)  # 39 weeks 3 days today
@@ -56,7 +57,14 @@ def run(company):
 		}
 	)
 	for weeks, weight, bp, fh, fhr, extras in (
-		(12, 61.0, (110, 70), None, None, {"td_dose": "Td1", "iron_folate": 1, "itn_given": 1}),
+		(
+			12,
+			61.0,
+			(110, 70),
+			None,
+			None,
+			{"td_dose": "Td1", "iron_folate": 1, "itn_given": 1, "breast_exam": 1},
+		),
 		(
 			28,
 			66.5,
@@ -181,6 +189,7 @@ def run(company):
 		submit=True,
 	)
 	delivery.reload()
+	fp = family_planning(company, mother)
 	return {
 		"patient": mother,
 		"created": True,
@@ -188,4 +197,29 @@ def run(company):
 		"delivery": delivery.name,
 		"baby": delivery.babies[0].baby_patient,
 		"labour_alerts": [r.alert for r in delivery.labour_observations if r.alert],
+		"family_planning": fp,
 	}
+
+
+def family_planning(company, mother):
+	"""Faith's postpartum implant (added in v0.9.0, so it is also created for
+	demo sites that already have her)."""
+	existing = frappe.db.get_value("Family Planning Visit", {"patient": mother, "docstatus": 1})
+	if existing:
+		return existing
+	return journey._insert(
+		{
+			"doctype": "Family Planning Visit",
+			"patient": mother,
+			"company": company,
+			"visit_date": today(),
+			"practitioner": frappe.db.get_value("Healthcare Practitioner", {"first_name": "Amina"}),
+			"method": "Implant (1 rod)",
+			"procedure": "Insertion",
+			"timing": "Immediate postpartum (within 48 hours)",
+			"quantity": 1,
+			"batch_no": "DEMO-IMP-001",
+			"next_visit_date": add_days(today(), 42),
+		},
+		submit=True,
+	).name

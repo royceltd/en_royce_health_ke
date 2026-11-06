@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-07 18:00:00.000000",
+ "modified": "2026-11-08 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "ANC Visit",
@@ -132,6 +132,11 @@
    "options": "\nCephalic\nBreech\nTransverse\nNot determined"
   },
   {
+   "fieldname": "breast_exam",
+   "fieldtype": "Check",
+   "label": "Breast Examination Done"
+  },
+  {
    "fieldname": "tests_section",
    "fieldtype": "Section Break",
    "label": "Tests"
@@ -179,6 +184,14 @@
    "label": "Iron and Folate Given"
   },
   {
+   "fieldname": "iron_folate_type",
+   "fieldtype": "Select",
+   "label": "Iron / Folate Given",
+   "options": "Combined ferrous folate\nIron only\nFolic acid only",
+   "default": "Combined ferrous folate",
+   "depends_on": "iron_folate"
+  },
+  {
    "fieldname": "cb4",
    "fieldtype": "Column Break"
   },
@@ -206,6 +219,12 @@
    "fieldname": "danger_signs",
    "fieldtype": "Small Text",
    "label": "Danger Signs"
+  },
+  {
+   "fieldname": "fgm_complications",
+   "fieldtype": "Check",
+   "label": "FGM-related Complications",
+   "description": "Complications from female genital mutilation seen at this visit (MOH 711)."
   },
   {
    "fieldname": "clinical_notes",
@@ -256,6 +275,7 @@
   "fundal_height",
   "fetal_heart_rate",
   "presentation",
+  "breast_exam",
   "tests_section",
   "haemoglobin",
   "urinalysis",
@@ -265,12 +285,14 @@
   "ipt_dose",
   "td_dose",
   "iron_folate",
+  "iron_folate_type",
   "cb4",
   "deworming",
   "itn_given",
   "ppfp_counselling",
   "notes_section",
   "danger_signs",
+  "fgm_complications",
   "clinical_notes",
   "cb5",
   "next_visit_date",
