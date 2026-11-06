@@ -1,0 +1,122 @@
+{
+ "name": "MOH 705 Indicator",
+ "autoname": "format:{form}-{code}",
+ "naming_rule": "Expression",
+ "title_field": "label",
+ "track_changes": 1,
+ "fields": [
+  {
+   "fieldname": "form",
+   "fieldtype": "Select",
+   "label": "Form",
+   "options": "705A\n705B",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "705A: patients under 5. 705B: 5 and over."
+  },
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "label": "Code",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Indicator",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Counts",
+   "default": "Diagnosis",
+   "in_list_view": 1,
+   "options": "Diagnosis\nLab Test\nAll Other Diseases\nFirst Attendance\nRe-Attendance\nReferral In\nReferral Out"
+  },
+  {
+   "fieldname": "sequence",
+   "fieldtype": "Int",
+   "label": "Row Order"
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "mapping_section",
+   "fieldtype": "Section Break",
+   "label": "What Counts Here",
+   "description": "Diagnosis rows: code prefixes (ICD-10 or ICD-11) and/or specific Diagnosis records. Lab Test rows: lab test templates or their codes (e.g. LOINC). A diagnosis counts on the row with its longest matching prefix."
+  },
+  {
+   "fieldname": "codes",
+   "fieldtype": "Table",
+   "label": "Mapping",
+   "options": "MOH 705 Indicator Code"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "actions": [],
+ "creation": "2026-11-07 15:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-07 15:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "field_order": [
+  "form",
+  "code",
+  "label",
+  "column_break_1",
+  "kind",
+  "sequence",
+  "disabled",
+  "mapping_section",
+  "codes"
+ ]
+}

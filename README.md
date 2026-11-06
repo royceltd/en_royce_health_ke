@@ -13,7 +13,7 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 | 2. SHA / HIE connector | Waiting for AfyaConnect sandbox approval |
 | 3. Billing and private insurance | Done: bed nights, insured visits on Marley's model, claim rejections. Slade360 and separate insurer invoices pending |
 | 4. Maternity, 5. Theatre, 6. Radiology | Planned |
-| 7. MOH reports, KHIS, dashboards | Planned |
+| 7. MOH reports, KHIS, dashboards | MOH 705A/B and 717 done (mappings to confirm with the HRIO); KHIS submission and dashboards pending |
 | 8. Kitchen, laundry | Planned |
 | 9. Go-live readiness | Planned |
 
@@ -54,6 +54,14 @@ Stored in Marley's Code System / Code Value, FHIR-shaped (system URI + code + di
 - **Rejected lines** (missing in Marley): *Settle Rejected Lines* on the claim either bills the patient (no new eTIMS invoice needed) or writes the amount off to the insurer's Rejected Claims expense account. Cancelling the settlement entry reopens the line.
 
 Open: whether insurers need an eTIMS invoice addressed to them (separate insurer invoice), pending a tax adviser's view; Slade360 integration pending API access.
+
+### MOH reports
+
+- **MOH 705 Outpatient Summary** (705A under 5 / 705B 5 and over): one row per indicator, days 1-31 and total. Rows are **MOH 705 Indicator** records, mapped to ICD-10/ICD-11 code prefixes, specific Diagnoses or lab tests, so the Health Records Officer can correct them. A diagnosis counts on its longest matching prefix; unmatched ones go to "All other diseases". New cases only (once per patient per indicator per month); first attendance = first outpatient day of the calendar year.
+- **MOH 717 Service Workload**: outpatient attendances by clinic, sex and age; laboratory tests; admissions, discharges, deaths, abscondees and referrals per ward category. Maternity, MCH, procedures and imaging rows are listed as "Not captured yet" until those modules exist.
+- Set the **MOH 717 Clinic** on Medical Departments, the **MOH 717 Ward** on inpatient Service Unit Types, and the **Discharge Outcome** on Inpatient Records.
+
+The default 705 mappings are Royce's first pass from the KenyaEMR specification (palladiumkenya/openmrs-module-kenyaemr, MPL 2.0, read only) - review them with the hospital's HRIO against the current MOH forms.
 
 ### Marley fixes
 

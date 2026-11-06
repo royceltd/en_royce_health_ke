@@ -22,3 +22,27 @@ def run():
 	custom_fields.apply()
 	marley_fixes.apply()
 	codes.ensure_code_systems()
+	seed_moh705()
+
+
+def seed_moh705():
+	"""Create the default MOH 705 rows that don't exist yet. Existing rows are
+	the hospital's to edit and are never touched (ADR-023)."""
+	import frappe
+
+	from royce_health_ke.moh.seed705 import rows
+
+	for form, sequence, code, label, kind, mapping in rows():
+		if frappe.db.exists("MOH 705 Indicator", f"{form}-{code}"):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "MOH 705 Indicator",
+				"form": form,
+				"code": code,
+				"label": label,
+				"kind": kind,
+				"sequence": sequence,
+				"codes": [{"code_system": system, "code_prefix": prefix} for system, prefix in mapping],
+			}
+		).insert(ignore_permissions=True)

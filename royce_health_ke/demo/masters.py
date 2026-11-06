@@ -186,7 +186,23 @@ def load(company):
 			set_coding(diagnosis, ICD11, icd11, dx)
 			set_coding(diagnosis, ICD10, icd10, icd10_title)
 			diagnosis.save(ignore_permissions=True)
+	# Older demo sites named the diagnoses with the code in the title.
+	for legacy, (icd11, icd10) in {
+		"Malaria, uncomplicated (ICD-10 B54)": ("1F4Z", "B54"),
+		"Anaemia, unspecified (ICD-10 D64.9)": ("3A9Z", "D64.9"),
+	}.items():
+		if frappe.db.exists("Diagnosis", legacy):
+			diagnosis = frappe.get_doc("Diagnosis", legacy)
+			if not diagnosis.get("codification_table"):
+				set_coding(diagnosis, ICD11, icd11)
+				set_coding(diagnosis, ICD10, icd10)
+				diagnosis.save(ignore_permissions=True)
 	_facility(company, a)
+	if frappe.get_meta("Healthcare Service Unit Type").has_field("ke_moh717_ward"):
+		if not frappe.db.get_value("Healthcare Service Unit Type", "General Ward Bed", "ke_moh717_ward"):
+			frappe.db.set_value(
+				"Healthcare Service Unit Type", "General Ward Bed", "ke_moh717_ward", "Medical"
+			)
 	for complaint in ("Fever", "Headache", "Chills", "Joint pains", "Vomiting"):
 		ensure("Complaint", complaint, {"complaints": complaint})
 

@@ -15,6 +15,9 @@ from royce_health_ke.kenya import (
 	REGULATORS,
 	select,
 )
+from royce_health_ke.moh.moh717 import CLINICS as MOH717_CLINICS
+from royce_health_ke.moh.moh717 import OUTCOMES as MOH717_OUTCOMES
+from royce_health_ke.moh.moh717 import WARDS as MOH717_WARDS
 
 MODULE = "Kenya Health"
 
@@ -176,8 +179,60 @@ CLAIM_COVERAGE = [
 ]
 
 
+MOH = {
+	"Medical Department": [
+		{
+			"fieldname": "ke_moh717_clinic",
+			"fieldtype": "Select",
+			"label": "MOH 717 Clinic",
+			"options": select(MOH717_CLINICS),
+			"insert_after": "department",
+			"description": "Where this department's outpatient visits count on MOH 717. Blank = General Outpatient.",
+		}
+	],
+	"Healthcare Service Unit Type": [
+		{
+			"fieldname": "ke_moh717_ward",
+			"fieldtype": "Select",
+			"label": "MOH 717 Ward",
+			"options": select(MOH717_WARDS),
+			"insert_after": "inpatient_occupancy",
+			"depends_on": "inpatient_occupancy",
+			"description": "Ward category for MOH 717 admissions and discharges. Blank = Other Wards.",
+		}
+	],
+	"Inpatient Record": [
+		{
+			"fieldname": "ke_discharge_outcome",
+			"fieldtype": "Select",
+			"label": "Discharge Outcome",
+			"options": select(MOH717_OUTCOMES),
+			"insert_after": "discharge_datetime",
+			"description": "Counts on MOH 717 as a discharge, death, abscondee or referral out. Blank = Discharged.",
+		}
+	],
+	"Patient Encounter": [
+		{
+			"fieldname": "ke_referred_out",
+			"fieldtype": "Check",
+			"label": "Referred to Another Facility",
+			"insert_after": "source",
+			"allow_on_submit": 1,
+		},
+		{
+			"fieldname": "ke_referred_to",
+			"fieldtype": "Data",
+			"label": "Referred To",
+			"insert_after": "ke_referred_out",
+			"depends_on": "ke_referred_out",
+			"allow_on_submit": 1,
+		},
+	],
+}
+
+
 def apply():
-	for fields in (PATIENT, PRACTITIONER, CLAIM_COVERAGE):
+	for fields in (PATIENT, PRACTITIONER, CLAIM_COVERAGE, *MOH.values()):
 		for field in fields:
 			field.setdefault("module", MODULE)
 	create_custom_fields(
@@ -185,6 +240,7 @@ def apply():
 			"Patient": PATIENT,
 			"Healthcare Practitioner": PRACTITIONER,
 			"Insurance Claim Coverage": CLAIM_COVERAGE,
+			**MOH,
 		},
 		update=True,
 	)

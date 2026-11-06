@@ -301,6 +301,7 @@ def run(company):
 		)
 	)
 	inpatient.reload()
+	inpatient.ke_discharge_outcome = "Discharged"
 	inpatient.discharge()
 	from healthcare.healthcare.doctype.inpatient_record.inpatient_record import make_discharge_summary
 
