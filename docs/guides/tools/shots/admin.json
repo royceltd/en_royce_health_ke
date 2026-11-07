@@ -1,0 +1,35 @@
+[
+ {
+  "file": "01-user.png",
+  "url": "/desk/user/amina.achieng@kijanivalley.example"
+ },
+ {
+  "file": "02-practitioner.png",
+  "url": "/desk/healthcare/healthcare-practitioner/HLC-PRAC-2026-00001",
+  "scroll": "[data-fieldname=\"ke_registration_section\"]"
+ },
+ {
+  "file": "03-item-price.png",
+  "url": "/desk/item-price?price_list=Standard%20Selling"
+ },
+ {
+  "file": "04-lab-template.png",
+  "url": "/desk/healthcare/lab-test-template/Haemoglobin (Hb)"
+ },
+ {
+  "file": "05-medication.png",
+  "url": "/desk/healthcare/medication/Capsule Amoxicillin 500mg"
+ },
+ {
+  "file": "06-dosage.png",
+  "url": "/desk/healthcare/prescription-dosage/4-0-4"
+ },
+ {
+  "file": "07-bed.png",
+  "url": "/desk/inpatient/healthcare-service-unit/GW Bed 03 - KVHL"
+ },
+ {
+  "file": "08-kenya-health-settings.png",
+  "url": "/desk/kenya-health-settings"
+ }
+]

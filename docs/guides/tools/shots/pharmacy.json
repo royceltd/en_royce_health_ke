@@ -1,0 +1,8 @@
+[
+ {"file": "01-stock-status.png", "url": "/desk/query-report/Pharmacy Stock Status"},
+ {"file": "02-purchase-receipt.png", "url": "/desk/purchase-receipt/MAT-PRE-2026-00001"},
+ {"file": "03-ward-return.png", "url": "/desk/stock-entry/MAT-STE-2026-00012"},
+ {"file": "04-stock-count.png", "url": "/desk/stock-reconciliation/MAT-RECO-2026-00001"},
+ {"file": "05-stock-ledger.png", "url": "/desk/query-report/Stock Ledger?company=Kijani Valley Hospital Ltd&item_code=DRG-AMX500&from_date=2026-11-01&to_date=2026-11-07"},
+ {"file": "06-etims-movements.png", "url": "/desk/etims-stock-movement"}
+]

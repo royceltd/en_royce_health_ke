@@ -418,6 +418,16 @@ def _pay(si, reference):
 	mpesa = frappe.db.exists("Mode of Payment Account", {"parent": "M-Pesa", "company": si.company})
 	pe = get_payment_entry("Sales Invoice", si.name)
 	pe.mode_of_payment = "M-Pesa" if mpesa else "Cash"
+	# get_payment_entry fills the company's default bank; the money is in the
+	# mode of payment's own account (M-Pesa, Cash), so day-end balances agree.
+	account = frappe.db.get_value(
+		"Mode of Payment Account",
+		{"parent": pe.mode_of_payment, "company": si.company},
+		"default_account",
+	)
+	if account:
+		pe.paid_to = account
+		pe.paid_to_account_currency = frappe.db.get_value("Account", account, "account_currency")
 	pe.reference_no = reference
 	pe.reference_date = si.posting_date
 	pe.posting_date = si.posting_date

@@ -7,8 +7,13 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 | [01 Overview](01-overview.md) | Management, ICT | 2026-11-07, v0.14.0 |
 | [02 Outpatient](02-outpatient.md) | Reception, triage, doctors, lab, cashier, pharmacy | 2026-11-07, v0.14.0 |
 | [03 Inpatient](03-inpatient.md) | Doctors, ward nurses, pharmacy, cashier | 2026-11-07, v0.14.0 |
+| [04 Insurance](04-insurance.md) | Reception, cashier, claims officer, finance | 2026-11-07, v0.14.0 |
+| [05 Maternity](05-maternity.md) | ANC nurses, midwives, MCH, cashier | 2026-11-07, v0.14.0 |
+| [06 Pharmacy and stock](06-pharmacy-and-stock.md) | Pharmacist, stores | 2026-11-07, v0.14.0 |
+| [07 Cashier day-end](07-cashier-day-end.md) | Cashier, accountant | 2026-11-07, v0.14.0 |
+| [08 Administrator setup](08-administrator-setup.md) | System administrator | 2026-11-07, v0.14.0 |
 
-Planned next: Insurance (insured patient, copay, claim, rejection), Maternity, Pharmacy and stock, Cashier day-end, Administrator setup.
+Planned next: theatre, radiology, emergency, kitchen and laundry, MOH reporting for the HRIO.
 
 ## Writing a guide
 
@@ -32,4 +37,4 @@ Open records through their menu path (`/desk/outpatient/...`, `/desk/inpatient/.
 
 ## Demo records behind the guides
 
-The outpatient and inpatient guides follow patients created on the demo site on 2026-11-07, after the demo loader ran: Lucy Wairimu Ndung'u (outpatient) and Mary Atieno Odhiambo (inpatient, with ward medication). They are not created by `royce_health_ke.demo.load`; a fresh demo site will have different record numbers, so update the guide text with the shots.
+Insurance and maternity follow the demo loader's patients (Peter Otieno Kamau, Faith Njeri Wambui). The outpatient, inpatient, pharmacy, cashier and administrator guides also use records created on the demo site on 2026-11-07 after the loader ran: Lucy Wairimu Ndung'u (outpatient), Mary Atieno Odhiambo (inpatient, with ward medication), a supplier delivery, a stock count, the M-Pesa settlement and two staff users. They are not created by `royce_health_ke.demo.load`; a fresh demo site will have different record numbers, so update the guide text with the shots.

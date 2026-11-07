@@ -1,0 +1,45 @@
+[
+ {
+  "file": "01-pregnancy.png",
+  "url": "/desk/kenya-health/pregnancy-record/PREG-2026-00001"
+ },
+ {
+  "file": "02-anc-visit.png",
+  "url": "/desk/kenya-health/anc-visit/ANC-2026-00003"
+ },
+ {
+  "file": "03-labour-observations.png",
+  "url": "/desk/kenya-health/delivery-record/DEL-2026-00001",
+  "scroll": "[data-fieldname=\"labour_observations\"]"
+ },
+ {
+  "file": "04-labour-care-guide.png",
+  "url": "/printview?doctype=Delivery%20Record&name=DEL-2026-00001&format=Labour%20Care%20Guide&no_letterhead=1"
+ },
+ {
+  "file": "06-babies.png",
+  "url": "/desk/kenya-health/delivery-record/DEL-2026-00001",
+  "scroll": "[data-fieldname=\"babies_section\"]"
+ },
+ {
+  "file": "07-package.png",
+  "url": "/desk/kenya-health/maternity-package/Normal Delivery (Cash)"
+ },
+ {
+  "file": "08-package-bill.png",
+  "url": "/desk/outpatient/sales-invoice/ACC-SINV-2026-00004",
+  "scroll": "[data-fieldname=\"items\"]"
+ },
+ {
+  "file": "09-pnc-visit.png",
+  "url": "/desk/kenya-health/pnc-visit/PNC-2026-00001"
+ },
+ {
+  "file": "10-family-planning.png",
+  "url": "/desk/kenya-health/family-planning-visit/FP-2026-00001"
+ },
+ {
+  "file": "11-moh711.png",
+  "url": "/desk/query-report/MOH 711 Integrated Summary?company=Kijani Valley Hospital Ltd&year=2026&month=11"
+ }
+]

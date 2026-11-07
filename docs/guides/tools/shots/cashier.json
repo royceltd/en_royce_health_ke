@@ -1,0 +1,8 @@
+[
+ {"file": "01-payments-today.png", "url": "/desk/payment-entry?posting_date=2026-11-07&docstatus=1&mode_of_payment=M-Pesa"},
+ {"file": "02-daraja-c2b.png", "url": "/desk/daraja-c2b-payment"},
+ {"file": "03-etims-compliance.png", "url": "/desk/query-report/eTIMS Compliance Status"},
+ {"file": "04-receivables.png", "url": "/desk/query-report/Accounts Receivable?company=Kijani Valley Hospital Ltd"},
+ {"file": "05-bank-transfer.png", "url": "/desk/payment-entry/ACC-PAY-2026-00014"},
+ {"file": "06-mpesa-ledger.png", "url": "/desk/query-report/General Ledger?company=Kijani Valley Hospital Ltd&account=%5B%22M-Pesa%20-%20KVHL%22%5D&from_date=2026-11-07&to_date=2026-11-07&group_by=Group%20by%20Voucher%20(Consolidated)"}
+]

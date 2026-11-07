@@ -1,0 +1,12 @@
+[
+ {"file": "01-insurer.png", "url": "/desk/insurance/insurance-payor/Mlima Health Assurance (Demo)"},
+ {"file": "02-plan.png", "url": "/desk/insurance/insurance-payor-eligibility-plan/Corporate Gold (Demo)"},
+ {"file": "03-policy.png", "url": "/desk/insurance/patient-insurance-policy/INS-PLCY-2026-00001"},
+ {"file": "04-coverage.png", "url": "/desk/insurance/patient-insurance-coverage/INS-COV-2026-00001"},
+ {"file": "05-invoice-lines.png", "url": "/desk/insurance/sales-invoice/ACC-SINV-2026-00003", "scroll": "[data-fieldname=\"items\"]"},
+ {"file": "06-invoice-totals.png", "url": "/desk/insurance/sales-invoice/ACC-SINV-2026-00003", "scroll": "[data-fieldname=\"total_insurance_coverage_amount\"]"},
+ {"file": "07-claim.png", "url": "/desk/insurance/insurance-claim/INS-CLAIM-2026-00001"},
+ {"file": "08-claim-lines.png", "url": "/desk/insurance/insurance-claim/INS-CLAIM-2026-00001", "scroll": "[data-fieldname=\"coverages\"]"},
+ {"file": "09-settlement.png", "url": "/desk/journal-entry/ACC-JV-2026-00004"},
+ {"file": "10-dashboard.png", "url": "/desk/kenya-health"}
+]
