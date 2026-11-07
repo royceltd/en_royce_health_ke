@@ -11,7 +11,16 @@
   "pharmacy_warehouse",
   "pharmacy_column",
   "expiry_warning_days",
-  "min_days_of_cover"
+  "min_days_of_cover",
+  "kitchen_section",
+  "meal_billing",
+  "kitchen_column",
+  "meal_item",
+  "laundry_section",
+  "linen_store",
+  "laundry_warehouse",
+  "laundry_column",
+  "linen_item_group"
  ],
  "fields": [
   {
@@ -64,11 +73,66 @@
    "label": "Minimum Days of Cover",
    "default": "14",
    "description": "Stock that lasts fewer days than this at the last 30 days' rate of use shows as Low Cover."
+  },
+  {
+   "fieldname": "kitchen_section",
+   "fieldtype": "Section Break",
+   "label": "Kitchen"
+  },
+  {
+   "fieldname": "meal_billing",
+   "fieldtype": "Select",
+   "label": "Meal Billing",
+   "options": "Included in bed charge\nPer day\nPer meal",
+   "default": "Included in bed charge",
+   "description": "Per day / Per meal: inpatient bills get a meal line for each diet order's days not billed yet (meals per day x days for Per meal). Nil by mouth days aren't charged."
+  },
+  {
+   "fieldname": "kitchen_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "meal_item",
+   "fieldtype": "Link",
+   "label": "Meal Charge Item",
+   "options": "Item",
+   "depends_on": "eval:doc.meal_billing != 'Included in bed charge'",
+   "description": "Used for diets without their own item. Its price is per day or per meal, as above."
+  },
+  {
+   "fieldname": "laundry_section",
+   "fieldtype": "Section Break",
+   "label": "Laundry"
+  },
+  {
+   "fieldname": "linen_store",
+   "fieldtype": "Link",
+   "label": "Linen Store",
+   "options": "Warehouse",
+   "description": "Clean linen ready to issue."
+  },
+  {
+   "fieldname": "laundry_warehouse",
+   "fieldtype": "Link",
+   "label": "Laundry",
+   "options": "Warehouse",
+   "description": "Soiled linen being washed."
+  },
+  {
+   "fieldname": "laundry_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "linen_item_group",
+   "fieldtype": "Link",
+   "label": "Linen Item Group",
+   "options": "Item Group",
+   "description": "Blank = Linen."
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-07 18:00:00.000000",
+ "modified": "2026-11-08 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

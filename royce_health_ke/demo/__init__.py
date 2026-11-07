@@ -28,7 +28,15 @@ def load(company: str = DEMO_COMPANY):
 	# is set (bench console on a fresh site); bench execute and the desk set one.
 	frappe.local.lang = frappe.local.lang or "en"
 
-	from royce_health_ke.demo import insurance, journey, masters, maternity, radiology, theatre
+	from royce_health_ke.demo import (
+		insurance,
+		journey,
+		kitchen_laundry,
+		masters,
+		maternity,
+		radiology,
+		theatre,
+	)
 
 	masters.ensure_company(company)
 	frappe.db.commit()
@@ -46,5 +54,7 @@ def load(company: str = DEMO_COMPANY):
 	result["theatre_patient"] = theatre.run(company)
 	frappe.db.commit()
 	result["radiology_patient"] = radiology.run(company)
+	frappe.db.commit()
+	result["kitchen_laundry"] = kitchen_laundry.run(company)
 	frappe.db.commit()
 	return result

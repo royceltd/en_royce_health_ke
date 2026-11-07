@@ -37,3 +37,46 @@ def apply_bed_charge_basis(doc, method=None):
 			continue
 		qty = nights(check_in, check_out)
 		row.qty = qty
+
+
+def add_invoice_line(doc, item_code, qty, rate=None, **fields):
+	"""Append a fully set-up line to a draft Sales Invoice (as a cashier
+	adding the item would get it): name, UOM, accounts, tax template and the
+	price list rate unless a rate is given."""
+	from erpnext.stock.get_item_details import ItemDetailsCtx, get_item_details
+
+	details = get_item_details(
+		ItemDetailsCtx(
+			{
+				"doctype": "Sales Invoice",
+				"item_code": item_code,
+				"company": doc.company,
+				"customer": doc.customer,
+				"selling_price_list": doc.selling_price_list,
+				"price_list_currency": doc.price_list_currency or doc.currency,
+				"currency": doc.currency,
+				"conversion_rate": doc.conversion_rate or 1,
+				"plc_conversion_rate": doc.plc_conversion_rate or 1,
+				"qty": qty,
+			}
+		)
+	)
+	rate = details.price_list_rate if rate is None else rate
+	return doc.append(
+		"items",
+		{
+			"item_code": item_code,
+			"item_name": details.item_name,
+			"description": details.description,
+			"uom": details.uom or details.stock_uom,
+			"stock_uom": details.stock_uom,
+			"conversion_factor": 1,
+			"income_account": details.income_account,
+			"cost_center": details.cost_center,
+			"item_tax_template": details.item_tax_template,
+			"qty": qty,
+			"price_list_rate": rate,
+			"rate": rate,
+			**fields,
+		},
+	)

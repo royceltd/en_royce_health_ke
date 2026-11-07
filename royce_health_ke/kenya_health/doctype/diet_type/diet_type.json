@@ -1,0 +1,114 @@
+{
+ "actions": [],
+ "creation": "2026-11-08 15:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "module": "Kenya Health",
+ "name": "Diet Type",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "fields": [
+  {
+   "fieldname": "diet_name",
+   "fieldtype": "Data",
+   "label": "Diet",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "nil_by_mouth",
+   "fieldtype": "Check",
+   "label": "Nil by Mouth",
+   "description": "No meals are served or charged."
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Meal Charge Item",
+   "options": "Item",
+   "depends_on": "eval:!doc.nil_by_mouth",
+   "description": "Blank = the Meal Charge Item in Kenya Health Settings."
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description / Kitchen Guidance"
+  }
+ ],
+ "field_order": [
+  "diet_name",
+  "nil_by_mouth",
+  "disabled",
+  "cb1",
+  "item",
+  "description"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "print": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "report": 1,
+   "print": 1
+  },
+  {
+   "role": "Kitchen User",
+   "read": 1,
+   "report": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "field:diet_name",
+ "naming_rule": "By fieldname",
+ "modified": "2026-11-08 15:00:00.000000"
+}

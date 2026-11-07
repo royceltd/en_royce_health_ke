@@ -16,7 +16,7 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 | 5. Theatre | Booking, consent, WHO checklist, anaesthesia record, operation note done |
 | 6. Radiology | Worklist, perform/report/verify, accession numbers, MOH 717 imaging done; PACS/modality integration pending |
 | 7. MOH reports, KHIS, dashboards | MOH 705A/B, 711 and 717 done (mappings to confirm with the HRIO); management dashboards done; MOH 710 (needs immunisation records) and KHIS submission pending |
-| 8. Kitchen, laundry | Planned |
+| 8. Kitchen, laundry | Diet orders, ward diet list, meal charges; linen movements and status done |
 | 9. Go-live readiness | Planned |
 
 ### Installation
@@ -113,6 +113,28 @@ The **Kenya Health** workspace (sidebar: Kenya Health > Home) opens on the hospi
 
 Kenya Health Settings sets the medicines item group (default Drug), the pharmacy warehouse (a group warehouse covers several stores), the expiry warning (90 days) and the minimum days of cover (14). Each card and chart needs read access to its records (Sales Invoice, Inpatient Record, Insurance Claim, Patient Encounter, Bin), so a nurse doesn't see revenue.
 
+### Kitchen
+
+- **Diet Type**: Normal, Soft, Diabetic, Nil by Mouth and so on; optional meal charge item per diet.
+- **Diet Order** (per admission, submitted by a doctor or nurse): diet, from / until, meals per day, instructions; the patient's allergies come from the Patient. A new order ends the earlier open one on its start date; on a day two orders overlap, the later one counts.
+- **Ward Diet List** report: what the kitchen cooks for a day - each admitted patient's ward, bed, diet, meals, instructions and allergies (in red), a count per diet, and patients with no diet order flagged.
+- **Meal billing** (Kenya Health Settings): *Included in bed charge* (default, nothing added), *Per day* or *Per meal* (meals per day x days). An inpatient bill (an invoice with a ward line) gets a meal line per run of days on the same diet, up to discharge or the invoice date. Days on a submitted invoice are never charged again, so interim and final bills work, and cancelling a bill frees its days. Nil by mouth days are free. Meal items can be included in a maternity package.
+- Role **Kitchen User**: reads diet orders and the ward diet list.
+
+### Laundry
+
+Linen are stock items (item group *Linen*), so ERPNext's stock balances say where every sheet is.
+
+| Linen Movement | From | To |
+|---|---|---|
+| Issue to ward | Linen store | Ward linen store |
+| Collect soiled from ward | Ward linen store | Laundry |
+| Return clean to store | Laundry | Linen store |
+| Condemn | Laundry (or linen store) | written off |
+| Report lost | Ward linen store | written off |
+
+Each submitted movement posts a Stock Entry (transfer, or issue for a write-off); cancelling it cancels the entry. Set the Linen Store and Laundry warehouses in Kenya Health Settings and a *Ward Linen Store* on each ward (group service unit). **Linen Status** report: each item in the store, the laundry and every ward, plus what was condemned or lost this month. Role **Laundry User** records movements (nurses can too).
+
 ### MOH reports
 
 - **MOH 705 Outpatient Summary** (705A under 5 / 705B 5 and over): one row per indicator, days 1-31 and total. Rows are **MOH 705 Indicator** records, mapped to ICD-10/ICD-11 code prefixes, specific Diagnoses or lab tests, so the Health Records Officer can correct them. A diagnosis counts on its longest matching prefix; unmatched ones go to "All other diseases". New cases only (once per patient per indicator per month); first attendance = first outpatient day of the calendar year.
@@ -137,7 +159,7 @@ bench --site <demo-site> set-config royce_health_demo 1
 bench --site <demo-site> execute royce_health_ke.demo.load
 ```
 
-The demo pharmacy has reorder levels, so the dashboard shows amoxicillin below its level. Faith is discharged on the cash normal delivery package (demo price, not an SHA tariff).
+The demo pharmacy has reorder levels, so the dashboard shows amoxicillin below its level. Faith is discharged on the cash normal delivery package (demo price, not an SHA tariff). Daniel is nil by mouth on his theatre day, then on a soft diet (meals billed per day); the General Ward has linen issued, collected, returned and one sheet condemned.
 
 The loader refuses to run unless the site opts in, so it can't touch a client's live data. It is safe to run again.
 

@@ -464,9 +464,54 @@ ITEM_GROUP = [
 ]
 
 
+INVOICE_ITEM = [
+	{
+		"fieldname": "ke_diet_order",
+		"fieldtype": "Link",
+		"label": "Diet Order",
+		"options": "Diet Order",
+		"insert_after": "reference_dn",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+	{
+		"fieldname": "ke_meal_from",
+		"fieldtype": "Date",
+		"label": "Meals From",
+		"insert_after": "ke_diet_order",
+		"read_only": 1,
+		"no_copy": 1,
+		"depends_on": "ke_diet_order",
+	},
+	{
+		"fieldname": "ke_meal_to",
+		"fieldtype": "Date",
+		"label": "Meals To",
+		"insert_after": "ke_meal_from",
+		"read_only": 1,
+		"no_copy": 1,
+		"depends_on": "ke_diet_order",
+	},
+]
+
+SERVICE_UNIT = [
+	{
+		"fieldname": "ke_linen_warehouse",
+		"fieldtype": "Link",
+		"label": "Ward Linen Store",
+		"options": "Warehouse",
+		"insert_after": "warehouse",
+		"depends_on": "is_group",
+		"description": "Where this ward's clean linen is kept (laundry module).",
+	},
+]
+
+
 def apply():
 	for fields in (
 		ITEM_GROUP,
+		INVOICE_ITEM,
+		SERVICE_UNIT,
 		PATIENT,
 		PRACTITIONER,
 		CLAIM_COVERAGE,
@@ -486,6 +531,8 @@ def apply():
 			"Observation Template": IMAGING_TEMPLATE,
 			"Observation": IMAGING_OBSERVATION,
 			"Item Group": ITEM_GROUP,
+			"Sales Invoice Item": INVOICE_ITEM,
+			"Healthcare Service Unit": SERVICE_UNIT,
 			**MOH,
 		},
 		update=True,

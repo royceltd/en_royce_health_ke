@@ -24,6 +24,7 @@ doc_events = {
 	"Sales Invoice": {
 		"before_validate": [
 			"royce_health_ke.billing.apply_bed_charge_basis",
+			"royce_health_ke.kitchen.apply_meal_charges",
 			"royce_health_ke.packages.apply_maternity_package",
 		]
 	},

@@ -115,42 +115,16 @@ def apply_maternity_package(doc, method=None):
 
 
 def _package_line(doc, delivery, package):
-	from erpnext.stock.get_item_details import ItemDetailsCtx, get_item_details
+	from royce_health_ke.billing import add_invoice_line
 
-	details = get_item_details(
-		ItemDetailsCtx(
-			{
-				"doctype": "Sales Invoice",
-				"item_code": package.item,
-				"company": doc.company,
-				"customer": doc.customer,
-				"selling_price_list": doc.selling_price_list,
-				"price_list_currency": doc.price_list_currency or doc.currency,
-				"currency": doc.currency,
-				"conversion_rate": doc.conversion_rate or 1,
-				"plc_conversion_rate": doc.plc_conversion_rate or 1,
-				"qty": 1,
-			}
-		)
-	)
-	return doc.append(
-		"items",
-		{
-			"item_code": package.item,
-			"item_name": details.item_name,
-			"description": _("{0} - {1}").format(package.package_name, delivery.name),
-			"uom": details.uom or details.stock_uom,
-			"stock_uom": details.stock_uom,
-			"conversion_factor": 1,
-			"income_account": details.income_account,
-			"cost_center": details.cost_center,
-			"item_tax_template": details.item_tax_template,
-			"qty": 1,
-			"price_list_rate": package.rate,
-			"rate": package.rate,
-			"reference_dt": "Delivery Record",
-			"reference_dn": delivery.name,
-		},
+	return add_invoice_line(
+		doc,
+		package.item,
+		1,
+		rate=package.rate,
+		description=_("{0} - {1}").format(package.package_name, delivery.name),
+		reference_dt="Delivery Record",
+		reference_dn=delivery.name,
 	)
 
 
