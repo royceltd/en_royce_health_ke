@@ -79,6 +79,10 @@ scheduler_events = {
 # Includes in <head>
 # ------------------
 
+# Marley's 8 sidebars share one module; give each only its own workspaces so
+# the rail opens the sidebar clicked (see royce_health_ke/sidebar.py).
+extend_bootinfo = "royce_health_ke.sidebar.extend_bootinfo"
+
 # include js, css files in header of desk.html
 # app_include_css = "/assets/royce_health_ke/css/royce_health_ke.css"
 # app_include_js = "/assets/royce_health_ke/js/royce_health_ke.js"
