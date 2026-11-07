@@ -35,6 +35,19 @@ node capture_screenshots.js shots/outpatient.json ../images/outpatient
 
 Open records through their menu path (`/desk/outpatient/...`, `/desk/inpatient/...`) so the right sidebar shows. Look at every new image before committing. The flow diagrams (`00-flow.png`) are drawn separately; redraw them when a step is added or removed.
 
+## Making the client PDFs
+
+`tools/make_pdfs.mjs` turns all the guides into A4 PDFs with a Royce cover line, page numbers and full-resolution screenshots:
+
+```bash
+cd docs/guides/tools
+NODE_MODULES=<node_modules with micromark, micromark-extension-gfm, playwright-core> \
+CHROME=<chromium binary> \
+node make_pdfs.mjs .. "<output folder>"
+```
+
+Add new guides to its list and update its "Guide checked" date when the guides are re-checked.
+
 ## Demo records behind the guides
 
 Insurance and maternity follow the demo loader's patients (Peter Otieno Kamau, Faith Njeri Wambui). The outpatient, inpatient, pharmacy, cashier and administrator guides also use records created on the demo site on 2026-11-07 after the loader ran: Lucy Wairimu Ndung'u (outpatient), Mary Atieno Odhiambo (inpatient, with ward medication), a supplier delivery, a stock count, the M-Pesa settlement and two staff users. They are not created by `royce_health_ke.demo.load`; a fresh demo site will have different record numbers, so update the guide text with the shots.
