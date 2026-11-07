@@ -102,6 +102,43 @@ def ensure_company(company):
 		from royce_payroll_ke.kenya_payroll.setup import provision as payroll_provision
 
 		payroll_provision(company)
+	company_details(company)
+
+
+def company_details(company):
+	"""Fictional letterhead details, so the demo prints a complete invoice and
+	kenyan_accountant's "Finish setting up your documents" pop-up doesn't
+	cover every page. Only fills what is empty."""
+	if not frappe.db.get_value("Company", company, "phone_no"):
+		frappe.db.set_value(
+			"Company", company, {"phone_no": "+254 700 000 100", "email": "info@kijanivalley.example"}
+		)
+	if not frappe.db.exists(
+		"Dynamic Link", {"parenttype": "Address", "link_doctype": "Company", "link_name": company}
+	):
+		frappe.get_doc(
+			{
+				"doctype": "Address",
+				"address_title": company,
+				"address_type": "Billing",
+				"address_line1": "Kenyatta Avenue (DEMO)",
+				"city": "Nakuru",
+				"county": "Nakuru",
+				"country": "Kenya",
+				"is_your_company_address": 1,
+				"links": [{"link_doctype": "Company", "link_name": company}],
+			}
+		).insert(ignore_permissions=True)
+	if frappe.db.exists("Kenya Accounting Settings", company) and frappe.get_meta(
+		"Kenya Accounting Settings"
+	).has_field("payment_details"):
+		if not frappe.db.get_value("Kenya Accounting Settings", company, "payment_details"):
+			frappe.db.set_value(
+				"Kenya Accounting Settings",
+				company,
+				"payment_details",
+				"M-Pesa Paybill 000000 (DEMO), account: patient number",
+			)
 
 
 def ensure(doctype, name, data):
