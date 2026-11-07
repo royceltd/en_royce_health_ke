@@ -24,6 +24,7 @@ def run():
 	codes.ensure_code_systems()
 	seed_moh705()
 	seed_moh706()
+	default_settings()
 
 
 def seed_moh705():
@@ -73,3 +74,14 @@ def seed_moh706():
 				"age_group": age_group,
 			}
 		).insert(ignore_permissions=True)
+
+
+def default_settings():
+	"""Defaults for Kenya Health Settings fields added after a site was set up:
+	a Single's new field starts empty, not at its default. Only fields never
+	saved are set, so a hospital's own choice stands (ADR-023)."""
+	import frappe
+
+	for field, value in (("track_record_access", 1),):
+		if not frappe.db.exists("Singles", {"doctype": "Kenya Health Settings", "field": field}):
+			frappe.db.set_single_value("Kenya Health Settings", field, value)

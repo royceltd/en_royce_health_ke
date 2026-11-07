@@ -18,7 +18,14 @@ required_apps = ["frappe/erpnext", "healthcare"]
 after_install = "royce_health_ke.setup.install.after_install"
 after_migrate = "royce_health_ke.setup.install.after_migrate"
 
+# Patient Record Access: an audit trail outlives the records it points at
+ignore_links_on_delete = ["Patient Record Access"]
+
 doc_events = {
+	"*": {
+		"onload": "royce_health_ke.access.log_view",
+		"before_print": "royce_health_ke.access.log_print",
+	},
 	"Patient": {"validate": "royce_health_ke.identity.validate_patient"},
 	"Healthcare Practitioner": {"validate": "royce_health_ke.identity.validate_practitioner"},
 	"Sales Invoice": {
@@ -35,6 +42,7 @@ doc_events = {
 jinja = {"methods": ["royce_health_ke.lcg.labour_care_guide_html"]}
 
 doctype_js = {
+	"Patient": "public/js/patient.js",
 	"Insurance Claim": "public/js/insurance_claim.js",
 	"Observation": "public/js/observation.js",
 }

@@ -22,7 +22,9 @@
   "laundry_column",
   "linen_item_group",
   "maternity_section",
-  "lcg_fhr_low"
+  "lcg_fhr_low",
+  "privacy_section",
+  "track_record_access"
  ],
  "fields": [
   {
@@ -142,11 +144,23 @@
    "label": "FHR Alert Below",
    "default": "110",
    "description": "Baseline fetal heart rate below this raises an alert (WHO: 110; some MOH forms print 120). Above 159 always alerts."
+  },
+  {
+   "fieldname": "privacy_section",
+   "fieldtype": "Section Break",
+   "label": "Data Protection"
+  },
+  {
+   "fieldname": "track_record_access",
+   "fieldtype": "Check",
+   "label": "Log Who Opens Patient Records",
+   "default": "1",
+   "description": "Each time a user opens or prints a patient's record (the patient, encounters, lab tests, admissions, maternity, theatre...), a Patient Record Access entry is written. Required for accountability under the Data Protection Act; keep it on."
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-08 22:00:00.000000",
+ "modified": "2026-11-08 23:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

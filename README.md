@@ -17,7 +17,7 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 | 6. Radiology | Worklist, perform/report/verify, accession numbers, MOH 717 imaging done; PACS/modality integration pending |
 | 7. MOH reports, KHIS, dashboards | MOH 705A/B, 706, 711 and 717 done (mappings to confirm with the HRIO and lab); management dashboards done; KHIS submission pending. MOH 710 not needed by the first client |
 | 8. Kitchen, laundry | Diet orders, ward diet list, meal charges; linen movements and status done |
-| 9. Go-live readiness | Planned |
+| 9. Go-live readiness | Patient record access log done; two legal entities, SmartHealth import, deployment pending |
 
 ### Installation
 
@@ -144,6 +144,15 @@ Each submitted movement posts a Stock Entry (transfer, or issue for a write-off)
 - Set the **MOH 717 Clinic** on Medical Departments, the **MOH 717 Ward** on inpatient Service Unit Types, and the **Discharge Outcome** on Inpatient Records.
 
 The default 705 mappings are Royce's first pass from the KenyaEMR specification (palladiumkenya/openmrs-module-kenyaemr, MPL 2.0, read only) - review them with the hospital's HRIO against the current MOH forms.
+
+### Data protection: who opened which record
+
+Every time a user opens or prints a patient's record - the Patient, encounters, vital signs, lab tests, observations, procedures, admissions, discharge summaries, medication and service requests, nursing records, and the maternity, theatre, diet and insurance claim records - a **Patient Record Access** entry is written: patient, record, view or print, user, IP address and time. Re-opening the same record within 10 minutes isn't logged again; every print is. Billing documents aren't tracked.
+
+- Entries can't be edited or deleted and aren't removed by Frappe's log cleanup; deleting a patient or record keeps its trail.
+- Healthcare Administrators and System Managers read the log (list view, filters by patient, user, record type and date; **View > Who Opened This Record** on a Patient).
+- Written after the response is sent, so opening a record is never slowed; an audit failure is logged as an error and never stops a clinician.
+- On by default (Kenya Health Settings > Data Protection). Not covered: lists and reports that show patient data without opening a record.
 
 ### Marley fixes
 
