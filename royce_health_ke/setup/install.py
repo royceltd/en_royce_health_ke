@@ -23,6 +23,7 @@ def run():
 	marley_fixes.apply()
 	codes.ensure_code_systems()
 	seed_moh705()
+	seed_moh706()
 
 
 def seed_moh705():
@@ -44,5 +45,31 @@ def seed_moh705():
 				"kind": kind,
 				"sequence": sequence,
 				"codes": [{"code_system": system, "code_prefix": prefix} for system, prefix in mapping],
+			}
+		).insert(ignore_permissions=True)
+
+
+def seed_moh706():
+	"""Create the default MOH 706 rows that don't exist yet; existing rows and
+	their lab test mappings are the hospital's (ADR-023)."""
+	import frappe
+
+	from royce_health_ke.moh.seed706 import ROWS
+
+	for sequence, (section, code, label, kind, words, low, high, age_group) in enumerate(ROWS, 1):
+		if frappe.db.exists("MOH 706 Indicator", code):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "MOH 706 Indicator",
+				"code": code,
+				"label": label,
+				"section": section,
+				"sequence": sequence,
+				"kind": kind,
+				"positive_results": words,
+				"range_low": low,
+				"range_high": high,
+				"age_group": age_group,
 			}
 		).insert(ignore_permissions=True)

@@ -403,6 +403,27 @@ def _lab(company):
 		if code in LAB_LOINC and not template.get("codification_table"):
 			set_coding(template, LOINC, *LAB_LOINC[code])
 			template.save(ignore_permissions=True)
+	_map_moh706()
+
+
+# The demo lab's tests on MOH 706 rows; a hospital maps its own templates.
+MOH706_DEMO_MAP = {
+	"Haemoglobin (Hb)": ("HB5", "HB510"),
+	"Malaria Blood Slide (BS for MPS)": ("BSU5T", "BSU5P", "BS5T", "BS5P"),
+}
+
+
+def _map_moh706():
+	for template, codes in MOH706_DEMO_MAP.items():
+		for code in codes:
+			if not frappe.db.exists("MOH 706 Indicator", code) or not frappe.db.exists(
+				"Lab Test Template", template
+			):
+				continue
+			row = frappe.get_doc("MOH 706 Indicator", code)
+			if not any(t.lab_test_template == template for t in row.tests):
+				row.append("tests", {"lab_test_template": template})
+				row.save(ignore_permissions=True)
 
 
 def _pharmacy(company):

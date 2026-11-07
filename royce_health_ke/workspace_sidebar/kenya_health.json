@@ -341,6 +341,18 @@
    "icon": "",
    "indent": 0,
    "keep_closed": 0,
+   "label": "MOH 706 Laboratory Summary",
+   "link_to": "MOH 706 Laboratory Summary",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "",
+   "indent": 0,
+   "keep_closed": 0,
    "label": "MOH 711 Integrated Summary",
    "link_to": "MOH 711 Integrated Summary",
    "link_type": "Report",
@@ -429,9 +441,21 @@
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "MOH 706 Indicator",
+   "link_to": "MOH 706 Indicator",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-11-08 15:00:00.000000",
+ "modified": "2026-11-08 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health",

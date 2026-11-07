@@ -1,0 +1,161 @@
+{
+ "name": "MOH 706 Indicator",
+ "autoname": "field:code",
+ "naming_rule": "By fieldname",
+ "title_field": "label",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Laboratory User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "actions": [],
+ "creation": "2026-11-08 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-08 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "sequence",
+ "sort_order": "ASC",
+ "states": [],
+ "search_fields": "label,section",
+ "fields": [
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "label": "Code",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Indicator",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section",
+   "fieldtype": "Data",
+   "label": "Section",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "sequence",
+   "fieldtype": "Int",
+   "label": "Sequence"
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Counts",
+   "options": "Tests done\nPositive\nNumeric range",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "positive_results",
+   "fieldtype": "Small Text",
+   "label": "Positive Results",
+   "depends_on": "eval:doc.kind == 'Positive'",
+   "description": "Comma-separated words; a result containing any of them counts, unless it also says negative, non-reactive, not seen, nil, absent or none seen."
+  },
+  {
+   "fieldname": "range_low",
+   "fieldtype": "Float",
+   "label": "From (inclusive)",
+   "depends_on": "eval:doc.kind == 'Numeric range'"
+  },
+  {
+   "fieldname": "range_high",
+   "fieldtype": "Float",
+   "label": "Below",
+   "depends_on": "eval:doc.kind == 'Numeric range'",
+   "description": "Results from the first value up to (not including) this one, in the units the lab reports. Blank = this row isn't counted (no band set)."
+  },
+  {
+   "fieldname": "age_group",
+   "fieldtype": "Select",
+   "label": "Age Group",
+   "options": "\nUnder 5\n5 and above"
+  },
+  {
+   "fieldname": "tests_section",
+   "fieldtype": "Section Break",
+   "label": "Lab Tests"
+  },
+  {
+   "fieldname": "tests",
+   "fieldtype": "Table",
+   "label": "Counted Tests",
+   "options": "MOH 706 Indicator Test",
+   "description": "The hospital's lab test templates that count towards this row."
+  }
+ ],
+ "field_order": [
+  "code",
+  "label",
+  "section",
+  "sequence",
+  "disabled",
+  "cb1",
+  "kind",
+  "positive_results",
+  "range_low",
+  "range_high",
+  "age_group",
+  "tests_section",
+  "tests"
+ ]
+}

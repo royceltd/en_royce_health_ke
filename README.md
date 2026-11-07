@@ -15,7 +15,7 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 | 4. Maternity | ANC, labour and delivery, newborn, PNC, family planning, maternity packages done (to align with the client's forms) |
 | 5. Theatre | Booking, consent, WHO checklist, anaesthesia record, operation note done |
 | 6. Radiology | Worklist, perform/report/verify, accession numbers, MOH 717 imaging done; PACS/modality integration pending |
-| 7. MOH reports, KHIS, dashboards | MOH 705A/B, 711 and 717 done (mappings to confirm with the HRIO); management dashboards done; MOH 710 (needs immunisation records) and KHIS submission pending |
+| 7. MOH reports, KHIS, dashboards | MOH 705A/B, 706, 711 and 717 done (mappings to confirm with the HRIO and lab); management dashboards done; KHIS submission pending. MOH 710 not needed by the first client |
 | 8. Kitchen, laundry | Diet orders, ward diet list, meal charges; linen movements and status done |
 | 9. Go-live readiness | Planned |
 
@@ -138,6 +138,7 @@ Each submitted movement posts a Stock Entry (transfer, or issue for a write-off)
 ### MOH reports
 
 - **MOH 705 Outpatient Summary** (705A under 5 / 705B 5 and over): one row per indicator, days 1-31 and total. Rows are **MOH 705 Indicator** records, mapped to ICD-10/ICD-11 code prefixes, specific Diagnoses or lab tests, so the Health Records Officer can correct them. A diagnosis counts on its longest matching prefix; unmatched ones go to "All other diseases". New cases only (once per patient per indicator per month); first attendance = first outpatient day of the calendar year.
+- **MOH 706 Laboratory Summary**: tests done, positives and low/high results per MOH 706 row, by month. Rows are **MOH 706 Indicator** records (149 seeded from KenyaEMR plus the malaria slide rows 3.1/3.2), each mapped by the lab to its own Lab Test Templates and, for compound tests, the result line (e.g. Glucose in Urinalysis); optional age group (under 5 / 5 and above). *Positive* rows count results containing one of the row's words and no negative word (negative, non-reactive, not seen, nil, absent...); *Numeric range* rows count results from the low value up to the high one, in the lab's units - confirm the seeded ranges for your analysers. Unmapped rows show "Not mapped to a lab test"; click a row to map it. Seeded rows are never overwritten.
 - **MOH 711 Integrated Summary**: ANC/PMTCT, maternity and newborn, PNC and family planning from the maternity and FP records; first ANC visits and maternal deaths by the mother's age (10-14, 15-19, 20-24, 25+). Cervical cancer screening, child health and nutrition, SGBV, TB screening, psychiatry and physiotherapy are listed as "Not captured yet".
 - **MOH 717 Service Workload**: outpatient attendances by clinic, sex and age; laboratory tests; admissions, discharges, deaths, abscondees and referrals per ward category. Maternity, MCH, procedures and imaging rows are listed as "Not captured yet" until those modules exist.
 - Set the **MOH 717 Clinic** on Medical Departments, the **MOH 717 Ward** on inpatient Service Unit Types, and the **Discharge Outcome** on Inpatient Records.
@@ -159,7 +160,7 @@ bench --site <demo-site> set-config royce_health_demo 1
 bench --site <demo-site> execute royce_health_ke.demo.load
 ```
 
-The demo pharmacy has reorder levels, so the dashboard shows amoxicillin below its level. Faith is discharged on the cash normal delivery package (demo price, not an SHA tariff). Daniel is nil by mouth on his theatre day, then on a soft diet (meals billed per day); the General Ward has linen issued, collected, returned and one sheet condemned.
+The demo pharmacy has reorder levels, so the dashboard shows amoxicillin below its level. Faith is discharged on the cash normal delivery package (demo price, not an SHA tariff). The demo lab's Hb and malaria slide tests are mapped to their MOH 706 rows. Daniel is nil by mouth on his theatre day, then on a soft diet (meals billed per day); the General Ward has linen issued, collected, returned and one sheet condemned.
 
 The loader refuses to run unless the site opts in, so it can't touch a client's live data. It is safe to run again.
 
