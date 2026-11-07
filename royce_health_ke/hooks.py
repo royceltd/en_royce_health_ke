@@ -32,6 +32,8 @@ doc_events = {
 	"Observation": {"before_insert": "royce_health_ke.radiology.before_insert_observation"},
 }
 
+jinja = {"methods": ["royce_health_ke.lcg.labour_care_guide_html"]}
+
 doctype_js = {
 	"Insurance Claim": "public/js/insurance_claim.js",
 	"Observation": "public/js/observation.js",

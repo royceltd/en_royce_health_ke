@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-08 12:00:00.000000",
+ "modified": "2026-11-08 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Delivery Record",
@@ -94,6 +94,17 @@
    "options": "\nSpontaneous\nInduced\nNo labour (elective CS)"
   },
   {
+   "fieldname": "active_labour_datetime",
+   "fieldtype": "Datetime",
+   "label": "Active Labour Diagnosed",
+   "description": "Start of the active first stage (5 cm): the Labour Care Guide's hour 0."
+  },
+  {
+   "fieldname": "membranes_ruptured_datetime",
+   "fieldtype": "Datetime",
+   "label": "Membranes Ruptured"
+  },
+  {
    "fieldname": "cb2",
    "fieldtype": "Column Break"
   },
@@ -112,6 +123,11 @@
    "fieldtype": "Table",
    "label": "Labour Observations",
    "options": "Labour Observation"
+  },
+  {
+   "fieldname": "labour_care_guide",
+   "fieldtype": "HTML",
+   "label": "Labour Care Guide"
   },
   {
    "fieldname": "delivery_section",
@@ -319,10 +335,13 @@
   "labour_section",
   "admission_datetime",
   "onset_of_labour",
+  "active_labour_datetime",
+  "membranes_ruptured_datetime",
   "cb2",
   "duration_of_labour_hours",
   "lcg_used",
   "labour_observations",
+  "labour_care_guide",
   "delivery_section",
   "delivery_datetime",
   "mode_of_delivery",

@@ -20,7 +20,9 @@
   "linen_store",
   "laundry_warehouse",
   "laundry_column",
-  "linen_item_group"
+  "linen_item_group",
+  "maternity_section",
+  "lcg_fhr_low"
  ],
  "fields": [
   {
@@ -128,11 +130,23 @@
    "label": "Linen Item Group",
    "options": "Item Group",
    "description": "Blank = Linen."
+  },
+  {
+   "fieldname": "maternity_section",
+   "fieldtype": "Section Break",
+   "label": "Labour Care Guide"
+  },
+  {
+   "fieldname": "lcg_fhr_low",
+   "fieldtype": "Int",
+   "label": "FHR Alert Below",
+   "default": "110",
+   "description": "Baseline fetal heart rate below this raises an alert (WHO: 110; some MOH forms print 120). Above 159 always alerts."
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-08 15:00:00.000000",
+ "modified": "2026-11-08 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

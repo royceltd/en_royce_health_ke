@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-07 18:00:00.000000",
+ "modified": "2026-11-08 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Labour Observation",
@@ -22,25 +22,113 @@
    "columns": 2
   },
   {
-   "fieldname": "cervical_dilatation_cm",
-   "fieldtype": "Float",
-   "label": "Cervix (cm)",
+   "fieldname": "initials",
+   "fieldtype": "Data",
+   "label": "Initials",
+   "description": "Midwife or doctor who made the observation."
+  },
+  {
+   "fieldname": "cb_t",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "alert",
+   "fieldtype": "Data",
+   "label": "Alert",
+   "read_only": 1,
    "in_list_view": 1,
-   "columns": 1
+   "columns": 2
+  },
+  {
+   "fieldname": "recorded_by",
+   "fieldtype": "Link",
+   "label": "Recorded By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "support_section",
+   "fieldtype": "Section Break",
+   "label": "Supportive Care"
+  },
+  {
+   "fieldname": "companion",
+   "fieldtype": "Select",
+   "label": "Companion",
+   "options": "\nYes\nNo\nDeclined\nUnknown"
+  },
+  {
+   "fieldname": "pain_relief",
+   "fieldtype": "Select",
+   "label": "Pain Relief",
+   "options": "\nYes\nNo\nDeclined\nUnknown"
+  },
+  {
+   "fieldname": "cb_s",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "oral_fluid",
+   "fieldtype": "Select",
+   "label": "Oral Fluid",
+   "options": "\nYes\nNo\nDeclined\nUnknown"
+  },
+  {
+   "fieldname": "posture",
+   "fieldtype": "Select",
+   "label": "Posture",
+   "options": "\nSupine\nMobile"
+  },
+  {
+   "fieldname": "baby_section",
+   "fieldtype": "Section Break",
+   "label": "Baby"
   },
   {
    "fieldname": "fetal_heart_rate",
    "fieldtype": "Int",
-   "label": "FHR",
+   "label": "Baseline FHR",
    "in_list_view": 1,
    "columns": 1
   },
   {
-   "fieldname": "contractions_per_10min",
-   "fieldtype": "Int",
-   "label": "Contractions /10 min",
-   "in_list_view": 1,
-   "columns": 1
+   "fieldname": "fhr_deceleration",
+   "fieldtype": "Select",
+   "label": "FHR Decelerations",
+   "options": "\nNo\nEarly\nLate\nVariable"
+  },
+  {
+   "fieldname": "liquor",
+   "fieldtype": "Select",
+   "label": "Amniotic Fluid",
+   "options": "\nIntact\nClear\nMeconium +\nMeconium ++\nMeconium +++\nMeconium\nBlood-stained\nAbsent"
+  },
+  {
+   "fieldname": "cb_b",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fetal_position",
+   "fieldtype": "Select",
+   "label": "Fetal Position",
+   "options": "\nAnterior\nPosterior\nTransverse"
+  },
+  {
+   "fieldname": "caput",
+   "fieldtype": "Select",
+   "label": "Caput",
+   "options": "\n0\n+\n++\n+++"
+  },
+  {
+   "fieldname": "moulding",
+   "fieldtype": "Select",
+   "label": "Moulding",
+   "options": "\n0\n+\n++\n+++"
+  },
+  {
+   "fieldname": "woman_section",
+   "fieldtype": "Section Break",
+   "label": "Woman"
   },
   {
    "fieldname": "maternal_pulse",
@@ -52,61 +140,176 @@
   {
    "fieldname": "bp_systolic",
    "fieldtype": "Int",
-   "label": "BP Sys",
+   "label": "Systolic BP",
    "in_list_view": 1,
    "columns": 1
   },
   {
    "fieldname": "bp_diastolic",
    "fieldtype": "Int",
-   "label": "BP Dia",
-   "in_list_view": 1,
-   "columns": 1
+   "label": "Diastolic BP"
+  },
+  {
+   "fieldname": "cb_w",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "temperature",
    "fieldtype": "Float",
-   "label": "Temp (C)"
+   "label": "Temperature (\u00b0C)"
   },
   {
-   "fieldname": "liquor",
+   "fieldname": "urine_protein",
    "fieldtype": "Select",
-   "label": "Liquor",
-   "options": "\nIntact\nClear\nMeconium\nBlood-stained\nAbsent"
+   "label": "Urine Protein",
+   "options": "\nNil\nTrace\n+\n++\n+++"
   },
   {
-   "fieldname": "moulding",
+   "fieldname": "urine_acetone",
    "fieldtype": "Select",
-   "label": "Moulding",
-   "options": "\n0\n+\n++\n+++"
+   "label": "Urine Acetone",
+   "options": "\nNil\nTrace\n+\n++\n+++"
+  },
+  {
+   "fieldname": "progress_section",
+   "fieldtype": "Section Break",
+   "label": "Labour Progress"
+  },
+  {
+   "fieldname": "contractions_per_10min",
+   "fieldtype": "Int",
+   "label": "Contractions per 10 min",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "contraction_duration_sec",
+   "fieldtype": "Int",
+   "label": "Duration of Contractions (s)"
+  },
+  {
+   "fieldname": "cb_p",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cervical_dilatation_cm",
+   "fieldtype": "Float",
+   "label": "Cervix (cm)",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "descent",
+   "fieldtype": "Select",
+   "label": "Descent (fifths palpable)",
+   "options": "\n5\n4\n3\n2\n1\n0"
+  },
+  {
+   "fieldname": "pushing",
+   "fieldtype": "Check",
+   "label": "Pushing Started",
+   "description": "Second stage: when the woman starts pushing."
+  },
+  {
+   "fieldname": "decision_section",
+   "fieldtype": "Section Break",
+   "label": "Shared Decision-Making"
+  },
+  {
+   "fieldname": "assessment",
+   "fieldtype": "Small Text",
+   "label": "Impression / Assessment"
+  },
+  {
+   "fieldname": "cb_d",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "action_plan",
+   "fieldtype": "Small Text",
+   "label": "Action Plan"
+  },
+  {
+   "fieldname": "medication_section",
+   "fieldtype": "Section Break",
+   "label": "Medications"
+  },
+  {
+   "fieldname": "oxytocin_dose_iu",
+   "fieldtype": "Float",
+   "label": "Oxytocin Dose (IU in 500 ml)"
+  },
+  {
+   "fieldname": "oxytocin_rate",
+   "fieldtype": "Int",
+   "label": "Oxytocin Rate (drops/min)"
+  },
+  {
+   "fieldname": "cb_m",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "iv_fluid_type",
+   "fieldtype": "Data",
+   "label": "IV Fluid Type"
+  },
+  {
+   "fieldname": "iv_fluid_volume_ml",
+   "fieldtype": "Int",
+   "label": "IV Fluid Volume (ml)"
   },
   {
    "fieldname": "remarks",
    "fieldtype": "Data",
    "label": "Remarks"
-  },
-  {
-   "fieldname": "alert",
-   "fieldtype": "Data",
-   "label": "Alert",
-   "read_only": 1,
-   "in_list_view": 1,
-   "columns": 2
   }
  ],
  "field_order": [
   "time",
-  "cervical_dilatation_cm",
+  "initials",
+  "cb_t",
+  "alert",
+  "recorded_by",
+  "support_section",
+  "companion",
+  "pain_relief",
+  "cb_s",
+  "oral_fluid",
+  "posture",
+  "baby_section",
   "fetal_heart_rate",
-  "contractions_per_10min",
+  "fhr_deceleration",
+  "liquor",
+  "cb_b",
+  "fetal_position",
+  "caput",
+  "moulding",
+  "woman_section",
   "maternal_pulse",
   "bp_systolic",
   "bp_diastolic",
+  "cb_w",
   "temperature",
-  "liquor",
-  "moulding",
-  "remarks",
-  "alert"
+  "urine_protein",
+  "urine_acetone",
+  "progress_section",
+  "contractions_per_10min",
+  "contraction_duration_sec",
+  "cb_p",
+  "cervical_dilatation_cm",
+  "descent",
+  "pushing",
+  "decision_section",
+  "assessment",
+  "cb_d",
+  "action_plan",
+  "medication_section",
+  "oxytocin_dose_iu",
+  "oxytocin_rate",
+  "cb_m",
+  "iv_fluid_type",
+  "iv_fluid_volume_ml",
+  "remarks"
  ],
  "istable": 1,
  "editable_grid": 1,

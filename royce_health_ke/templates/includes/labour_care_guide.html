@@ -1,0 +1,88 @@
+<style>
+	.lcg { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #000; }
+	.lcg h3 { text-align: center; margin: 0; font-size: 15px; }
+	.lcg h4 { text-align: center; margin: 2px 0 6px; font-size: 12px; font-weight: normal; }
+	.lcg .lcg-head { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+	.lcg .lcg-head td { padding: 2px 4px; border-bottom: 1px solid #999; }
+	.lcg .lcg-head b { white-space: nowrap; }
+	.lcg table.lcg-grid { width: 100%; border-collapse: collapse; table-layout: fixed; page-break-inside: avoid; margin-bottom: 8px; }
+	.lcg .lcg-grid th, .lcg .lcg-grid td { border: 1px solid #555; padding: 1px 2px; text-align: center; vertical-align: middle; overflow: hidden; word-wrap: break-word; }
+	.lcg .lcg-grid .sec { width: 62px; font-weight: bold; font-size: 8px; line-height: 1.2; background: #f2f2f2; word-break: normal; overflow-wrap: normal; }
+	.lcg .lcg-grid .lab { width: 120px; text-align: left; font-weight: bold; }
+	.lcg .lcg-grid .alr { width: 64px; font-weight: bold; background: #eef3fb; }
+	.lcg .lcg-grid thead th { background: #dfe8f5; }
+	.lcg .lcg-grid td.txt { font-size: 8px; text-align: left; }
+	.lcg .flag { color: #c00; font-weight: bold; border: 1.5px solid #c00; border-radius: 50%; padding: 0 3px; }
+	.lcg .lcg-note { font-size: 9px; margin-top: 4px; }
+	@media print { .lcg-page { page-break-after: always; } .lcg-page:last-child { page-break-after: auto; } }
+</style>
+<div class="lcg">
+	{% for page in pages %}
+	<div class="lcg-page">
+		<h3>{{ _("MINISTRY OF HEALTH") }}</h3>
+		<h4>{{ _("MODIFIED WHO LABOUR CARE GUIDE") }}</h4>
+		<table class="lcg-head">
+			<tr>
+				<td colspan="2"><b>{{ _("Hospital or Health Centre") }}:</b> {{ h.facility }}</td>
+				<td><b>{{ _("IP No") }}:</b> {{ h.ip_no }}</td>
+			</tr>
+			<tr>
+				<td><b>{{ _("Name") }}:</b> {{ h.name }}</td>
+				<td><b>{{ _("Age") }}:</b> {{ h.age if h.age is not none else "" }}</td>
+				<td><b>{{ _("NIN") }}:</b> {{ h.nin }}</td>
+			</tr>
+			<tr>
+				<td><b>{{ _("Parity") }}:</b> {{ h.parity }} &nbsp; <b>{{ _("LNMP") }}:</b> {{ h.lmp }}</td>
+				<td><b>{{ _("Weeks of gestation") }}:</b> {{ h.weeks }}</td>
+				<td><b>{{ _("Labour onset") }}:</b> {{ h.onset }}</td>
+			</tr>
+			<tr>
+				<td colspan="2"><b>{{ _("Active labour diagnosis") }}:</b> {{ h.active }}</td>
+				<td><b>{{ _("Ruptured membranes") }}:</b> {{ h.ruptured }}</td>
+			</tr>
+			<tr><td colspan="3"><b>{{ _("Risk factors") }}:</b> {{ h.risk }}</td></tr>
+			<tr>
+				<td><b>{{ _("PMTCT") }}:</b> {{ h.pmtct }}</td>
+				<td><b>{{ _("Syphilis") }}:</b> {{ h.syphilis }}</td>
+				<td><b>{{ _("Hepatitis B") }}:</b> {{ h.hepatitis_b }}</td>
+			</tr>
+		</table>
+		<table class="lcg-grid">
+			<thead>
+				<tr>
+					<th class="sec"></th><th class="lab">{{ _("Time") }}</th><th class="alr">{{ _("ALERT") }}</th>
+					{% for c in page.columns %}<th title="{{ c.date }}">{{ c.time }}</th>{% endfor %}
+					{% for i in range(page.pad) %}<th></th>{% endfor %}
+				</tr>
+				<tr>
+					<th class="sec"></th><th class="lab">{{ _("Hours / stage") }}</th><th class="alr"></th>
+					{% for c in page.columns %}<th>{{ c.hours }}{% if c.hours %}<br>{% endif %}{{ c.stage }}</th>{% endfor %}
+					{% for i in range(page.pad) %}<th></th>{% endfor %}
+				</tr>
+			</thead>
+			<tbody>
+				{% set ns = namespace(prev=None) %}
+				{% for r in page.rows %}
+				<tr>
+					{% if r.section != ns.prev %}
+					{% set span = page.rows | selectattr("section", "equalto", r.section) | list | length %}
+					<td class="sec" rowspan="{{ span }}">{{ r.section | upper }}</td>
+					{% set ns.prev = r.section %}
+					{% endif %}
+					<td class="lab">{{ r.label }}</td>
+					<td class="alr">{{ r.alert }}</td>
+					{% for v in r.cells %}
+					<td class="{{ 'txt' if v.text|string|length > 6 else '' }}">{% if v.flagged and v.text %}<span class="flag">{{ v.text }}</span>{% else %}{{ v.text }}{% endif %}</td>
+					{% endfor %}
+					{% for i in range(page.pad) %}<td></td>{% endfor %}
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		<div class="lcg-note">
+			{{ _("Circled: meets the ALERT column - alert the senior midwife or doctor and record the assessment and action taken. Cervix: alert when dilatation hasn't progressed for the lag time (5 cm 6 h, 6 cm 5 h, 7 cm 3 h, 8 cm 2.5 h, 9 cm 2 h). P = pushing (second stage).") }}
+			<br>{{ _("Y - Yes, N - No, D - Declined, U - Unknown, SP - Supine, MO - Mobile, E - Early, L - Late, V - Variable, I - Intact, C - Clear, M - Meconium, B - Blood, A - Anterior, P - Posterior, T - Transverse, P+ - Protein, A+ - Acetone") }}
+		</div>
+	</div>
+	{% endfor %}
+</div>

@@ -8,7 +8,16 @@ adjust to the hospital's own forms where they differ."""
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, date_diff, get_datetime, getdate, now_datetime
+from frappe.utils import (
+	add_days,
+	cint,
+	date_diff,
+	flt,
+	get_datetime,
+	getdate,
+	now_datetime,
+	time_diff_in_hours,
+)
 
 GESTATION_DAYS = 280
 
@@ -31,25 +40,88 @@ def pnc_timing(delivery_datetime, visit_date):
 	return "3 days to under 6 weeks" if days < 42 else "6 weeks and after"
 
 
-def labour_alert(row):
-	"""WHO Labour Care Guide thresholds that should prompt action."""
-	alerts = []
-	fhr = row.get("fetal_heart_rate")
-	if fhr and (fhr < 110 or fhr >= 160):
-		alerts.append(_("FHR {0}").format(fhr))
-	pulse = row.get("maternal_pulse")
+LAG_HOURS = {5: 6, 6: 5, 7: 3, 8: 2.5, 9: 2}  # MOH Labour Care Guide: hours at a dilatation before an alert
+DEFAULT_FHR_LOW = 110
+
+
+def fhr_low():
+	return cint(frappe.db.get_single_value("Kenya Health Settings", "lcg_fhr_low")) or DEFAULT_FHR_LOW
+
+
+def observation_alerts(row, fhr_floor=None):
+	"""[(field, message)] for each reading that meets the guide's Alert column.
+	A message of None marks a further field of the same alert (the BP)."""
+	g = row.get
+	fhr_floor = fhr_floor or fhr_low()
+	out = []
+	for field, label in (
+		("companion", _("No companion")),
+		("pain_relief", _("No pain relief")),
+		("oral_fluid", _("No oral fluid")),
+	):
+		if g(field) == "No":
+			out.append((field, label))
+	if g("posture") == "Supine":
+		out.append(("posture", _("Supine")))
+	fhr = g("fetal_heart_rate")
+	if fhr and (fhr < fhr_floor or fhr >= 160):
+		out.append(("fetal_heart_rate", _("FHR {0}").format(fhr)))
+	if g("fhr_deceleration") == "Late":
+		out.append(("fhr_deceleration", _("Late decelerations")))
+	if g("liquor") in ("Meconium +++", "Meconium", "Blood-stained"):
+		out.append(("liquor", _("Liquor {0}").format(g("liquor"))))
+	if g("fetal_position") in ("Posterior", "Transverse"):
+		out.append(("fetal_position", _("{0} position").format(g("fetal_position"))))
+	for field, label in (("caput", _("Caput")), ("moulding", _("Moulding"))):
+		if g(field) == "+++":
+			out.append((field, f"{label} +++"))
+	pulse = g("maternal_pulse")
 	if pulse and (pulse < 60 or pulse >= 120):
-		alerts.append(_("Pulse {0}").format(pulse))
-	if (row.get("bp_systolic") or 0) >= 140 or (row.get("bp_diastolic") or 0) >= 90:
-		alerts.append(_("BP {0}/{1}").format(row.get("bp_systolic") or "-", row.get("bp_diastolic") or "-"))
-	if (row.get("temperature") or 0) >= 37.5:
-		alerts.append(_("Temp {0}").format(row.get("temperature")))
-	contractions = row.get("contractions_per_10min")
-	if contractions is not None and contractions != 0 and (contractions <= 2 or contractions > 5):
-		alerts.append(_("Contractions {0}/10 min").format(contractions))
-	if row.get("liquor") in ("Meconium", "Blood-stained"):
-		alerts.append(_("Liquor {0}").format(row.get("liquor")))
-	return ", ".join(alerts)
+		out.append(("maternal_pulse", _("Pulse {0}").format(pulse)))
+	systolic, diastolic = g("bp_systolic"), g("bp_diastolic")
+	bp = []
+	if systolic and (systolic < 80 or systolic >= 140):
+		bp.append("bp_systolic")
+	if diastolic and diastolic >= 90:
+		bp.append("bp_diastolic")
+	for i, field in enumerate(bp):
+		out.append((field, _("BP {0}/{1}").format(systolic or "-", diastolic or "-") if i == 0 else None))
+	temp = g("temperature")
+	if temp and (temp < 35.0 or temp >= 37.5):
+		out.append(("temperature", _("Temp {0}").format(temp)))
+	for field, label in (("urine_protein", _("Protein")), ("urine_acetone", _("Acetone"))):
+		if g(field) in ("++", "+++"):
+			out.append((field, f"{label} {g(field)}"))
+	contractions = g("contractions_per_10min")
+	if contractions and (contractions <= 2 or contractions > 5):
+		out.append(("contractions_per_10min", _("Contractions {0}/10 min").format(contractions)))
+	duration = g("contraction_duration_sec")
+	if duration and (duration < 20 or duration > 60):
+		out.append(("contraction_duration_sec", _("Contractions last {0} s").format(duration)))
+	return out
+
+
+def labour_alert(row, fhr_floor=None):
+	"""The guide's alerts for one observation, as one line."""
+	return ", ".join(m for _f, m in observation_alerts(row, fhr_floor) if m)
+
+
+def progress_alerts(rows):
+	"""Rows whose cervix hasn't moved for the guide's lag time at that
+	dilatation: {row: message}. Dilatation is taken in whole cm, from the time
+	it was first reached."""
+	reached, last, out = {}, None, {}
+	timed = [r for r in rows if r.get("time") and r.get("cervical_dilatation_cm")]
+	for r in sorted(timed, key=lambda r: get_datetime(r.get("time"))):
+		cm = int(r.get("cervical_dilatation_cm"))
+		if last is None or cm > last:
+			reached[cm], last = get_datetime(r.get("time")), cm
+		if cm != last or cm not in LAG_HOURS:
+			continue
+		hours = time_diff_in_hours(get_datetime(r.get("time")), reached[cm])
+		if hours >= LAG_HOURS[cm]:
+			out[id(r)] = _("Cervix {0} cm for {1} h").format(cm, flt(hours, 1))
+	return out
 
 
 def validate_pregnancy(doc):
@@ -100,8 +172,14 @@ def validate_delivery(doc):
 	from royce_health_ke.packages import choose_package
 
 	choose_package(doc)
+	floor = fhr_low()
+	slow = progress_alerts(doc.labour_observations)
 	for row in doc.labour_observations:
-		row.alert = labour_alert(row)
+		alerts = [m for _f, m in observation_alerts(row, floor) if m]
+		if id(row) in slow:
+			alerts.append(slow[id(row)])
+		row.alert = ", ".join(alerts)
+		row.recorded_by = row.recorded_by or frappe.session.user
 
 
 def on_submit_delivery(doc):

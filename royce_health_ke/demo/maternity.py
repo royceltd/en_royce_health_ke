@@ -39,6 +39,7 @@ def run(company):
 			"patient": existing,
 			"created": False,
 			"family_planning": family_planning(company, existing),
+			"labour_care_guide": labour_care_guide(existing),
 			"discharge_bill": discharge_bill(company, existing),
 		}
 	amina = frappe.db.get_value("Healthcare Practitioner", {"first_name": "Amina"})
@@ -195,6 +196,7 @@ def run(company):
 		submit=True,
 	)
 	delivery.reload()
+	labour_care_guide(mother)
 	fp = family_planning(company, mother)
 	bill = discharge_bill(company, mother)
 	return {
@@ -301,3 +303,74 @@ def discharge_bill(company, mother):
 		journey._register_items(company)
 		journey._sign(bill)
 	return bill.name
+
+
+# Faith's labour on the full MOH Labour Care Guide (added in v0.13.0; filled on
+# existing demo sites too). One entry per labour observation, in time order.
+LCG = (
+	{
+		"companion": "Yes",
+		"pain_relief": "Declined",
+		"oral_fluid": "Yes",
+		"posture": "Mobile",
+		"fhr_deceleration": "No",
+		"fetal_position": "Anterior",
+		"caput": "0",
+		"urine_protein": "Nil",
+		"urine_acetone": "Nil",
+		"contraction_duration_sec": 35,
+		"descent": "4",
+		"initials": "AA",
+	},
+	{
+		"companion": "Yes",
+		"pain_relief": "Yes",
+		"oral_fluid": "Yes",
+		"posture": "Mobile",
+		"fhr_deceleration": "Early",
+		"fetal_position": "Anterior",
+		"caput": "0",
+		"contraction_duration_sec": 45,
+		"descent": "3",
+		"initials": "AA",
+		"assessment": "Baseline FHR 165 after membranes ruptured; liquor clear.",
+		"action_plan": "Left lateral, oral fluids, recheck FHR in 15 min; inform doctor if it persists.",
+		"iv_fluid_type": "Ringer's lactate",
+		"iv_fluid_volume_ml": 500,
+	},
+	{
+		"companion": "Yes",
+		"pain_relief": "Yes",
+		"oral_fluid": "Yes",
+		"posture": "Mobile",
+		"fhr_deceleration": "No",
+		"fetal_position": "Anterior",
+		"caput": "+",
+		"contraction_duration_sec": 50,
+		"descent": "1",
+		"pushing": 1,
+		"initials": "AA",
+	},
+)
+
+
+def labour_care_guide(mother):
+	name = frappe.db.get_value("Delivery Record", {"patient": mother, "docstatus": 1})
+	if not name:
+		return None
+	delivery = frappe.get_doc("Delivery Record", name)
+	rows = sorted(delivery.labour_observations, key=lambda r: r.time)
+	if not rows or rows[0].companion:
+		return name
+	for row, values in zip(rows, LCG, strict=False):
+		frappe.db.set_value("Labour Observation", row.name, values, update_modified=False)
+	frappe.db.set_value(
+		"Delivery Record",
+		name,
+		{
+			"active_labour_datetime": rows[0].time,
+			"membranes_ruptured_datetime": rows[1].time if len(rows) > 1 else None,
+		},
+		update_modified=False,
+	)
+	return name
