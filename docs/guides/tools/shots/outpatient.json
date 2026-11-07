@@ -1,0 +1,11 @@
+[
+ {"file": "01-patient.png", "url": "/desk/healthcare/patient/Lucy Wairimu Ndungu"},
+ {"file": "02-appointment.png", "url": "/desk/outpatient/patient-appointment/HLC-APP-2026-00004"},
+ {"file": "03-vitals.png", "url": "/desk/outpatient/vital-signs/HLC-VTS-2026-00005"},
+ {"file": "04-consultation-lab-orders.png", "url": "/desk/outpatient/patient-encounter/HLC-ENC-2026-00009", "scroll": "[data-fieldname=\"lab_test_prescription\"]"},
+ {"file": "05-bill-consult-lab.png", "url": "/desk/outpatient/sales-invoice/ACC-SINV-2026-00008", "scroll": "[data-fieldname=\"items\"]"},
+ {"file": "06-bill-etims.png", "url": "/desk/outpatient/sales-invoice/ACC-SINV-2026-00008", "expand": ["eTIMS", "eTIMS Receipt"]},
+ {"file": "07-lab-result.png", "url": "/desk/diagnostics/lab-test/HLC-LAB-2026-00006"},
+ {"file": "08-review-prescription.png", "url": "/desk/outpatient/patient-encounter/HLC-ENC-2026-00010", "scroll": "[data-fieldname=\"drug_prescription\"]"},
+ {"file": "09-pharmacy-bill.png", "url": "/desk/outpatient/sales-invoice/ACC-SINV-2026-00009", "scroll": "[data-fieldname=\"update_stock\"]"}
+]

@@ -4,6 +4,8 @@ The Kenyan layer for hospitals on [Marley Health](https://github.com/earthians/m
 
 It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's Health Information Exchange, private insurance (Slade360 and insurers), maternity, theatre, MOH reports (705A/B, 717, 711, 710) and KHIS, and Kenyan identifiers and code sets. It works alongside the other RoyceERP apps when they are installed: `kenyan_accountant` (chart of accounts, VAT), `royce_etims` (KRA eTIMS), `royce_payments` (M-Pesa) and `royce_payroll_ke` (PAYE, SHIF, Housing Levy).
 
+User guides with screenshots, for hospital staff: [docs/guides](docs/guides/README.md).
+
 ### Status
 
 | Workstream | State |

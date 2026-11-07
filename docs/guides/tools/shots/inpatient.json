@@ -1,0 +1,15 @@
+[
+ {"file": "01-patient.png", "url": "/desk/healthcare/patient/Mary Atieno Odhiambo"},
+ {"file": "02-consultation.png", "url": "/desk/outpatient/patient-encounter/HLC-ENC-2026-00007"},
+ {"file": "03-inpatient-admitted.png", "url": "/desk/inpatient/inpatient-record/HLC-INP-2026-00004"},
+ {"file": "04-ward-round-prescription.png", "url": "/desk/inpatient/patient-encounter/HLC-ENC-2026-00008", "scroll": "[data-fieldname=\"drug_prescription\"]"},
+ {"file": "05-medication-order.png", "url": "/desk/inpatient/inpatient-medication-order/HLC-IMO-2026-00001"},
+ {"file": "06-pharmacy-issue.png", "url": "/desk/inpatient/inpatient-medication-entry/HLC-IME-2026-00001"},
+ {"file": "08-medication-pane-due.png", "url": "/desk/inpatient/inpatient-record/HLC-INP-2026-00004", "click": "Nursing Dialog", "pane": "Medication"},
+ {"file": "09-dose-given.png", "url": "/desk/inpatient/medication-administration/HLC-MA-2026-00001"},
+ {"file": "11-discharge-summary.png", "url": "/desk/inpatient/discharge-summary/HLC-INP-2026-00005"},
+ {"file": "12-final-bill.png", "url": "/desk/inpatient/sales-invoice/ACC-SINV-2026-00006"},
+ {"file": "14-bill-etims.png", "url": "/desk/inpatient/sales-invoice/ACC-SINV-2026-00006", "expand": ["eTIMS", "eTIMS Receipt"]},
+ {"file": "16-credit-note-etims.png", "url": "/desk/inpatient/sales-invoice/ACC-SINV-2026-00007", "expand": ["eTIMS", "eTIMS Receipt"]},
+ {"file": "15-inpatient-discharged.png", "url": "/desk/inpatient/inpatient-record/HLC-INP-2026-00004"}
+]
