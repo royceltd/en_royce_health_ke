@@ -1,0 +1,24 @@
+{
+ "app": "royce_health_ke",
+ "creation": "2026-11-08 18:00:00",
+ "docstatus": 0,
+ "doctype": "Dock",
+ "idx": 0,
+ "items": [
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "hospital",
+   "link_to": "Kenya Health",
+   "link_type": "Sidebar",
+   "title": "Kenya Health"
+  }
+ ],
+ "modified": "2026-11-08 18:00:00.000000",
+ "modified_by": "Administrator",
+ "mount_on": "healthcare",
+ "name": "royce_health_ke",
+ "owner": "Administrator",
+ "standard": 1,
+ "user": ""
+}
