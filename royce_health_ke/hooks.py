@@ -52,6 +52,10 @@ jinja = {
 		"royce_health_ke.printing.health_prescription_lines",
 		"royce_health_ke.printing.health_encounter_time",
 		"royce_health_ke.printing.health_discharge_details",
+		"royce_health_ke.printing.health_imaging_details",
+		"royce_health_ke.printing.health_operation_details",
+		"royce_health_ke.printing.health_patient_card",
+		"royce_health_ke.printing.health_diagnostic_rows",
 	]
 }
 

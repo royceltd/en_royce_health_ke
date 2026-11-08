@@ -157,9 +157,13 @@ Hospital print formats in the same style as kenyan_accountant's Kenya Tax Invoic
 | Patient Encounter | **Consultation Summary**: vitals, complaints, notes, diagnosis, investigations and procedures ordered, medicines | Patient Encounter |
 | Patient Encounter | **Prescription**: the medicines slip for the pharmacy (no notes or diagnosis on it) | (Print › choose it) |
 | Discharge Summary | **Patient Discharge Summary**: admission and discharge, length of stay, diagnosis, treatment, medicines to continue, advice, follow-up | Discharge Summary |
+| Observation | **Radiology Report**: exam, modality, accession number, technique (radiographer, contrast, dose), findings, impression, reported/verified by; "Preliminary" until verified. Non-imaging observations print as an Observation Report | Observation |
+| Clinical Procedure | **Operation Note**: with its Theatre Booking and Anaesthesia Record: team, anaesthesia type, ASA, airway, indication, findings, procedure, blood loss, specimens, complications, post-op instructions. Without a theatre booking: Procedure Note | Clinical Procedure |
+| Patient | **Patient Card**: registration slip (details, next of kin, allergies, signatures) and a cut-out wallet card with the patient number and a QR of it | Patient |
+| Diagnostic Report | **Diagnostic Results**: Marley's observation-based results (panels with components, H/L flags, text results) in the Laboratory Report layout | Diagnostic Report |
 
 - With kenyan_accountant installed, the logo, address, accent colour (Kenya Accounting Settings › Printed Documents) and the client's own Letter Head rule are the same as on invoices.
-- Defaults are set once (install, and patch `v0_16.set_hospital_print_formats` on existing sites), replacing only an empty default or Marley's own (Lab Test Print, Encounter Print). A default the client picks afterwards is never touched (ADR-023). The formats are standard: fixes ship with the app; a client customises by duplicating one.
+- Defaults are set once (install, and patch `v0_16.set_hospital_print_formats` on existing sites), replacing only an empty default or Marley's own (Lab Test Print, Encounter Print, Diagnostic Report). A default the client picks afterwards is never touched (ADR-023). The formats are standard: fixes ship with the app; a client customises by duplicating one.
 - Shared layout: `templates/print/health_document.html`; data: `printing.py` (Jinja methods prefixed `health_`).
 
 ### Patient SMS

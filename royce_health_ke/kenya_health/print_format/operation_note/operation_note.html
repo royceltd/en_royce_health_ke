@@ -1,0 +1,86 @@
+{#- Clinical Procedure. With a theatre booking: the surgeon's operation note (team,
+    anaesthesia, indication, findings, procedure, specimens, post-op orders).
+    Without one (a dressing, a minor procedure): the same, titled Procedure Note. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, signatures, footer as page_footer -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set op = health_operation_details(doc) -%}
+{{ styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Operation Note" if op.theatre else "Procedure Note", letter_head, no_letterhead, [
+      ("Procedure No.", doc.name),
+      ("Theatre booking", doc.ke_theatre_booking),
+      ("Date", op.started),
+  ]) }}
+
+  {{ patient_band(ctx.patient) }}
+
+  <div class="hx-section">
+    {{ chips([
+        ("Procedure", doc.procedure_template),
+        ("Priority", op.priority),
+        ("Theatre", op.room),
+        ("Started", op.started),
+        ("Ended", op.ended),
+        ("Duration", op.duration),
+    ]) }}
+  </div>
+
+  {% if op.theatre %}
+  <div class="hx-section">
+    {{ section_title("Team and anaesthesia") }}
+    {{ chips([
+        ("Surgeon", op.surgeon.name),
+        ("Assistant", op.assistant),
+        ("Anaesthetist", op.anaesthetist),
+        ("Scrub nurse", op.scrub_nurse),
+    ]) }}
+    <div style="height: 6px;"></div>
+    {{ chips([
+        ("Anaesthesia", op.anaesthesia),
+        ("ASA", op.asa),
+        ("Airway", op.airway),
+    ]) }}
+  </div>
+  {% endif %}
+
+  {% for title, value in [("Indication", doc.ke_indication), ("Findings", doc.ke_findings)] %}
+    {% if value %}<div class="hx-section">{{ section_title(title) }}<div class="hx-pre">{{ value }}</div></div>{% endif %}
+  {% endfor %}
+
+  {% if health_has_text(doc.ke_procedure_details) %}
+  <div class="hx-section hx-text">{{ section_title("Procedure") }}{{ doc.ke_procedure_details }}</div>
+  {% elif doc.notes %}
+  <div class="hx-section">{{ section_title("Notes") }}<div class="hx-pre">{{ doc.notes }}</div></div>
+  {% endif %}
+
+  {% if op.blood_loss or doc.ke_specimens or doc.ke_implants %}
+  <div class="hx-section">
+    {{ chips([
+        ("Estimated blood loss", op.blood_loss),
+        ("Specimens", doc.ke_specimens),
+        ("Implants", doc.ke_implants),
+    ]) }}
+  </div>
+  {% endif %}
+
+  {% if doc.ke_intraop_complications or op.anaesthesia_complications %}
+  <div class="hx-section">
+    {{ section_title("Complications") }}
+    <div class="hx-pre">{{ doc.ke_intraop_complications or "" }}{% if doc.ke_intraop_complications and op.anaesthesia_complications %}
+{% endif %}{% if op.anaesthesia_complications %}{{ _("Anaesthesia") }}: {{ op.anaesthesia_complications }}{% endif %}</div>
+  </div>
+  {% elif op.theatre %}
+  <div class="hx-section">{{ section_title("Complications") }}<div>{{ _("None recorded") }}</div></div>
+  {% endif %}
+
+  {% if doc.ke_post_op_instructions %}
+  <div class="hx-section">
+    {{ section_title("Post-operative instructions") }}
+    <table><tr><td class="hx-band"><div class="hx-pre">{{ doc.ke_post_op_instructions }}</div></td></tr></table>
+  </div>
+  {% endif %}
+
+  {{ signatures([("Surgeon" if op.theatre else "Clinician", op.surgeon.name, (op.surgeon.cadre ~ (" · " if op.surgeon.cadre and op.surgeon.registration else "") ~ op.surgeon.registration))]) }}
+
+  {{ page_footer(_("Confidential medical information. Share only with those caring for the patient."), footer, no_letterhead, ctx) }}
+</div>

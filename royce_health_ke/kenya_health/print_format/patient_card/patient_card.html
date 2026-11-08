@@ -1,0 +1,71 @@
+{#- Patient. The registration slip (details to check with the patient and file)
+    and, below the cut line, a bank-card-sized wallet card: hospital, name,
+    patient number and a QR of the number for reception. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, signatures, footer as page_footer -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set card = health_patient_card(doc) -%}
+{{ styles(ctx) }}
+<style>
+  .hx-doc .hx-cut { margin: 26px 0 14px 0; border-top: 1px dashed #9ca3af; text-align: center; font-size: 7pt; color: #9ca3af; letter-spacing: 0.08em; text-transform: uppercase; }
+  .hx-doc .hx-cut span { position: relative; top: -7px; background: #fff; padding: 0 8px; }
+  .hx-doc table.hx-card { width: 86mm; height: 54mm; border: 1px solid #d1d5db; border-radius: 6px; border-collapse: separate; }
+  .print-format .hx-doc table.hx-card td.hx-card-body, .hx-doc table.hx-card td.hx-card-body { padding: 9px 11px !important; vertical-align: top; }
+  .hx-doc .hx-card-top { border-bottom: 2px solid {{ ctx.accent }}; padding-bottom: 4px; margin-bottom: 6px; }
+  .hx-doc .hx-card-hospital { font-size: 8.5pt; font-weight: 700; color: #111827; line-height: 1.2; }
+  .hx-doc .hx-card-sub { font-size: 6.5pt; color: #6b7280; }
+  .hx-doc .hx-card-name { font-size: 10.5pt; font-weight: 700; color: #111827; line-height: 1.2; }
+  .hx-doc .hx-card-no { font-size: 12pt; font-weight: 700; color: {{ ctx.accent }}; letter-spacing: 0.03em; margin-top: 2px; }
+  .hx-doc .hx-card-qr { width: 64px; height: 64px; }
+</style>
+<div class="hx-doc">
+  {{ header(ctx, "Patient Registration", letter_head, no_letterhead, [
+      ("Patient No.", card.number),
+      ("Registered", card.registered),
+  ]) }}
+
+  {{ patient_band(ctx.patient) }}
+
+  <div class="hx-section">
+    {{ section_title("Details") }}
+    {{ chips([("Date of birth", card.dob), ("Mobile", doc.mobile), ("Email", doc.email), ("Blood group", doc.blood_group)]) }}
+    <div style="height: 6px;"></div>
+    {{ chips([("Residence", card.address), ("Occupation", doc.occupation), ("Marital status", doc.marital_status)]) }}
+  </div>
+
+  {% if card.nok or card.nok_phone %}
+  <div class="hx-section">
+    {{ section_title("Next of kin") }}
+    {{ chips([("Name", card.nok), ("Phone", card.nok_phone)]) }}
+  </div>
+  {% endif %}
+
+  {% if doc.allergies %}
+  <div class="hx-section">
+    {{ section_title("Allergies") }}
+    <div class="hx-pre" style="font-weight: 600; color: #b91c1c;">{{ doc.allergies }}</div>
+  </div>
+  {% endif %}
+
+  {{ chips([("SMS", _("Agreed to receive SMS") if doc.ke_sms_consent else _("No SMS"))]) if doc.ke_sms_consent is defined else "" }}
+
+  {{ signatures([("Patient / guardian", "", _("Details confirmed correct")), ("Registered by", frappe.db.get_value("User", doc.owner, "full_name") or "", "")]) }}
+
+  <div class="hx-cut"><span>{{ _("Cut out and keep") }}</span></div>
+
+  <table class="hx-card"><tr><td class="hx-card-body">
+    <div class="hx-card-top">
+      <div class="hx-card-hospital">{{ ctx.facility.facility_name or ctx.company.name }}</div>
+      <div class="hx-card-sub">{{ _("Patient card") }}{% if ctx.facility.phone or ctx.company.phone %} · {{ _("Tel") }} {{ ctx.facility.phone or ctx.company.phone }}{% endif %}</div>
+    </div>
+    <table><tr>
+      <td>
+        <div class="hx-card-name">{{ ctx.patient.name }}</div>
+        {% if card.number %}<div class="hx-card-no">{{ card.number }}</div>{% endif %}
+        <div class="hx-card-sub" style="margin-top: 4px;">{{ [ctx.patient.sex, (_("Born") ~ " " ~ card.dob) if card.dob else ""] | select | join(" · ") }}</div>
+        {% if ctx.patient.sha %}<div class="hx-card-sub">{{ _("SHA") }} {{ ctx.patient.sha }}</div>{% endif %}
+      </td>
+      {% if card.qr %}<td style="width: 68px; text-align: right;"><img class="hx-card-qr" src="{{ card.qr }}" alt=""></td>{% endif %}
+    </tr></table>
+    <div class="hx-card-sub" style="margin-top: 6px;">{{ _("Bring this card on every visit.") }}</div>
+  </td></tr></table>
+</div>

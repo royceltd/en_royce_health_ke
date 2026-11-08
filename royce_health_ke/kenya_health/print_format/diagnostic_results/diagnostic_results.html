@@ -1,0 +1,62 @@
+{#- Diagnostic Report (Marley's observation-based results): the same layout as the
+    Laboratory Report. Panels are headings with their components under them;
+    text results (imaging findings, microscopy) print as text. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, signatures, footer as page_footer -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set rows = health_diagnostic_rows(doc) -%}
+{%- set requested_by = health_clinician(doc.practitioner) -%}
+{%- set numeric = rows | rejectattr("heading") | rejectattr("text") | list -%}
+{%- set texts = rows | selectattr("text") | list -%}
+{{ styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Diagnostic Report", letter_head, no_letterhead, [
+      ("Report No.", doc.name),
+      ("Date", frappe.utils.formatdate(doc.reference_posting_date, "d MMM yyyy") if doc.reference_posting_date else ""),
+      ("Status", doc.status if doc.status not in ("Approved", "Final") else ""),
+  ]) }}
+
+  {{ patient_band(ctx.patient, [("Requested by", requested_by.name)]) }}
+
+  {% if numeric %}
+  <div class="hx-section">
+    {{ section_title("Results") }}
+    <table class="hx-table">
+      <thead><tr>
+        <th style="width: 38%;">{{ _("Test") }}</th><th style="width: 18%;">{{ _("Result") }}</th>
+        <th style="width: 14%;">{{ _("Unit") }}</th><th>{{ _("Reference range") }}</th>
+      </tr></thead>
+      <tbody>
+      {% for r in rows if not r.text %}
+        {% if r.heading %}
+        <tr class="hx-group"><td colspan="4" class="{{ 'hx-indent' if r.indent }}">{{ r.name }}</td></tr>
+        {% else %}
+        <tr class="hx-keep">
+          <td class="{{ 'hx-indent' if r.indent }}">{{ r.name }}{% if r.comment %}<div class="hx-sub">{{ r.comment }}</div>{% endif %}</td>
+          <td class="{{ 'hx-abnormal' if r.flag }}">{% if r.pending %}<span class="hx-muted">{{ _("Pending") }}</span>{% else %}{{ r.result }}{% if r.flag %}<span class="hx-flag">{{ r.flag }}</span>{% endif %}{% endif %}</td>
+          <td class="hx-muted">{{ r.unit }}</td>
+          <td class="hx-muted hx-pre">{{ r.range }}</td>
+        </tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if numeric | selectattr("flag") | list %}<div class="hx-small hx-muted" style="margin-top: 4px;">{{ _("H = above, L = below the reference range.") }}</div>{% endif %}
+  </div>
+  {% endif %}
+
+  {% for r in texts %}
+  <div class="hx-section hx-text">
+    {{ section_title(r.name) }}
+    {% if "<" in r.result %}{{ r.result }}{% else %}<div class="hx-pre">{{ r.result }}</div>{% endif %}
+    {% if r.comment %}<div class="hx-sub">{{ r.comment }}</div>{% endif %}
+  </div>
+  {% endfor %}
+
+  {% if not rows %}
+  <div class="hx-section hx-muted">{{ _("No results recorded yet.") }}</div>
+  {% endif %}
+
+  {{ signatures([("Performed by", "", ""), ("Verified by", "", "")]) }}
+
+  {{ page_footer(_("These results relate only to the specimen received. Interpret together with the clinical findings."), footer, no_letterhead, ctx) }}
+</div>

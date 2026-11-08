@@ -1,0 +1,76 @@
+{#- Observation. An imaging observation (royce_health_ke radiology) prints as the
+    radiologist's report: exam, technique, findings, impression, who reported and
+    verified. Any other observation prints its result plainly. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, signatures, footer as page_footer -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set x = health_imaging_details(doc) -%}
+{%- set preliminary = x.imaging and doc.ke_exam_status != "Verified" -%}
+{{ styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Radiology Report" if x.imaging else "Observation Report", letter_head, no_letterhead, [
+      ("Accession No.", x.accession),
+      ("Report No.", doc.name),
+      ("Date", x.reported or x.result_date),
+  ]) }}
+
+  {% if preliminary %}<div class="hx-badge" style="margin: 0 0 8px 0;">{{ _("Preliminary - not yet verified") }}</div>{% endif %}
+
+  {{ patient_band(ctx.patient, [("Requested by", x.requested_by.name)]) }}
+
+  <div class="hx-section">
+    {{ chips([
+        ("Examination", x.exam),
+        ("Modality", x.modality),
+        ("Priority", x.priority if x.priority not in ("", "Routine") else ""),
+        ("Performed", x.performed),
+    ]) }}
+  </div>
+
+  {% if x.clinical %}
+  <div class="hx-section">
+    {{ section_title("Clinical information") }}
+    <div class="hx-pre">{{ x.clinical }}</div>
+  </div>
+  {% endif %}
+
+  {% if x.imaging and (x.radiographer or x.contrast or x.dose) %}
+  <div class="hx-section">
+    {{ section_title("Technique") }}
+    {{ chips([
+        ("Radiographer", x.radiographer),
+        ("Contrast", x.contrast or "None"),
+        ("Radiation dose", x.dose),
+    ]) }}
+  </div>
+  {% endif %}
+
+  {% if doc.result %}
+  <div class="hx-section hx-text">
+    {{ section_title("Findings" if x.imaging else "Result") }}
+    {% if "<" in doc.result %}{{ doc.result }}{% else %}<div class="hx-pre">{{ doc.result }}{% if doc.permitted_unit %} {{ doc.permitted_unit }}{% endif %}</div>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if x.imaging and doc.ke_impression %}
+  <div class="hx-section">
+    {{ section_title("Impression") }}
+    <table><tr><td class="hx-band"><div class="hx-pre" style="font-weight: 600; color: #111827;">{{ doc.ke_impression }}</div></td></tr></table>
+  </div>
+  {% endif %}
+
+  {% if health_has_text(doc.result_interpretation) %}
+  <div class="hx-section hx-text">{{ section_title("Interpretation") }}{{ doc.result_interpretation }}</div>
+  {% endif %}
+  {% if health_has_text(doc.note) %}
+  <div class="hx-section hx-text">{{ section_title("Note") }}{{ doc.note }}</div>
+  {% endif %}
+
+  {% if x.imaging %}
+  {{ signatures([
+      ("Reported by", x.reported_by.name, (x.reported_by.cadre ~ (" · " if x.reported_by.cadre and x.reported_by.registration else "") ~ x.reported_by.registration)),
+      ("Verified by", x.verified_by.name, x.verified),
+  ]) }}
+  {% endif %}
+
+  {{ page_footer(_("Images are kept by the hospital and can be provided on request. Interpret together with the clinical findings.") if x.imaging else _("Interpret together with the clinical findings."), footer, no_letterhead, ctx) }}
+</div>

@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Royce Technologies LTD and Contributors
 # See license.txt
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -68,6 +70,10 @@ class IntegrationTestPrinting(IntegrationTestCase):
 			("Patient Encounter", "Consultation Summary"),
 			("Patient Encounter", "Prescription"),
 			("Discharge Summary", "Patient Discharge Summary"),
+			("Observation", "Radiology Report"),
+			("Clinical Procedure", "Operation Note"),
+			("Patient", "Patient Card"),
+			("Diagnostic Report", "Diagnostic Results"),
 		]
 		rendered = 0
 		for doctype, print_format in cases:
@@ -80,3 +86,64 @@ class IntegrationTestPrinting(IntegrationTestCase):
 			rendered += 1
 		if not rendered:
 			self.skipTest("no clinical records on this site")
+
+	def test_diagnostic_rows_panels_flags_and_text(self):
+		from royce_health_ke.printing import diagnostic_rows
+
+		data = [
+			{
+				"has_component": True,
+				"observation": "OBS-FBC",
+				"display_name": "Full Blood Count",
+				"OBS-FBC": [
+					{
+						"observation": {
+							"observation_template": "Haemoglobin",
+							"result": "9.1",
+							"permitted_unit": "g/dL",
+							"reference": "12.0 - 15.5",
+						}
+					},
+					{"observation": {"observation_template": "WBC", "result": "6.0", "reference": "4 - 11"}},
+					{
+						"observation": {
+							"observation_template": "Platelets",
+							"result": "",
+							"reference": "150 - 400",
+						}
+					},
+				],
+			},
+			{
+				"observation": {
+					"observation_template": "Urine microscopy",
+					"result": "<p>Pus cells 2-4/hpf, no casts seen.</p>",
+				}
+			},
+		]
+		doc = frappe._dict(name="DIA-TEST")
+		with patch(
+			"healthcare.healthcare.doctype.observation.observation.get_observation_details",
+			return_value=(data, 4),
+		):
+			rows = diagnostic_rows(doc)
+		self.assertEqual(
+			[r.name for r in rows],
+			["Full Blood Count", "Haemoglobin", "WBC", "Platelets", "Urine microscopy"],
+		)
+		self.assertTrue(rows[0].heading)
+		hb, wbc, plt, urine = rows[1:]
+		self.assertEqual((hb.flag, hb.indent), ("L", True))
+		self.assertEqual(wbc.flag, "")
+		self.assertTrue(plt.pending)
+		self.assertTrue(urine.text)
+		self.assertEqual(urine.flag, "")
+
+	def test_patient_card_band_on_the_patient_itself(self):
+		from royce_health_ke.printing import patient_band
+
+		name = frappe.db.get_value("Patient", {}, "name")
+		if not name:
+			self.skipTest("no patients on this site")
+		band = patient_band(frappe.get_doc("Patient", name))
+		self.assertTrue(band.name)

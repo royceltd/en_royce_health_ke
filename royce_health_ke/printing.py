@@ -16,6 +16,8 @@ fixes reach every client; which format is the DEFAULT is set once (install /
 patch) and then belongs to the client.
 """
 
+import base64
+import io
 import re
 
 import frappe
@@ -25,11 +27,16 @@ DEFAULT_PRINT_FORMATS = {
 	"Lab Test": "Laboratory Report",
 	"Patient Encounter": "Consultation Summary",
 	"Discharge Summary": "Patient Discharge Summary",
+	"Observation": "Radiology Report",
+	"Clinical Procedure": "Operation Note",
+	"Patient": "Patient Card",
+	"Diagnostic Report": "Diagnostic Results",
 }
 # Marley's own formats: not a client's choice, so ours may replace them.
 MARLEY_FORMATS = {
 	"Lab Test": ("Lab Test Print",),
 	"Patient Encounter": ("Encounter Print",),
+	"Diagnostic Report": ("Diagnostic Report",),
 }
 NEUTRAL_ACCENT = "#1f2937"
 
@@ -140,7 +147,7 @@ def age(dob, on=None) -> str:
 
 def patient_band(doc) -> frappe._dict:
 	"""Who the document is about, for the box under the header."""
-	name = doc.get("patient")
+	name = doc.name if doc.doctype == "Patient" else doc.get("patient")
 	if not name:
 		return frappe._dict()
 	fields = ["patient_name", "sex", "dob", "uid"]
@@ -422,6 +429,218 @@ def has_text(html) -> bool:
 	return bool(_plain(html).replace("\xa0", "").strip())
 
 
+# Radiology ------------------------------------------------------------------------
+
+
+def imaging_details(doc) -> frappe._dict:
+	"""An imaging Observation as the radiology report prints it."""
+	from royce_health_ke.radiology import is_imaging
+
+	sr = frappe._dict()
+	if doc.get("service_request"):
+		sr = (
+			frappe.db.get_value(
+				"Service Request",
+				doc.service_request,
+				["practitioner", "order_description", "comment", "priority"],
+				as_dict=True,
+			)
+			or frappe._dict()
+		)
+	clinical = " ".join(x for x in (sr.get("comment"), sr.get("order_description")) if x and x.strip())
+	requested_by = doc.get("healthcare_practitioner") or sr.get("practitioner")
+
+	def when(value):
+		return format_datetime(value, "d MMM yyyy HH:mm") if value else ""
+
+	return frappe._dict(
+		imaging=bool(is_imaging(doc)),
+		exam=doc.get("preferred_display_name") or doc.get("observation_template") or "",
+		modality=doc.get("ke_modality") or "",
+		accession=doc.get("ke_accession_number") or "",
+		priority=doc.get("ke_priority") or "",
+		requested_by=clinician(requested_by),
+		clinical=clinical if clinical != (doc.get("observation_template") or "") else "",
+		performed=when(doc.get("ke_performed_at")),
+		radiographer=doc.get("ke_radiographer") or "",
+		contrast=(doc.get("ke_contrast_agent") or "Yes") if cint(doc.get("ke_contrast")) else "",
+		dose=doc.get("ke_radiation_dose") or "",
+		reported_by=clinician(doc.get("ke_reported_by")),
+		reported=when(doc.get("ke_reported_at")),
+		verified_by=clinician(doc.get("ke_verified_by")),
+		verified=when(doc.get("time_of_approval")),
+		result_date=when(doc.get("time_of_result"))
+		or (formatdate(doc.posting_date, "d MMM yyyy") if doc.get("posting_date") else ""),
+	)
+
+
+# Theatre --------------------------------------------------------------------------
+
+
+def operation_details(doc) -> frappe._dict:
+	"""A Clinical Procedure with its theatre booking and anaesthesia record."""
+	booking = frappe._dict()
+	if doc.get("ke_theatre_booking"):
+		booking = (
+			frappe.db.get_value(
+				"Theatre Booking",
+				doc.ke_theatre_booking,
+				[
+					"name",
+					"priority",
+					"theatre",
+					"surgeon",
+					"assistant",
+					"anaesthetist",
+					"scrub_nurse",
+					"anaesthesia_record",
+				],
+				as_dict=True,
+			)
+			or frappe._dict()
+		)
+	anaesthesia = frappe._dict()
+	record = booking.get("anaesthesia_record") or (
+		frappe.db.get_value("Anaesthesia Record", {"theatre_booking": booking.name, "docstatus": ["<", 2]})
+		if booking.get("name")
+		else None
+	)
+	if record:
+		anaesthesia = (
+			frappe.db.get_value(
+				"Anaesthesia Record",
+				record,
+				["anaesthesia_type", "asa_class", "asa_emergency", "airway", "complications"],
+				as_dict=True,
+			)
+			or frappe._dict()
+		)
+
+	def name(practitioner):
+		return clinician(practitioner).name if practitioner else ""
+
+	start = doc.get("actual_start_datetime") or (
+		get_datetime(f"{doc.start_date} {doc.start_time}")
+		if doc.get("start_date") and doc.get("start_time")
+		else None
+	)
+	end = doc.get("actual_end_datetime")
+	minutes = int((get_datetime(end) - get_datetime(start)).total_seconds() // 60) if start and end else 0
+	asa = anaesthesia.get("asa_class") or ""
+	if asa and cint(anaesthesia.get("asa_emergency")):
+		asa += "E"
+	surgeon = booking.get("surgeon") or doc.get("practitioner")
+	return frappe._dict(
+		theatre=bool(booking),
+		priority=booking.get("priority") or "",
+		room=(booking.get("theatre") or doc.get("service_unit") or "").rsplit(" - ", 1)[0],
+		surgeon=clinician(surgeon),
+		assistant=name(booking.get("assistant")),
+		anaesthetist=name(booking.get("anaesthetist")),
+		scrub_nurse=booking.get("scrub_nurse") or "",
+		anaesthesia=anaesthesia.get("anaesthesia_type") or "",
+		asa=asa,
+		airway=anaesthesia.get("airway") if anaesthesia.get("airway") not in (None, "", "None") else "",
+		anaesthesia_complications=anaesthesia.get("complications") or "",
+		started=format_datetime(start, "d MMM yyyy HH:mm") if start else "",
+		ended=format_datetime(end, "HH:mm") if end else "",
+		duration=f"{minutes} min" if minutes > 0 else "",
+		blood_loss=f"{cint(doc.get('ke_estimated_blood_loss_ml'))} ml"
+		if cint(doc.get("ke_estimated_blood_loss_ml")) > 0
+		else "",
+	)
+
+
+# Patient card -----------------------------------------------------------------------
+
+
+def patient_card(doc) -> frappe._dict:
+	"""Registration details and the wallet card. The QR holds only the patient
+	number (the record's name): scanned at reception it finds the record, and it
+	gives nothing away if the card is lost."""
+	address = ", ".join(x for x in (doc.get("ke_sub_county"), doc.get("ke_county")) if x)
+	nok = " ".join(
+		x
+		for x in (
+			doc.get("ke_nok_name"),
+			f"({doc.ke_nok_relationship})" if doc.get("ke_nok_relationship") else "",
+		)
+		if x
+	)
+	band = patient_band(doc)
+	return frappe._dict(
+		# The number on the card: the record name when it's a number, else the ID.
+		number=band.number or band.id_number or "",
+		registered=formatdate(doc.creation, "d MMM yyyy") if doc.get("creation") else "",
+		dob=formatdate(doc.dob, "d MMM yyyy") if doc.get("dob") else "",
+		address=address,
+		nok=nok,
+		nok_phone=doc.get("ke_nok_phone") or "",
+		qr=qr_data_uri(doc.name) if doc.get("name") else "",
+	)
+
+
+def qr_data_uri(text: str) -> str:
+	try:
+		import pyqrcode
+
+		buffer = io.BytesIO()
+		pyqrcode.create(text).png(buffer, scale=3, quiet_zone=1)
+		return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
+	except Exception:
+		return ""
+
+
+# Diagnostic Report ------------------------------------------------------------------
+
+
+def diagnostic_rows(doc) -> list[frappe._dict]:
+	"""The report's observations, as Marley collects them (get_observation_details),
+	flattened for printing: a panel's name as a heading row, its components
+	indented under it. Text results (imaging findings, microscopy) print as text."""
+	from healthcare.healthcare.doctype.observation.observation import get_observation_details
+
+	try:
+		data, _count = get_observation_details(doc.name)
+	except Exception:
+		frappe.log_error(title=f"Diagnostic Report {doc.name}: observations not readable for print")
+		return []
+	rows = []
+
+	def add(obs, indent=False):
+		name = obs.get("preferred_display_name") or obs.get("observation_template") or ""
+		result = obs.get("result") or ""
+		text = "<" in result or len(result) > 40
+		rows.append(
+			frappe._dict(
+				heading=False,
+				name=name,
+				result=result,
+				text=text,
+				unit=obs.get("permitted_unit") or "",
+				range=_plain(obs.get("reference")),
+				flag=""
+				if text
+				else ((obs.get("result_flag") or "")[:1].upper() or flag(result, obs.get("reference"))),
+				comment=_plain(obs.get("note")),
+				indent=indent,
+				pending=not result,
+			)
+		)
+
+	def walk(entry, depth=0):
+		if entry.get("has_component"):
+			rows.append(frappe._dict(heading=True, name=entry.get("display_name") or "", indent=depth > 0))
+			for child in entry.get(entry.get("observation")) or []:
+				walk(child, depth + 1)
+		else:
+			add(entry.get("observation") or {}, indent=depth > 0)
+
+	for entry in data:
+		walk(entry)
+	return rows
+
+
 # Defaults -----------------------------------------------------------------------
 
 
@@ -486,3 +705,19 @@ def health_encounter_time(doc):
 
 def health_discharge_details(doc):
 	return discharge_details(doc)
+
+
+def health_imaging_details(doc):
+	return imaging_details(doc)
+
+
+def health_operation_details(doc):
+	return operation_details(doc)
+
+
+def health_patient_card(doc):
+	return patient_card(doc)
+
+
+def health_diagnostic_rows(doc):
+	return diagnostic_rows(doc)
