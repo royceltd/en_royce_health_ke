@@ -37,6 +37,7 @@ doc_events = {
 	},
 	"Journal Entry": {"on_cancel": "royce_health_ke.claims.on_settlement_cancel"},
 	"Observation": {"before_insert": "royce_health_ke.radiology.before_insert_observation"},
+	"Lab Test": {"on_submit": "royce_health_ke.sms.lab_test_submitted"},
 }
 
 jinja = {"methods": ["royce_health_ke.lcg.labour_care_guide_html"]}
@@ -49,6 +50,7 @@ doctype_js = {
 
 scheduler_events = {
 	"daily": ["royce_health_ke.identity.remind_licence_expiry"],
+	"hourly": ["royce_health_ke.sms.send_appointment_reminders"],
 }
 
 # Apps
@@ -81,7 +83,10 @@ scheduler_events = {
 
 # Marley's 8 sidebars share one module; give each only its own workspaces so
 # the rail opens the sidebar clicked (see royce_health_ke/sidebar.py).
-extend_bootinfo = "royce_health_ke.sidebar.extend_bootinfo"
+extend_bootinfo = [
+	"royce_health_ke.sidebar.extend_bootinfo",
+	"royce_health_ke.sms.extend_bootinfo",
+]
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/royce_health_ke/css/royce_health_ke.css"

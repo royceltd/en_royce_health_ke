@@ -100,6 +100,14 @@ PATIENT = [
 		"options": "Phone",
 		"insert_after": "ke_nok_cb",
 	},
+	{
+		"fieldname": "ke_sms_consent",
+		"fieldtype": "Check",
+		"label": "Agrees to Receive SMS",
+		"insert_after": "mobile",
+		"description": "Appointment reminders, results-ready alerts and hospital announcements. "
+		"Ask the patient at registration.",
+	},
 ]
 
 PRACTITIONER = [

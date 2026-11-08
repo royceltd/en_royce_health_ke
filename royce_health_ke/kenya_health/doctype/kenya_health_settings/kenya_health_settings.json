@@ -23,6 +23,12 @@
   "linen_item_group",
   "maternity_section",
   "lcg_fhr_low",
+  "sms_section",
+  "sms_appointment_reminders",
+  "sms_reminder_template",
+  "sms_cb",
+  "sms_lab_results",
+  "sms_lab_template",
   "privacy_section",
   "track_record_access"
  ],
@@ -146,6 +152,40 @@
    "description": "Baseline fetal heart rate below this raises an alert (WHO: 110; some MOH forms print 120). Above 159 always alerts."
   },
   {
+   "fieldname": "sms_section",
+   "fieldtype": "Section Break",
+   "label": "Patient SMS",
+   "description": "Sent through Bulk SMS (RoyceTalk), only to patients who agreed to receive SMS. Placeholders: {{ first_name }}, {{ facility }}, {{ hospital }}, {{ phone }}; reminders also {{ date }} and {{ time }}. Blank uses the default wording."
+  },
+  {
+   "fieldname": "sms_appointment_reminders",
+   "fieldtype": "Check",
+   "label": "Send Appointment Reminders",
+   "description": "2 to 24 hours before, between 7am and 8pm. Turns off Marley's own reminder, which ignores consent."
+  },
+  {
+   "fieldname": "sms_reminder_template",
+   "fieldtype": "Small Text",
+   "label": "Reminder Message",
+   "depends_on": "sms_appointment_reminders"
+  },
+  {
+   "fieldname": "sms_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sms_lab_results",
+   "fieldtype": "Check",
+   "label": "Send \"Results Ready\" for Lab Tests",
+   "description": "When a lab test is submitted. Never includes the results."
+  },
+  {
+   "fieldname": "sms_lab_template",
+   "fieldtype": "Small Text",
+   "label": "Results Ready Message",
+   "depends_on": "sms_lab_results"
+  },
+  {
    "fieldname": "privacy_section",
    "fieldtype": "Section Break",
    "label": "Data Protection"
@@ -160,7 +200,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-08 23:00:00.000000",
+ "modified": "2026-11-08 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

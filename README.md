@@ -19,7 +19,7 @@ User guides with screenshots, for hospital staff: [docs/guides](docs/guides/READ
 | 6. Radiology | Worklist, perform/report/verify, accession numbers, MOH 717 imaging done; PACS/modality integration pending |
 | 7. MOH reports, KHIS, dashboards | MOH 705A/B, 706, 711 and 717 done (mappings to confirm with the HRIO and lab); management dashboards done; KHIS submission pending. MOH 710 not needed by the first client |
 | 8. Kitchen, laundry | Diet orders, ward diet list, meal charges; linen movements and status done |
-| 9. Go-live readiness | Patient record access log done; two legal entities, SmartHealth import, deployment pending |
+| 9. Go-live readiness | Patient record access log and patient SMS done; two legal entities, SmartHealth import, deployment pending |
 
 ### Installation
 
@@ -146,6 +146,16 @@ Each submitted movement posts a Stock Entry (transfer, or issue for a write-off)
 - Set the **MOH 717 Clinic** on Medical Departments, the **MOH 717 Ward** on inpatient Service Unit Types, and the **Discharge Outcome** on Inpatient Records.
 
 The default 705 mappings are Royce's first pass from the KenyaEMR specification (palladiumkenya/openmrs-module-kenyaemr, MPL 2.0, read only) - review them with the hospital's HRIO against the current MOH forms.
+
+### Patient SMS
+
+Needs the **Bulk SMS** app (royce_talk, RoyceTalk) on the site, enabled in Bulk SMS Settings. Without it the SMS buttons and jobs stay hidden or do nothing.
+
+- **Consent**: Patient > **Agrees to Receive SMS** (`ke_sms_consent`, off by default; ask at registration). Campaigns, reminders and results messages only go to patients with it ticked, a mobile number and status Active.
+- **One patient**: Patient > **SMS > Send SMS** opens a dialog with ready-made wording (please call us, results ready, missed appointment, medicine ready), a character and SMS count, and a warning if the patient hasn't agreed to SMS (staff can still send about their care). Logged in Bulk SMS Log against the patient; **SMS > SMS History** lists them.
+- **Patient SMS Campaign** (Kenya Health > Patients): pick patients by facility visited, visit dates, department, sex, age, insurer (current policy) or active pregnancy. **Preview Recipients & Cost** counts them; Submit checks the RoyceTalk balance and sends through royce_talk's bulk sender in the background; the result (accepted, failed, cost, balance) is written back on the campaign.
+- **Automatic** (Kenya Health Settings > Patient SMS): appointment reminders 2-24 hours ahead, once each, between 7am and 8pm (turns off Marley's own reminder, which ignores consent and addresses patients by their ID); "results ready" when a lab test is submitted. Wording is editable with `{{ first_name }}`, `{{ facility }}`, `{{ hospital }}`, `{{ phone }}` (reminders also `{{ date }}`, `{{ time }}`).
+- Automatic messages never carry results or diagnoses. The facility comes from the service unit (Health Facility tree), its phone from the Health Facility, then the Company.
 
 ### Data protection: who opened which record
 
