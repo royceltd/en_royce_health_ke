@@ -42,7 +42,8 @@
   {% if doc.allergies %}
   <div class="hx-section">
     {{ section_title("Allergies") }}
-    <div class="hx-pre" style="font-weight: 600; color: #b91c1c;">{{ doc.allergies }}</div>
+    {%- set none_known = (doc.allergies | lower).startswith("no ") or (doc.allergies | lower) in ("none", "nil", "nkda") -%}
+    <div class="hx-pre" style="font-weight: 600; color: {{ '#111827' if none_known else '#b91c1c' }};">{{ doc.allergies }}</div>
   </div>
   {% endif %}
 
