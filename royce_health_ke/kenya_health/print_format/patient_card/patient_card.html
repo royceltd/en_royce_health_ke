@@ -55,6 +55,7 @@
 
   <table class="hx-card"><tr><td class="hx-card-body">
     <div class="hx-card-top">
+      {% if ctx.company.logo %}<img src="{{ ctx.company.logo }}" alt="" style="max-height: 22px; max-width: 120px; display: block; margin-bottom: 3px;">{% endif %}
       <div class="hx-card-hospital">{{ ctx.facility.facility_name or ctx.company.name }}</div>
       <div class="hx-card-sub">{{ _("Patient card") }}{% if ctx.facility.phone or ctx.company.phone %} · {{ _("Tel") }} {{ ctx.facility.phone or ctx.company.phone }}{% endif %}</div>
     </div>
