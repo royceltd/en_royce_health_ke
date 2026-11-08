@@ -147,6 +147,18 @@ class IntegrationTestPatientSMS(IntegrationTestCase):
 		self.assertIn("ready", message)
 		self.assertNotIn("{{", message)
 
+	def test_failed_campaign_send_is_marked_failed(self):
+		patient("Campaign")
+		doc = frappe.get_doc(
+			{"doctype": "Patient SMS Campaign", "title": "Fail test", "message": "Hello"}
+		).insert(ignore_permissions=True)
+		with patch("royce_talk.bulk_sms.bulk_send.send_bulk", side_effect=Exception("provider down")):
+			with patch("frappe.db.rollback"):  # keep the test's own transaction
+				sms.send_campaign(doc.name)
+		status, error = frappe.db.get_value("Patient SMS Campaign", doc.name, ["status", "error"])
+		self.assertEqual(status, "Failed")
+		self.assertIn("Bulk SMS Settings", error)
+
 	def _appointment(self, patient_name, date, time="10:00:00"):
 		doc = frappe.get_doc(
 			{

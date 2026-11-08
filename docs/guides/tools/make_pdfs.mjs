@@ -5,8 +5,9 @@
 //   CHROME=<chromium binary> \
 //   node make_pdfs.mjs .. "<output folder>"
 //
-// Run from docs/guides/tools. Update the guide list and the "Guide checked" date
-// below when guides are added or re-checked.
+// Run from docs/guides/tools. Update the guide list and each guide's "checked"
+// date below when guides are added or re-checked. ONLY=09 builds just guides
+// whose file name starts with that.
 import fs from "fs";
 import path from "path";
 import { createRequire } from "module";
@@ -31,6 +32,7 @@ const guides = [
   ["06-pharmacy-and-stock.md", "06 RoyceERP Health - Pharmacy and Stock"],
   ["07-cashier-day-end.md", "07 RoyceERP Health - Cashier Day-End"],
   ["08-administrator-setup.md", "08 RoyceERP Health - Administrator Setup"],
+  ["09-patient-sms.md", "09 RoyceERP Health - Patient SMS", "8 November 2026"],
 ];
 const css = `
 @page { size: A4; margin: 18mm 16mm 20mm 16mm; }
@@ -55,11 +57,12 @@ code { font-size: 9pt; background: #f6f8fa; padding: 0 3px; border-radius: 3px; 
 `;
 const browser = await chromium.launch({ executablePath: chrome });
 const page = await browser.newPage();
-for (const [file, title] of guides) {
+for (const [file, title, checked = "7 November 2026"] of guides) {
+  if (process.env.ONLY && !file.startsWith(process.env.ONLY)) continue;
   let md = fs.readFileSync(path.join(guidesDir, file), "utf8");
-  md = md.replace(/\]\(((?:0[1-8])-[a-z-]+)\.md\)/g, "]($1.pdf)");
+  md = md.replace(/\]\(((?:0[1-9])-[a-z-]+)\.md\)/g, "]($1.pdf)");
   let body = micromark(md, { extensions: [gfm()], htmlExtensions: [gfmHtml()] });
-  const cover = `<div class="cover"><div class="brand">RoyceERP Health · Royce Technologies Ltd</div><div class="meta">Guide checked 7 November 2026 on the demo hospital (Kijani Valley Hospital Ltd). All patients, staff and records shown are fictional.</div></div>`;
+  const cover = `<div class="cover"><div class="brand">RoyceERP Health · Royce Technologies Ltd</div><div class="meta">Guide checked ${checked} on the demo hospital (Kijani Valley Hospital Ltd). All patients, staff and records shown are fictional.</div></div>`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><base href="file://${guidesDir}/"><title>${title}</title><style>${css}</style></head><body>${cover}${body}</body></html>`;
   const htmlPath = path.join(workDir, file.replace(".md", ".html"));
   fs.writeFileSync(htmlPath, html);

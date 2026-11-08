@@ -285,7 +285,26 @@ def send_campaign(campaign_name: str):
 	writes the result (batch id, queued, failed, cost) back onto the campaign."""
 	from royce_talk.bulk_sms.bulk_send import send_bulk
 
-	send_bulk("Patient SMS Campaign", campaign_name, campaign_recipients)
+	try:
+		send_bulk("Patient SMS Campaign", campaign_name, campaign_recipients)
+	except Exception:
+		# royce_talk 16.3.0 writes balance_remaining=None when every chunk fails
+		# (wrong key, provider down), which the Int column refuses; the campaign
+		# would otherwise sit at Queued/Sending forever with no visible error.
+		frappe.db.rollback()
+		frappe.log_error(title=f"Patient SMS Campaign {campaign_name} failed")
+		frappe.db.set_value(
+			"Patient SMS Campaign",
+			campaign_name,
+			{
+				"status": "Failed",
+				"error": _(
+					"Sending failed. Check the API key and balance in Bulk SMS Settings, "
+					"and the Error Log for details. Nothing was charged for messages not accepted."
+				),
+			},
+			update_modified=False,
+		)
 
 
 # Automatic messages ----------------------------------------------------------

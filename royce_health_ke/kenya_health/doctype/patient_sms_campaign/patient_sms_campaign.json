@@ -197,7 +197,7 @@
    "fieldname": "result_section",
    "fieldtype": "Section Break",
    "label": "Result",
-   "collapsible": 1,
+   "collapsible": 0,
    "depends_on": "eval:doc.docstatus==1"
   },
   {

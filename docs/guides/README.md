@@ -12,6 +12,7 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 | [06 Pharmacy and stock](06-pharmacy-and-stock.md) | Pharmacist, stores | 2026-11-07, v0.14.0 |
 | [07 Cashier day-end](07-cashier-day-end.md) | Cashier, accountant | 2026-11-07, v0.14.0 |
 | [08 Administrator setup](08-administrator-setup.md) | System administrator | 2026-11-07, v0.14.0 |
+| [09 Patient SMS](09-patient-sms.md) | Reception, clinical staff, administrator | 2026-11-08, v0.15.1 |
 
 Planned next: theatre, radiology, emergency, kitchen and laundry, MOH reporting for the HRIO.
 
@@ -33,6 +34,8 @@ BASE=https://hospital.royceltd.com ADMIN_PASSWORD=<admin password> \
 node capture_screenshots.js shots/outpatient.json ../images/outpatient
 ```
 
+The Patient SMS shots (09) click through dialogs and really send, so they have their own script, `tools/capture_sms.js`, run against a local demo site whose Bulk SMS Settings point at a mock RoyceTalk API (never a live key). The other demo sites don't have royce_talk.
+
 Open records through their menu path (`/desk/outpatient/...`, `/desk/inpatient/...`) so the right sidebar shows. Look at every new image before committing. The flow diagrams (`00-flow.png`) are drawn separately; redraw them when a step is added or removed.
 
 ## Making the client PDFs
@@ -45,6 +48,8 @@ NODE_MODULES=<node_modules with micromark, micromark-extension-gfm, playwright-c
 CHROME=<chromium binary> \
 node make_pdfs.mjs .. "<output folder>"
 ```
+
+`ONLY=09` builds just that guide.
 
 Add new guides to its list and update its "Guide checked" date when the guides are re-checked.
 
