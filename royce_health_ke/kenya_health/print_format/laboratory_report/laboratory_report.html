@@ -1,0 +1,115 @@
+{#- Lab Test. Results with the reference range; a numeric result outside a numeric
+    range gets an H or L flag (printing.flag); anything else is printed as entered. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, signatures, footer as page_footer -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set people = health_lab_people(doc) -%}
+{%- set results = health_lab_results(doc) -%}
+{%- set requested_by = health_clinician(doc.practitioner) -%}
+{{ styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Laboratory Report", letter_head, no_letterhead, [
+      ("Lab No.", doc.name),
+      ("Reported", people.reported),
+      ("Status", doc.status if doc.status not in ("Completed", "Approved") else ""),
+  ]) }}
+
+  {{ patient_band(ctx.patient, [("Requested by", requested_by.name)]) }}
+
+  <div class="hx-section">
+    {{ chips([
+        ("Test", doc.lab_test_name),
+        ("Department", doc.department),
+        ("Specimen collected", people.collected),
+        ("Template", doc.template if doc.template != doc.lab_test_name else ""),
+    ]) }}
+  </div>
+
+  {% if results %}
+  <div class="hx-section">
+    {{ section_title("Results") }}
+    <table class="hx-table">
+      <thead><tr>
+        <th style="width: 38%;">{{ _("Test") }}</th>
+        <th style="width: 18%;">{{ _("Result") }}</th>
+        <th style="width: 14%;">{{ _("Unit") }}</th>
+        <th>{{ _("Reference range") }}</th>
+      </tr></thead>
+      <tbody>
+      {% for r in results %}
+        {% if r.heading %}
+        <tr class="hx-group"><td colspan="4">{{ r.name }}</td></tr>
+        {% else %}
+        <tr class="hx-keep">
+          <td class="{{ 'hx-indent' if r.indent }}">{{ r.name }}{% if r.comment %}<div class="hx-sub">{{ r.comment }}</div>{% endif %}</td>
+          <td class="{{ 'hx-abnormal' if r.flag }}">{{ r.result }}{% if r.flag %}<span class="hx-flag">{{ r.flag }}</span>{% endif %}</td>
+          <td class="hx-muted">{{ r.unit }}</td>
+          <td class="hx-muted hx-pre">{{ r.range }}</td>
+        </tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if results | selectattr("flag") | list %}
+    <div class="hx-small hx-muted" style="margin-top: 4px;">{{ _("H = above, L = below the reference range.") }}</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if doc.descriptive_test_items %}
+  <div class="hx-section">
+    {{ section_title("Findings") }}
+    <table class="hx-table">
+      <tbody>
+      {% for r in doc.descriptive_test_items %}
+        <tr class="hx-keep"><td style="width: 38%;" class="hx-muted">{{ r.lab_test_particulars }}</td><td class="hx-pre">{{ r.result_value or "" }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if doc.organism_test_items %}
+  <div class="hx-section">
+    {{ section_title("Organisms isolated") }}
+    <table class="hx-table">
+      <thead><tr><th>{{ _("Organism") }}</th><th>{{ _("Colony count") }}</th></tr></thead>
+      <tbody>{% for r in doc.organism_test_items %}<tr><td>{{ r.organism }}</td><td>{{ r.colony_population or "" }} {{ r.colony_uom or "" }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if doc.sensitivity_test_items %}
+  <div class="hx-section">
+    {{ section_title("Antibiotic sensitivity") }}
+    <table class="hx-table">
+      <thead><tr><th>{{ _("Antibiotic") }}</th><th>{{ _("Sensitivity") }}</th></tr></thead>
+      <tbody>{% for r in doc.sensitivity_test_items %}<tr><td>{{ r.antibiotic }}</td><td>{{ r.antibiotic_sensitivity }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if health_has_text(doc.custom_result) or health_has_text(doc.descriptive_result) %}
+  <div class="hx-section hx-text">
+    {{ section_title("Report") }}
+    {{ doc.custom_result or "" }}{{ doc.descriptive_result or "" }}
+  </div>
+  {% endif %}
+
+  {% if doc.lab_test_comment %}
+  <div class="hx-section">
+    {{ section_title("Comment") }}
+    <div class="hx-pre">{{ doc.lab_test_comment }}</div>
+  </div>
+  {% endif %}
+
+  {% if health_has_text(doc.result_legend) and doc.legend_print_position in ("Bottom", "Both", "") %}
+  <div class="hx-section hx-text hx-small hx-muted">{{ doc.result_legend }}</div>
+  {% endif %}
+
+  {{ signatures([
+      ("Performed by", people.performed, people.performed_designation),
+      ("Verified by", people.verified, people.verified_on),
+  ]) }}
+
+  {{ page_footer(_("These results relate only to the specimen received. Interpret together with the clinical findings."), footer, no_letterhead, ctx) }}
+</div>

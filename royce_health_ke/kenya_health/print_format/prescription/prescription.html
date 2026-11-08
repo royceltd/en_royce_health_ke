@@ -1,0 +1,35 @@
+{#- Patient Encounter: the medicines slip the patient takes to the pharmacy. No
+    notes or diagnosis on it: the pharmacist needs the medicines, not the history. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, section_title, medicines_table, signatures, footer as page_footer -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set doctor = health_clinician(doc.practitioner) -%}
+{%- set medicines = health_prescription_lines(doc) -%}
+{{ styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Prescription", letter_head, no_letterhead, [
+      ("Visit No.", doc.name),
+      ("Date", health_encounter_time(doc)),
+  ]) }}
+
+  {{ patient_band(ctx.patient, [("Payer", doc.insurance_payor)]) }}
+
+  <div class="hx-section">
+    <table><tr>
+      <td style="width: 34px;"><div class="hx-rx">&#8478;</div></td>
+      <td>
+        {% if medicines %}
+          {{ medicines_table(medicines) }}
+        {% else %}
+          <div class="hx-muted" style="padding-top: 6px;">{{ _("No medicines prescribed at this visit.") }}</div>
+        {% endif %}
+      </td>
+    </tr></table>
+  </div>
+
+  {{ signatures([
+      ("Prescriber", doctor.name, (doctor.cadre ~ (" · " if doctor.cadre and doctor.registration else "") ~ doctor.registration)),
+      ("Dispensed by", "", _("Name, signature and date")),
+  ]) }}
+
+  {{ page_footer(_("Valid for 30 days from the date above. Take medicines exactly as directed; ask the pharmacist if anything is unclear."), footer, no_letterhead, ctx) }}
+</div>

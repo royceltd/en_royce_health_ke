@@ -1,0 +1,79 @@
+{#- Patient Encounter: the visit as the next clinician (or the patient) needs it. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, medicines_table, signatures, footer as page_footer -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set doctor = health_clinician(doc.practitioner) -%}
+{%- set vitals = health_encounter_vitals(doc) -%}
+{%- set medicines = health_prescription_lines(doc) -%}
+{{ styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Consultation Summary", letter_head, no_letterhead, [
+      ("Visit No.", doc.name),
+      ("Date", health_encounter_time(doc)),
+  ]) }}
+
+  {{ patient_band(ctx.patient, [("Payer", doc.insurance_payor)]) }}
+
+  <div class="hx-section">
+    {{ chips([
+        ("Clinician", doctor.name),
+        ("Department", doc.medical_department),
+        ("Visit type", doc.appointment_type),
+        ("Referred by", frappe.db.get_value("Healthcare Practitioner", doc.referring_practitioner, "practitioner_name") if doc.referring_practitioner else ""),
+    ]) }}
+  </div>
+
+  {% if vitals and vitals["items"] %}
+  <div class="hx-section">
+    {{ section_title("Vital signs") }}
+    {{ chips(vitals["items"]) }}
+  </div>
+  {% endif %}
+
+  {% if doc.symptoms %}
+  <div class="hx-section">
+    {{ section_title("Presenting complaints") }}
+    <div>{{ doc.symptoms | map(attribute="complaint") | join(", ") }}</div>
+  </div>
+  {% endif %}
+
+  {% if doc.encounter_comment %}
+  <div class="hx-section">
+    {{ section_title("Clinical notes") }}
+    <div class="hx-pre">{{ doc.encounter_comment }}</div>
+  </div>
+  {% endif %}
+
+  {% if doc.diagnosis %}
+  <div class="hx-section">
+    {{ section_title("Diagnosis") }}
+    <div class="hx-lines">{% for d in doc.diagnosis %}<div><b>{{ d.diagnosis }}</b></div>{% endfor %}</div>
+  </div>
+  {% endif %}
+
+  {% if doc.lab_test_prescription or doc.procedure_prescription %}
+  <div class="hx-section">
+    {{ section_title("Investigations and procedures ordered") }}
+    <table class="hx-table">
+      <tbody>
+      {% for l in doc.lab_test_prescription %}
+        <tr><td style="width: 22%;" class="hx-muted">{{ _("Laboratory") }}</td><td>{{ l.lab_test_name or l.lab_test_code }}{% if l.lab_test_comment %}<div class="hx-sub">{{ l.lab_test_comment }}</div>{% endif %}</td></tr>
+      {% endfor %}
+      {% for p in doc.procedure_prescription %}
+        <tr><td style="width: 22%;" class="hx-muted">{{ _("Procedure") }}</td><td>{{ p.procedure_name or p.procedure }}{% if p.date %} <span class="hx-muted">· {{ frappe.utils.formatdate(p.date, "d MMM yyyy") }}</span>{% endif %}{% if p.comments %}<div class="hx-sub">{{ p.comments }}</div>{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if medicines %}
+  <div class="hx-section">
+    {{ section_title("Medicines prescribed") }}
+    {{ medicines_table(medicines) }}
+  </div>
+  {% endif %}
+
+  {{ signatures([("Clinician", doctor.name, (doctor.cadre ~ (" · " if doctor.cadre and doctor.registration else "") ~ doctor.registration))]) }}
+
+  {{ page_footer(_("Confidential medical information. Share only with those caring for the patient."), footer, no_letterhead, ctx) }}
+</div>

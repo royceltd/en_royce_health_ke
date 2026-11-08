@@ -1,0 +1,87 @@
+{#- Discharge Summary: for the patient to keep and for the next clinician. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, medicines_table, signatures, footer as page_footer -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set stay = health_discharge_details(doc) -%}
+{%- set doctor = health_clinician(doc.discharge_practitioner or doc.primary_practitioner) -%}
+{%- set primary = health_clinician(doc.primary_practitioner) -%}
+{{ styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Discharge Summary", letter_head, no_letterhead, [
+      ("Summary No.", doc.name),
+      ("Admission No.", doc.inpatient_record),
+  ]) }}
+
+  {{ patient_band(ctx.patient) }}
+
+  <div class="hx-section">
+    {{ chips([
+        ("Admitted", stay.admitted),
+        ("Discharged", stay.discharged),
+        ("Length of stay", stay.stay),
+        ("Department", doc.medical_department),
+        ("Consultant", primary.name),
+    ]) }}
+  </div>
+
+  {% if doc.diagnosis %}
+  <div class="hx-section">
+    {{ section_title("Diagnosis") }}
+    <div class="hx-lines">{% for d in doc.diagnosis %}<div><b>{{ d.diagnosis }}</b></div>{% endfor %}</div>
+  </div>
+  {% endif %}
+
+  {% if doc.chief_complaint %}
+  <div class="hx-section">
+    {{ section_title("Presenting complaints") }}
+    <div>{{ doc.chief_complaint | map(attribute="complaint") | join(", ") }}</div>
+  </div>
+  {% endif %}
+
+  {% for title, value in [
+      ("Examination findings", doc.physical_examination),
+      ("Treatment given", doc.treatment_done),
+      ("Condition and outstanding issues", doc.current_issues),
+  ] %}
+    {% if health_has_text(value) %}
+    <div class="hx-section hx-text">{{ section_title(title) }}{{ value }}</div>
+    {% endif %}
+  {% endfor %}
+
+  {% if stay.medicines %}
+  <div class="hx-section">
+    {{ section_title("Medicines to continue at home") }}
+    {{ medicines_table(stay.medicines) }}
+  </div>
+  {% endif %}
+
+  {% for title, value in [
+      ("Advice on discharge", doc.advice_on_discharge),
+      ("Diet", doc.diet_adviced),
+      ("Instructions", doc.instructions),
+  ] %}
+    {% if health_has_text(value) %}
+    <div class="hx-section hx-text">{{ section_title(title) }}{{ value }}</div>
+    {% endif %}
+  {% endfor %}
+  {% if stay.instructions and not health_has_text(doc.instructions) %}
+    <div class="hx-section">{{ section_title("Instructions") }}<div class="hx-pre">{{ stay.instructions }}</div></div>
+  {% endif %}
+
+  {% if stay.followup or doc.review_date %}
+  <div class="hx-section">
+    {{ section_title("Follow-up") }}
+    {{ chips([
+        ("Review on", stay.followup),
+        ("Review date", frappe.utils.formatdate(doc.review_date, "d MMM yyyy") if doc.review_date else ""),
+    ]) }}
+    <div class="hx-small hx-muted" style="margin-top: 4px;">{{ _("Bring this summary and your medicines to the review. Come back earlier if you feel worse.") }}</div>
+  </div>
+  {% endif %}
+
+  {{ signatures([
+      ("Discharging clinician", doctor.name, (doctor.cadre ~ (" · " if doctor.cadre and doctor.registration else "") ~ doctor.registration)),
+      ("Patient / next of kin", "", _("Received a copy")),
+  ]) }}
+
+  {{ page_footer(_("Confidential medical information. Share only with those caring for the patient."), footer, no_letterhead, ctx) }}
+</div>

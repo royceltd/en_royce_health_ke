@@ -147,6 +147,21 @@ Each submitted movement posts a Stock Entry (transfer, or issue for a write-off)
 
 The default 705 mappings are Royce's first pass from the KenyaEMR specification (palladiumkenya/openmrs-module-kenyaemr, MPL 2.0, read only) - review them with the hospital's HRIO against the current MOH forms.
 
+### Printed documents
+
+Hospital print formats in the same style as kenyan_accountant's Kenya Tax Invoice, so a patient's bill and their clinical papers look like one hospital's: hospital and facility (with MFL code) at the top, the document title in the accent colour, a patient band (name, patient number, age, sex, ID, SHA number, ward), clinician signature lines with cadre and registration number.
+
+| Document | Print format | Default for |
+|---|---|---|
+| Lab Test | **Laboratory Report**: results with unit and reference range; a numeric result outside a numeric range is flagged H or L (text results are never guessed at); findings, organisms, sensitivities; performed by / verified by | Lab Test |
+| Patient Encounter | **Consultation Summary**: vitals, complaints, notes, diagnosis, investigations and procedures ordered, medicines | Patient Encounter |
+| Patient Encounter | **Prescription**: the medicines slip for the pharmacy (no notes or diagnosis on it) | (Print › choose it) |
+| Discharge Summary | **Patient Discharge Summary**: admission and discharge, length of stay, diagnosis, treatment, medicines to continue, advice, follow-up | Discharge Summary |
+
+- With kenyan_accountant installed, the logo, address, accent colour (Kenya Accounting Settings › Printed Documents) and the client's own Letter Head rule are the same as on invoices.
+- Defaults are set once (install, and patch `v0_16.set_hospital_print_formats` on existing sites), replacing only an empty default or Marley's own (Lab Test Print, Encounter Print). A default the client picks afterwards is never touched (ADR-023). The formats are standard: fixes ship with the app; a client customises by duplicating one.
+- Shared layout: `templates/print/health_document.html`; data: `printing.py` (Jinja methods prefixed `health_`).
+
 ### Patient SMS
 
 Needs the **Bulk SMS** app (royce_talk, RoyceTalk) on the site, enabled in Bulk SMS Settings. Without it the SMS buttons and jobs stay hidden or do nothing.

@@ -1,0 +1,188 @@
+{#-
+  Shared building blocks for the hospital print formats (Laboratory Report,
+  Consultation Summary, Prescription, Patient Discharge Summary). Same look as
+  kenyan_accountant's Kenya Tax Invoice, so the bill and the clinical documents
+  read as one hospital's paperwork. Tables, not flexbox: wkhtmltopdf's WebKit
+  doesn't lay flexbox out reliably. Every class is prefixed "hx-": Frappe's print
+  stylesheet styles generic names like .label.
+-#}
+
+{%- macro styles(ctx) -%}
+<style>
+  .print-format .hx-doc td, .print-format .hx-doc th, .hx-doc td, .hx-doc th { padding: 0 !important; vertical-align: top; }
+  .hx-doc { font-family: "Inter", "Helvetica Neue", Helvetica, Arial, "DejaVu Sans", sans-serif; color: #1f2937; font-size: 9pt; line-height: 1.4; }
+  .hx-doc table { width: 100%; border-collapse: collapse; margin: 0; }
+  .hx-doc .hx-muted { color: #6b7280; }
+  .hx-doc .hx-small { font-size: 8pt; }
+  .hx-doc .hx-right { text-align: right; }
+  .hx-doc .hx-nowrap { white-space: nowrap; }
+  .hx-doc td.hx-gap { padding-right: 18px !important; }
+
+  .hx-doc .hx-head td { padding-bottom: 12px !important; }
+  .hx-doc .hx-logo { max-height: 60px; max-width: 170px; margin-bottom: 8px; display: block; }
+  .hx-doc .hx-company { font-size: 12pt; font-weight: 700; color: #111827; margin-bottom: 2px; }
+  .hx-doc .hx-facility { font-size: 9pt; font-weight: 600; color: #374151; margin-bottom: 2px; }
+  .hx-doc .hx-address { font-size: 8.5pt; line-height: 1.45; color: #4b5563; }
+  .hx-doc table.hx-contacts { width: auto; margin-top: 4px; font-size: 8pt; color: #4b5563; }
+  .hx-doc .hx-contacts td { padding: 0.5px 0 !important; line-height: 1.45; }
+  .hx-doc .hx-contacts td.hx-contact-label { color: #9ca3af; font-size: 6.5pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; padding-right: 8px !important; vertical-align: baseline; }
+  .hx-doc .hx-contacts td.hx-contact-value { vertical-align: baseline; white-space: nowrap; }
+  .hx-doc .hx-contacts td.hx-pair-gap { padding-right: 16px !important; }
+
+  .hx-doc .hx-title { font-size: 17pt; font-weight: 700; letter-spacing: 0.01em; color: {{ ctx.accent }}; text-transform: uppercase; line-height: 1.1; white-space: nowrap; }
+  .hx-doc .hx-badge { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 3px; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #b91c1c; border: 1px solid #b91c1c; }
+  .hx-doc table.hx-details { width: auto; margin: 10px 0 0 auto; }
+  .hx-doc .hx-details td { padding: 1.5px 0 !important; text-align: right; white-space: nowrap; }
+  .hx-doc .hx-details td.hx-details-label { color: #6b7280; padding-right: 14px !important; }
+  .hx-doc .hx-details td.hx-details-value { font-weight: 700; color: #111827; }
+  .hx-doc .hx-rule { border-top: 2px solid {{ ctx.accent }}; margin: 0 0 12px 0; }
+
+  .hx-doc .hx-caption { font-size: 7pt; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; margin-bottom: 3px; }
+  .print-format .hx-doc td.hx-band, .hx-doc td.hx-band { border: 1px solid #e5e7eb; border-left: 3px solid {{ ctx.accent }}; background: #f9fafb; padding: 8px 12px !important; }
+  .hx-doc .hx-band-name { font-size: 12pt; font-weight: 700; color: #111827; }
+  .hx-doc table.hx-band-facts { margin-top: 4px; }
+  .hx-doc .hx-band-facts td { padding: 1px 14px 1px 0 !important; font-size: 8.5pt; white-space: nowrap; }
+  .hx-doc .hx-band-facts .hx-fact-label { color: #9ca3af; font-size: 6.5pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; display: block; }
+  .hx-doc .hx-band-facts .hx-fact-value { color: #111827; font-weight: 600; }
+
+  .hx-doc .hx-section { margin-top: 14px; }
+  .hx-doc .hx-section-title { font-size: 7.5pt; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: {{ ctx.accent }}; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px; margin-bottom: 6px; }
+  .hx-doc .hx-text p { margin: 0 0 4px 0; }
+  .hx-doc .hx-text ul, .hx-doc .hx-text ol { margin: 0 0 4px 0; padding-left: 18px; }
+  .hx-doc .hx-pre { white-space: pre-line; }
+  .hx-doc .hx-lines div { padding: 1px 0; }
+
+  .hx-doc .hx-table th { background: #f3f4f6; color: #374151; font-size: 7pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 8px !important; text-align: left; border-bottom: 1.5px solid {{ ctx.accent }}; }
+  .hx-doc .hx-table td { padding: 5px 8px !important; border-bottom: 1px solid #e5e7eb; }
+  .hx-doc .hx-table .hx-num { text-align: right; white-space: nowrap; }
+  .hx-doc .hx-table tr.hx-group td { background: #fafafa; font-weight: 700; color: #111827; padding-top: 7px !important; }
+  .hx-doc .hx-table td.hx-indent { padding-left: 18px !important; }
+  .hx-doc .hx-sub { color: #6b7280; font-size: 8pt; margin-top: 1px; }
+  .hx-doc .hx-flag { display: inline-block; min-width: 14px; text-align: center; font-size: 7.5pt; font-weight: 700; color: #fff; background: #b91c1c; border-radius: 2px; padding: 0 3px; margin-left: 4px; }
+  .hx-doc .hx-abnormal { font-weight: 700; color: #111827; }
+
+  .hx-doc table.hx-chips td { padding: 0 14px 0 0 !important; white-space: nowrap; width: auto; }
+  .hx-doc .hx-chip-label { color: #9ca3af; font-size: 6.5pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; display: block; }
+  .hx-doc .hx-chip-value { font-weight: 600; color: #111827; }
+
+  .hx-doc .hx-rx { font-size: 20pt; font-weight: 700; color: {{ ctx.accent }}; line-height: 1; font-family: Georgia, "Times New Roman", serif; }
+
+  .hx-doc .hx-sign { margin-top: 30px; }
+  .hx-doc .hx-sign td { padding-right: 24px !important; }
+  .hx-doc .hx-sign-line { border-top: 1px solid #9ca3af; padding-top: 4px !important; }
+  .hx-doc .hx-sign-name { font-weight: 700; color: #111827; }
+  .hx-doc .hx-footer { margin-top: 20px; border-top: 1px solid #e5e7eb; padding-top: 6px; font-size: 7.5pt; color: #6b7280; }
+  .hx-doc .hx-keep { page-break-inside: avoid; }
+</style>
+{%- endmacro -%}
+
+{%- macro contact_pairs(rows) -%}
+{% set shown = rows | selectattr("1") | list %}
+{% if shown %}<table class="hx-contacts">{% for pair in shown | batch(2) %}<tr>
+  {% for label, value in pair %}
+  <td class="hx-contact-label">{{ _(label) }}</td><td class="hx-contact-value{{ ' hx-pair-gap' if loop.first }}">{{ value }}</td>
+  {% endfor %}
+</tr>{% endfor %}</table>{% endif %}
+{%- endmacro -%}
+
+{#- Hospital (and facility) on the left; document title and reference numbers on
+    the right. A client's own Letter Head replaces our hospital block. -#}
+{%- macro header(ctx, title, letter_head, no_letterhead, details=[]) -%}
+{%- set own_letter_head = letter_head and not no_letterhead and ctx.use_letter_head -%}
+{%- if own_letter_head %}<div class="hx-letterhead">{{ letter_head }}</div>{% endif %}
+<table class="hx-head"><tr>
+  <td class="hx-gap" style="width: 55%;">
+    {% if not own_letter_head %}
+    {% if ctx.company.logo %}<img class="hx-logo" src="{{ ctx.company.logo }}" alt="">{% endif %}
+    <div class="hx-company">{{ ctx.company.name }}</div>
+    {% if ctx.facility.facility_name and ctx.facility.facility_name != ctx.company.name %}
+    <div class="hx-facility">{{ ctx.facility.facility_name }}{% if ctx.facility.kmhfl_code %} · MFL {{ ctx.facility.kmhfl_code }}{% endif %}</div>
+    {% endif %}
+    {% if ctx.company.address and ctx.company.address.lines %}<div class="hx-address">{% for line in ctx.company.address.lines %}<div>{{ line }}</div>{% endfor %}</div>{% endif %}
+    {{ contact_pairs([("Tel", ctx.facility.phone or ctx.company.phone), ("Email", ctx.facility.email or ctx.company.email), ("Web", ctx.company.website)]) }}
+    {% endif %}
+  </td>
+  <td class="hx-right" style="width: 45%;">
+    <div class="hx-title">{{ _(title) }}</div>
+    {% if ctx.badge %}<div class="hx-badge">{{ _(ctx.badge) }}</div>{% endif %}
+    {% set shown = details | selectattr("1") | list %}
+    {% if shown %}<table class="hx-details">
+      {% for label, value in shown %}<tr><td class="hx-details-label">{{ _(label) }}</td><td class="hx-details-value">{{ value }}</td></tr>{% endfor %}
+    </table>{% endif %}
+  </td>
+</tr></table>
+<div class="hx-rule"></div>
+{%- endmacro -%}
+
+{#- The patient: name large, then the identifiers a clinician checks. -#}
+{%- macro patient_band(p, extra=[]) -%}
+{% if p and p.name %}
+<table><tr><td class="hx-band">
+  <div class="hx-caption">{{ _("Patient") }}</div>
+  <div class="hx-band-name">{{ p.name }}</div>
+  {% set facts = [
+      ("Patient No.", p.number),
+      ("Age", p.age),
+      ("Sex", p.sex),
+      (p.id_label or "ID No.", p.id_number),
+      ("SHA No.", p.sha),
+      ("Ward / bed", p.ward),
+  ] + extra %}
+  {% set shown = facts | selectattr("1") | list %}
+  <table class="hx-band-facts" style="width: auto;"><tr>
+    {% for label, value in shown %}<td><span class="hx-fact-label">{{ _(label) }}</span><span class="hx-fact-value">{{ value }}</span></td>{% endfor %}
+  </tr></table>
+</td></tr></table>
+{% endif %}
+{%- endmacro -%}
+
+{#- A row of small labelled values (vitals, dates). -#}
+{%- macro chips(rows) -%}
+{% set shown = rows | selectattr("1") | list %}
+{% if shown %}<table class="hx-chips" style="width: auto;"><tr>
+  {% for label, value in shown %}<td><span class="hx-chip-label">{{ _(label) }}</span><span class="hx-chip-value">{{ value }}</span></td>{% endfor %}
+</tr></table>{% endif %}
+{%- endmacro -%}
+
+{%- macro section_title(title) -%}<div class="hx-section-title">{{ _(title) }}</div>{%- endmacro -%}
+
+{#- Medicines table, shared by the prescription, consultation and discharge. -#}
+{%- macro medicines_table(lines) -%}
+<table class="hx-table">
+  <thead><tr>
+    <th style="width: 4%;">#</th><th>{{ _("Medicine") }}</th><th>{{ _("Dose / frequency") }}</th><th>{{ _("Duration") }}</th>
+  </tr></thead>
+  <tbody>
+  {% for m in lines %}
+  <tr class="hx-keep">
+    <td class="hx-muted">{{ loop.index }}</td>
+    <td><b>{{ m.name }}</b>{% if m.strength or m.form %} <span class="hx-muted">{{ m.strength }}{% if m.strength and m.form %} · {% endif %}{{ m.form }}</span>{% endif %}
+      {% if m.comment %}<div class="hx-sub">{{ m.comment }}</div>{% endif %}</td>
+    <td>{{ m.dosage }}</td>
+    <td>{{ m.period }}{% if m.repeats %}<div class="hx-sub">{{ _("Repeats: {0}").format(m.repeats) }}</div>{% endif %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{%- endmacro -%}
+
+{#- Signature lines: list of (caption, name, detail). -#}
+{%- macro signatures(rows) -%}
+<table class="hx-sign hx-keep"><tr>
+  {% for caption, name, detail in rows %}
+  <td style="width: {{ (100 / (rows | length)) | int }}%;">
+    <div style="height: 26px;"></div>
+    <div class="hx-sign-line">
+      <div class="hx-caption">{{ _(caption) }}</div>
+      {% if name %}<div class="hx-sign-name">{{ name }}</div>{% endif %}
+      {% if detail %}<div class="hx-small hx-muted">{{ detail }}</div>{% endif %}
+    </div>
+  </td>
+  {% endfor %}
+</tr></table>
+{%- endmacro -%}
+
+{%- macro footer(note, letterhead_footer, no_letterhead, ctx) -%}
+<div class="hx-footer">{{ note }}</div>
+{% if letterhead_footer and not no_letterhead and ctx.use_letter_head %}<div class="hx-letterhead-footer">{{ letterhead_footer }}</div>{% endif %}
+{%- endmacro -%}

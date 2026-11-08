@@ -40,7 +40,20 @@ doc_events = {
 	"Lab Test": {"on_submit": "royce_health_ke.sms.lab_test_submitted"},
 }
 
-jinja = {"methods": ["royce_health_ke.lcg.labour_care_guide_html"]}
+jinja = {
+	"methods": [
+		"royce_health_ke.lcg.labour_care_guide_html",
+		"royce_health_ke.printing.health_print_context",
+		"royce_health_ke.printing.health_lab_results",
+		"royce_health_ke.printing.health_lab_people",
+		"royce_health_ke.printing.health_clinician",
+		"royce_health_ke.printing.health_has_text",
+		"royce_health_ke.printing.health_encounter_vitals",
+		"royce_health_ke.printing.health_prescription_lines",
+		"royce_health_ke.printing.health_encounter_time",
+		"royce_health_ke.printing.health_discharge_details",
+	]
+}
 
 doctype_js = {
 	"Patient": "public/js/patient.js",

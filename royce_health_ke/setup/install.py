@@ -12,6 +12,10 @@ from royce_health_ke.setup import custom_fields, marley_fixes
 
 def after_install():
 	run()
+	from royce_health_ke.printing import set_default_print_formats
+
+	# Once, at install: afterwards the default belongs to the client (ADR-023).
+	set_default_print_formats()
 
 
 def after_migrate():
