@@ -66,18 +66,32 @@ PATIENT = [
 		"description": "National Client Registry ID, filled from the Health Information Exchange.",
 	},
 	{
+		"fieldname": "ke_nationality",
+		"fieldtype": "Link",
+		"label": "Nationality",
+		"options": "Country",
+		"default": "Kenya",
+		"insert_after": "ke_cr_id",
+	},
+	{
 		"fieldname": "ke_county",
 		"fieldtype": "Select",
 		"label": "County of Residence",
 		"options": select(COUNTIES),
-		"insert_after": "ke_cr_id",
+		"insert_after": "ke_nationality",
 	},
 	{"fieldname": "ke_sub_county", "fieldtype": "Data", "label": "Sub-County", "insert_after": "ke_county"},
+	{
+		"fieldname": "ke_residence",
+		"fieldtype": "Data",
+		"label": "Residence (estate, town or village)",
+		"insert_after": "ke_sub_county",
+	},
 	{
 		"fieldname": "ke_next_of_kin_section",
 		"fieldtype": "Section Break",
 		"label": "Next of Kin",
-		"insert_after": "ke_sub_county",
+		"insert_after": "ke_residence",
 	},
 	{
 		"fieldname": "ke_nok_name",
@@ -107,6 +121,43 @@ PATIENT = [
 		"insert_after": "mobile",
 		"description": "Appointment reminders, results-ready alerts and hospital announcements. "
 		"Ask the patient at registration.",
+	},
+]
+
+VITAL_SIGNS = [
+	{
+		"fieldname": "ke_spo2",
+		"fieldtype": "Data",
+		"label": "SpO2 (%)",
+		"insert_after": "respiratory_rate",
+		"in_list_view": 1,
+	},
+	{
+		"fieldname": "ke_vitals_status",
+		"fieldtype": "Select",
+		"label": "Vitals",
+		"options": "\nNormal\nAbnormal",
+		"insert_after": "signs_time",
+		"read_only": 1,
+		"in_list_view": 1,
+		"in_standard_filter": 1,
+		"description": "Worked out on save from the readings and the patient's age.",
+	},
+	{
+		"fieldname": "ke_vitals_flags",
+		"fieldtype": "Small Text",
+		"label": "Abnormal Readings",
+		"insert_after": "ke_vitals_status",
+		"read_only": 1,
+		"depends_on": "eval:doc.ke_vitals_status == 'Abnormal'",
+	},
+	{
+		"fieldname": "ke_abnormal_fields",
+		"fieldtype": "Data",
+		"label": "Abnormal Fields",
+		"insert_after": "ke_vitals_flags",
+		"hidden": 1,
+		"read_only": 1,
 	},
 ]
 
@@ -527,6 +578,7 @@ def apply():
 		INVOICE_ITEM,
 		SERVICE_UNIT,
 		PATIENT,
+		VITAL_SIGNS,
 		PRACTITIONER,
 		CLAIM_COVERAGE,
 		OPERATION_NOTE,
@@ -539,6 +591,7 @@ def apply():
 	create_custom_fields(
 		{
 			"Patient": PATIENT,
+			"Vital Signs": VITAL_SIGNS,
 			"Healthcare Practitioner": PRACTITIONER,
 			"Insurance Claim Coverage": CLAIM_COVERAGE,
 			"Clinical Procedure": OPERATION_NOTE,

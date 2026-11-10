@@ -8,7 +8,7 @@ import re
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, date_diff, getdate, today
+from frappe.utils import add_days, cint, date_diff, getdate, today
 
 PHONE_FIELDS = ("mobile", "phone", "ke_nok_phone")
 # Kenyan mobile and fixed numbers: 07xx/01xx with or without the 254 prefix.
@@ -39,7 +39,67 @@ def validate_id_number(id_type, number):
 	return number
 
 
+def missing_registration_details(doc):
+	"""Labels of the registration details still missing on a patient: sex, date
+	of birth, an ID (adults need a real document; a child may have a birth
+	certificate or none), a contact number (the patient's, or for a child the
+	next of kin's), nationality and residence (county too for Kenyans)."""
+	from royce_health_ke.vitals import age_in_years
+
+	missing = []
+	if not doc.get("sex"):
+		missing.append(_("Gender"))
+	if not doc.get("dob"):
+		missing.append(_("Date of Birth"))
+	age = age_in_years(doc.get("dob"))
+	child = age is not None and age < 18
+	id_type = doc.get("ke_id_type")
+	if not id_type or (id_type == "None" and not child):
+		missing.append(_("ID / Passport (type and number)"))
+	if not (doc.get("mobile") or doc.get("phone") or (child and doc.get("ke_nok_phone"))):
+		missing.append(
+			_("Mobile number") + ((" " + _("(or the next of kin's for a child)")) if child else "")
+		)
+	if not doc.get("ke_nationality"):
+		missing.append(_("Nationality"))
+	if doc.get("ke_nationality") == "Kenya" and not doc.get("ke_county"):
+		missing.append(_("County of Residence"))
+	if not doc.get("ke_residence"):
+		missing.append(_("Residence (estate, town or village)"))
+	return missing
+
+
+def check_registration(doc):
+	"""New patients must be fully registered when Kenya Health Settings says
+	so. Emergency 'unidentified patient' records (ER- series), data imports and
+	installs are exempt; an existing patient with gaps gets a reminder only."""
+	if (
+		frappe.flags.in_import
+		or frappe.flags.in_install
+		or frappe.flags.in_migrate
+		or frappe.flags.in_test
+		or doc.flags.ignore_registration_check
+		or str(doc.get("naming_series") or doc.name or "").startswith("ER-")
+		or not frappe.db.get_single_value("Kenya Health Settings", "require_registration_details")
+	):
+		return
+	missing = missing_registration_details(doc)
+	if not missing:
+		return
+	if doc.is_new():
+		frappe.throw(
+			_("Complete the patient's registration: {0}.").format(", ".join(missing)),
+			title=_("Registration incomplete"),
+		)
+	frappe.msgprint(
+		_("This patient's registration is incomplete: {0}.").format(", ".join(missing)),
+		indicator="orange",
+		alert=True,
+	)
+
+
 def validate_patient(doc, method=None):
+	check_registration(doc)
 	for field in PHONE_FIELDS:
 		if doc.get(field):
 			doc.set(field, normalise_phone(doc.get(field)))
@@ -133,3 +193,13 @@ def remind_licence_expiry():
 					"document_name": row.name,
 				}
 			).insert(ignore_permissions=True)
+
+
+def extend_bootinfo(bootinfo):
+	"""The Patient form marks the registration details required when the hospital requires them."""
+	try:
+		bootinfo.ke_require_registration = cint(
+			frappe.db.get_single_value("Kenya Health Settings", "require_registration_details")
+		)
+	except Exception:
+		bootinfo.ke_require_registration = 0

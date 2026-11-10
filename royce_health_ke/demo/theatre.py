@@ -32,6 +32,8 @@ PATIENT = {
 	"ke_id_number": "0003456",
 	"ke_sha_number": "DEMO-SHA-004",
 	"ke_county": "Nakuru",
+	"ke_nationality": "Kenya",
+	"ke_residence": "Nakuru town (demo)",
 	"ke_nok_name": "Ruth Kioko",
 	"ke_nok_relationship": "Parent",
 	"ke_nok_phone": "0712 000 008",

@@ -1,8 +1,16 @@
 // Copyright (c) 2026, Royce Technologies LTD and contributors
 // For license information, please see license.txt
 
+// Registration details the hospital requires (Kenya Health Settings); the
+// contact number and county depend on age and nationality, so the server
+// checks those (royce_health_ke.identity.missing_registration_details).
+const KE_REQUIRED = ["dob", "ke_id_type", "ke_nationality", "ke_residence"];
+
 frappe.ui.form.on("Patient", {
 	refresh(frm) {
+		if (frappe.boot.ke_require_registration && frm.is_new()) {
+			for (const f of KE_REQUIRED) frm.toggle_reqd(f, true);
+		}
 		if (frm.is_new()) return;
 		if (frappe.model.can_read("Patient Record Access")) {
 			frm.add_custom_button(

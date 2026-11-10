@@ -19,7 +19,7 @@ User guides with screenshots, for hospital staff: [docs/guides](docs/guides/READ
 | 6. Radiology | Worklist, perform/report/verify, accession numbers, MOH 717 imaging done; PACS/modality integration pending |
 | 7. MOH reports, KHIS, dashboards | MOH 705A/B, 706, 711 and 717 done (mappings to confirm with the HRIO and lab); management dashboards done; KHIS submission pending. MOH 710 not needed by the first client |
 | 8. Kitchen, laundry | Diet orders, ward diet list, meal charges; linen movements and status done |
-| 9. Go-live readiness | Patient record access log and patient SMS done; two legal entities, SmartHealth import, deployment pending |
+| 9. Go-live readiness | Patient record access log, patient SMS, required registration details, masked patient details and triage vitals flags done; patient queue, running bill, two legal entities, SmartHealth import pending |
 
 ### Installation
 
@@ -33,7 +33,8 @@ Install the other RoyceERP apps first if the hospital uses them. A company must 
 
 ### Kenyan identifiers
 
-- **Patient:** ID type and number (copied to Marley's unique UID, duplicates refused with the existing patient named), SHA member number, Client Registry ID (from the HIE), county and sub-county, next of kin. Kenyan phone numbers are normalised to +254.
+- **Patient:** ID type and number (copied to Marley's unique UID, duplicates refused with the existing patient named), SHA member number, Client Registry ID (from the HIE), nationality, county, sub-county and residence, next of kin. Kenyan phone numbers are normalised to +254.
+- **Required at registration** (Kenya Health Settings > Patient Registration, on by default): a new patient is refused until it has gender, date of birth, an ID or passport, a contact number, nationality and residence (county too for Kenyans). A child under 18 may have no ID and use the next of kin's phone. Exempt: emergency "unidentified patient" records (ER- series), data imports, and newborns registered from a delivery. An existing patient with gaps saves with a reminder.
 - **Healthcare Practitioner:** cadre, regulator (KMPDC, NCK, COC, PPB, KMLTTB), registration and practising licence numbers, licence expiry, Health Worker Registry ID (from the HIE). Healthcare Administrators get a notification 30, 14, 7 and 1 day(s) before a licence expires, then weekly once expired.
 - **Health Facility** (new): one per site - company, KEPH level, KMHFL code, SHA facility code, county, branch (and so the eTIMS branch), service unit group.
 
@@ -194,6 +195,20 @@ Every time a user opens or prints a patient's record - the Patient, encounters, 
 - Healthcare Administrators and System Managers read the log (list view, filters by patient, user, record type and date; **View > Who Opened This Record** on a Patient).
 - Written after the response is sent, so opening a record is never slowed; an audit failure is logged as an error and never stops a clinician.
 - On by default (Kenya Health Settings > Data Protection). Not covered: lists and reports that show patient data without opening a record.
+
+### Data protection: masked patient details
+
+Patients' phone numbers, email, ID number and next of kin's phone are shown as XXXXXXXX to clinical, lab and pharmacy staff, and in full to **Receptionist** (new role), Healthcare Administrator and System Manager. The same goes for the copies on Inpatient Record and Lab Test. The Patient list shows only name, status and ID.
+
+- Frappe's own field masking: it applies to lists, reports and forms. Server code (SMS, prints, claims) reads the real values, and a masked user saving a patient never overwrites them.
+- Applied once per site (`privacy.apply_defaults`), then the hospital's to change: who sees what in Role Permissions Manager (the Mask column), which fields in Customize Form (Mask). Patient, Inpatient Record and Lab Test permissions become custom permissions when it runs.
+
+### Triage vitals flags
+
+Each Vital Signs record is flagged **Normal** or **Abnormal** on save, with the abnormal readings listed (for example *Temperature 38.9 °C (high)*). Abnormal readings show in red on the form, and the Vitals column of the list is a red or green pill. Adds SpO2, which Marley lacks.
+
+- Ranges (`vitals.py`, to confirm with the clinicians): temperature 35.5-37.5 °C, SpO2 94 % and over, pulse and respiratory rate by age band (under 1, 1-4, 5-12, 13 and over), BP from 13 years (systolic 90-139, diastolic 60-89), BMI for adults (18.5-24.9).
+- The v0.19 patch flags vital signs recorded before.
 
 ### Marley fixes
 

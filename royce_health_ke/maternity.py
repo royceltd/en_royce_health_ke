@@ -198,8 +198,11 @@ def on_submit_delivery(doc):
 				"sex": row.sex if frappe.db.exists("Gender", row.sex) else "Other",
 				"dob": get_datetime(doc.delivery_datetime).date(),
 				"patient_relation": [{"relation": "Mother", "patient": mother.name}],
+				"ke_id_type": "None",
+				"ke_nationality": mother.get("ke_nationality"),
 				"ke_county": mother.get("ke_county"),
 				"ke_sub_county": mother.get("ke_sub_county"),
+				"ke_residence": mother.get("ke_residence"),
 				"ke_nok_name": mother.patient_name,
 				"ke_nok_relationship": "Parent",
 				"ke_nok_phone": mother.mobile,
@@ -211,7 +214,10 @@ def on_submit_delivery(doc):
 					mother.name,
 				),
 			}
-		).insert(ignore_permissions=True)
+		)
+		# Registered from the mother's record; any gaps there are hers to fill, not a reason to block the delivery.
+		baby.flags.ignore_registration_check = True
+		baby.insert(ignore_permissions=True)
 		row.db_set("baby_patient", baby.name)
 
 

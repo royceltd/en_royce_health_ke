@@ -48,6 +48,8 @@ IDENTIFIERS = {
 	"ke_id_number": "0001234",
 	"ke_sha_number": "DEMO-SHA-001",
 	"ke_county": "Nakuru",
+	"ke_nationality": "Kenya",
+	"ke_residence": "Nakuru town (demo)",
 	"ke_sub_county": "Nakuru East",
 	"ke_nok_name": "John Mwangi",
 	"ke_nok_relationship": "Spouse",

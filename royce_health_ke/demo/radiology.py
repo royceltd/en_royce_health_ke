@@ -26,6 +26,8 @@ PATIENT = {
 	"ke_id_number": "0007890",
 	"ke_sha_number": "DEMO-SHA-005",
 	"ke_county": "Nakuru",
+	"ke_nationality": "Kenya",
+	"ke_residence": "Nakuru town (demo)",
 	"ke_nok_name": "Lucy Wanjiku",
 	"ke_nok_relationship": "Spouse",
 	"ke_nok_phone": "0712 000 010",

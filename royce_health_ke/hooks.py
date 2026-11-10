@@ -38,6 +38,7 @@ doc_events = {
 	"Journal Entry": {"on_cancel": "royce_health_ke.claims.on_settlement_cancel"},
 	"Observation": {"before_insert": "royce_health_ke.radiology.before_insert_observation"},
 	"Lab Test": {"on_submit": "royce_health_ke.sms.lab_test_submitted"},
+	"Vital Signs": {"validate": "royce_health_ke.vitals.validate_vital_signs"},
 }
 
 jinja = {
@@ -66,7 +67,10 @@ doctype_js = {
 	"Patient": "public/js/patient.js",
 	"Insurance Claim": "public/js/insurance_claim.js",
 	"Observation": "public/js/observation.js",
+	"Vital Signs": "public/js/vital_signs.js",
 }
+
+doctype_list_js = {"Vital Signs": "public/js/vital_signs_list.js"}
 
 scheduler_events = {
 	"daily": ["royce_health_ke.identity.remind_licence_expiry"],
@@ -106,6 +110,7 @@ scheduler_events = {
 extend_bootinfo = [
 	"royce_health_ke.sidebar.extend_bootinfo",
 	"royce_health_ke.sms.extend_bootinfo",
+	"royce_health_ke.identity.extend_bootinfo",
 ]
 
 # include js, css files in header of desk.html

@@ -30,7 +30,10 @@
   "sms_lab_results",
   "sms_lab_template",
   "privacy_section",
-  "track_record_access"
+  "track_record_access",
+  "privacy_defaults_applied",
+  "registration_section",
+  "require_registration_details"
  ],
  "fields": [
   {
@@ -196,11 +199,31 @@
    "label": "Log Who Opens Patient Records",
    "default": "1",
    "description": "Each time a user opens or prints a patient's record (the patient, encounters, lab tests, admissions, maternity, theatre...), a Patient Record Access entry is written. Required for accountability under the Data Protection Act; keep it on."
+  },
+  {
+   "fieldname": "privacy_defaults_applied",
+   "fieldtype": "Check",
+   "label": "Privacy Defaults Applied",
+   "hidden": 1,
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "registration_section",
+   "fieldtype": "Section Break",
+   "label": "Patient Registration"
+  },
+  {
+   "fieldname": "require_registration_details",
+   "fieldtype": "Check",
+   "label": "Require Full Registration Details",
+   "default": "1",
+   "description": "New patients need gender, date of birth, an ID or passport (a child may have none), a contact number, nationality and residence. Emergency 'unidentified patient' records are exempt."
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-08 18:00:00.000000",
+ "modified": "2026-11-10 20:51:21.104233",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

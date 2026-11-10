@@ -44,6 +44,8 @@ PATIENT = {
 	"ke_id_number": "0005678",
 	"ke_sha_number": "DEMO-SHA-002",
 	"ke_county": "Nakuru",
+	"ke_nationality": "Kenya",
+	"ke_residence": "Nakuru town (demo)",
 	"ke_nok_name": "Mary Kamau",
 	"ke_nok_relationship": "Spouse",
 	"ke_nok_phone": "0712 000 004",

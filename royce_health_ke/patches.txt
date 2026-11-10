@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 royce_health_ke.patches.v0_16.set_hospital_print_formats
 royce_health_ke.patches.v0_16.set_hospital_print_formats #2026-11-09 radiology report
+royce_health_ke.patches.v0_19.flag_existing_vitals

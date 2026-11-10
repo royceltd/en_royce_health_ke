@@ -6,7 +6,7 @@ Every step is idempotent and never overwrites a hospital's own data (ADR-023).
 Downloading code sets (ICD-11) is left to an explicit action - a migrate must
 not depend on WHO's servers being reachable."""
 
-from royce_health_ke import codes
+from royce_health_ke import codes, privacy
 from royce_health_ke.setup import custom_fields, marley_fixes
 
 
@@ -29,6 +29,7 @@ def run():
 	seed_moh705()
 	seed_moh706()
 	default_settings()
+	privacy.apply_defaults()
 
 
 def seed_moh705():
@@ -86,6 +87,6 @@ def default_settings():
 	saved are set, so a hospital's own choice stands (ADR-023)."""
 	import frappe
 
-	for field, value in (("track_record_access", 1),):
+	for field, value in (("track_record_access", 1), ("require_registration_details", 1)):
 		if not frappe.db.exists("Singles", {"doctype": "Kenya Health Settings", "field": field}):
 			frappe.db.set_single_value("Kenya Health Settings", field, value)

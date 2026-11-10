@@ -23,6 +23,8 @@ MOTHER = {
 	"ke_id_number": "0009012",
 	"ke_sha_number": "DEMO-SHA-003",
 	"ke_county": "Nakuru",
+	"ke_nationality": "Kenya",
+	"ke_residence": "Nakuru town (demo)",
 	"ke_sub_county": "Nakuru West",
 	"ke_nok_name": "James Kariuki",
 	"ke_nok_relationship": "Spouse",
