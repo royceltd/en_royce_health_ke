@@ -1,6 +1,6 @@
 {
  "actions": [],
- "creation": "2026-11-10 22:30:00.000000",
+ "creation": "2026-11-10 23:30:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -37,6 +37,14 @@
   "cover_limit",
   "authorisation_code",
   "insurance_remarks",
+  "bill_section",
+  "bill_status",
+  "bill_cb",
+  "allow_credit",
+  "credit_reason",
+  "credit_approved_by",
+  "bill_details_section",
+  "bill_html",
   "queue_section",
   "current_station",
   "queue_status",
@@ -284,6 +292,56 @@
    "depends_on": "eval:doc.payment_method=='Insurance'"
   },
   {
+   "fieldname": "bill_section",
+   "fieldtype": "Section Break",
+   "label": "Bill"
+  },
+  {
+   "fieldname": "bill_status",
+   "fieldtype": "Select",
+   "label": "Bill",
+   "options": "\nTo Bill\nUnpaid\nPaid",
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "To Bill: charges not yet on an invoice. Unpaid: an invoice has a balance. Paid: everything billed is paid."
+  },
+  {
+   "fieldname": "bill_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "allow_credit",
+   "fieldtype": "Check",
+   "label": "Services Before Payment",
+   "read_only": 1,
+   "depends_on": "allow_credit",
+   "description": "Approved by a manager: the lab, radiology and pharmacy serve this visit before it is paid."
+  },
+  {
+   "fieldname": "credit_reason",
+   "fieldtype": "Small Text",
+   "label": "Reason",
+   "read_only": 1,
+   "depends_on": "allow_credit"
+  },
+  {
+   "fieldname": "credit_approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "options": "User",
+   "read_only": 1,
+   "depends_on": "allow_credit"
+  },
+  {
+   "fieldname": "bill_details_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "bill_html",
+   "fieldtype": "HTML",
+   "label": "Bill Details"
+  },
+  {
    "fieldname": "queue_section",
    "fieldtype": "Section Break",
    "label": "Queue"
@@ -400,7 +458,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-10 22:30:00.000000",
+ "modified": "2026-11-10 23:30:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Patient Visit",

@@ -73,6 +73,9 @@ def mark_performed(
 	doc = _imaging(observation)
 	if doc.ke_exam_status != "Requested":
 		frappe.throw(_("This exam is already {0}.").format(doc.ke_exam_status))
+	from royce_health_ke.visit_bill import imaging_gate
+
+	imaging_gate(doc)
 	doc.update(
 		{
 			"ke_exam_status": "Performed",

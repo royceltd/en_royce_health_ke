@@ -88,6 +88,12 @@ def default_settings():
 	saved are set, so a hospital's own choice stands (ADR-023)."""
 	import frappe
 
-	for field, value in (("track_record_access", 1), ("require_registration_details", 1)):
+	for field, value in (
+		("track_record_access", 1),
+		("require_registration_details", 1),
+		("pay_before_lab", 1),
+		("pay_before_radiology", 1),
+		("pay_before_pharmacy", 1),
+	):
 		if not frappe.db.exists("Singles", {"doctype": "Kenya Health Settings", "field": field}):
 			frappe.db.set_single_value("Kenya Health Settings", field, value)

@@ -34,7 +34,12 @@
   "privacy_defaults_applied",
   "role_defaults_version",
   "registration_section",
-  "require_registration_details"
+  "require_registration_details",
+  "payment_section",
+  "pay_before_lab",
+  "pay_before_radiology",
+  "payment_cb",
+  "pay_before_pharmacy"
  ],
  "fields": [
   {
@@ -227,11 +232,42 @@
    "label": "Require Full Registration Details",
    "default": "1",
    "description": "New patients need gender, date of birth, an ID or passport (a child may have none), a contact number, nationality and residence. Emergency 'unidentified patient' records are exempt."
+  },
+  {
+   "fieldname": "payment_section",
+   "fieldtype": "Section Break",
+   "label": "Payment Before Service",
+   "description": "For cash patients. Insured patients, inpatients and casualty are served first and pay later; a manager can also approve services before payment on a visit."
+  },
+  {
+   "fieldname": "pay_before_lab",
+   "fieldtype": "Check",
+   "label": "Laboratory",
+   "default": "1",
+   "description": "A lab test is started only after its request is billed and paid."
+  },
+  {
+   "fieldname": "pay_before_radiology",
+   "fieldtype": "Check",
+   "label": "Radiology",
+   "default": "1",
+   "description": "An imaging exam is performed only after it is billed and paid."
+  },
+  {
+   "fieldname": "payment_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pay_before_pharmacy",
+   "fieldtype": "Check",
+   "label": "Pharmacy",
+   "default": "1",
+   "description": "Drugs leave the store only on a paid invoice: take payment on the invoice, or dispense with a Delivery Note once it is paid."
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-10 21:01:14.243865",
+ "modified": "2026-11-10 23:30:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

@@ -3,9 +3,10 @@
 
 // The waiting list: filter by Station to get one station's queue. Waiting
 // time turns orange after 30 minutes and red after an hour; abnormal triage
-// vitals show as a red pill.
+// vitals show as a red pill; the bill pill tells the lab and pharmacy whether
+// a cash patient has paid.
 frappe.listview_settings["Patient Visit"] = {
-	add_fields: ["status", "queue_status", "current_station", "sent_at", "vitals_status"],
+	add_fields: ["status", "queue_status", "current_station", "sent_at", "vitals_status", "bill_status", "payment_method", "allow_credit"],
 	filters: [["status", "=", "Open"]],
 	get_indicator(doc) {
 		if (doc.status === "Completed") return [__("Completed"), "green", "status,=,Completed"];
@@ -26,6 +27,12 @@ frappe.listview_settings["Patient Visit"] = {
 		vitals_status(value) {
 			if (!value) return "";
 			return `<span class="indicator-pill ${value === "Abnormal" ? "red" : "green"}"><span>${__(value)}</span></span>`;
+		},
+		bill_status(value, df, doc) {
+			if (!value) return "";
+			const colour = { "To Bill": "orange", Unpaid: "red", Paid: "green" }[value] || "gray";
+			const label = value !== "Paid" && doc.allow_credit ? __("{0} (credit approved)", [__(value)]) : __(value);
+			return `<span class="indicator-pill ${colour}"><span>${label}</span></span>`;
 		},
 	},
 };

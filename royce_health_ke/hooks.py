@@ -30,14 +30,28 @@ doc_events = {
 	"Healthcare Practitioner": {"validate": "royce_health_ke.identity.validate_practitioner"},
 	"Sales Invoice": {
 		"before_validate": [
+			"royce_health_ke.visit_bill.link_invoice",
 			"royce_health_ke.billing.apply_bed_charge_basis",
 			"royce_health_ke.kitchen.apply_meal_charges",
 			"royce_health_ke.packages.apply_maternity_package",
-		]
+		],
+		"before_submit": "royce_health_ke.visit_bill.invoice_before_submit",
+		"on_submit": "royce_health_ke.visit_bill.invoice_changed",
+		"on_cancel": "royce_health_ke.visit_bill.invoice_changed",
 	},
+	"Payment Entry": {
+		"on_submit": "royce_health_ke.visit_bill.payment_changed",
+		"on_cancel": "royce_health_ke.visit_bill.payment_changed",
+	},
+	"Delivery Note": {"before_submit": "royce_health_ke.visit_bill.delivery_before_submit"},
 	"Journal Entry": {"on_cancel": "royce_health_ke.claims.on_settlement_cancel"},
 	"Observation": {"before_insert": "royce_health_ke.radiology.before_insert_observation"},
-	"Lab Test": {"on_submit": "royce_health_ke.sms.lab_test_submitted"},
+	"Lab Test": {
+		"before_insert": "royce_health_ke.visit_bill.lab_test_before_insert",
+		"after_insert": "royce_health_ke.visit_bill.orders_changed",
+		"before_submit": "royce_health_ke.visit_bill.lab_test_before_submit",
+		"on_submit": "royce_health_ke.sms.lab_test_submitted",
+	},
 	"Vital Signs": {
 		"validate": [
 			"royce_health_ke.visits.link_vital_signs",
@@ -49,7 +63,10 @@ doc_events = {
 	"Patient Encounter": {
 		"validate": "royce_health_ke.visits.link_encounter",
 		"on_update": "royce_health_ke.visits.encounter_saved",
-		"on_submit": "royce_health_ke.visits.encounter_saved",
+		"on_submit": [
+			"royce_health_ke.visits.encounter_saved",
+			"royce_health_ke.visit_bill.orders_changed",
+		],
 	},
 }
 

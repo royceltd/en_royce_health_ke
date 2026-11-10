@@ -19,7 +19,7 @@ User guides with screenshots, for hospital staff: [docs/guides](docs/guides/READ
 | 6. Radiology | Worklist, perform/report/verify, accession numbers, MOH 717 imaging done; PACS/modality integration pending |
 | 7. MOH reports, KHIS, dashboards | MOH 705A/B, 706, 711 and 717 done (mappings to confirm with the HRIO and lab); management dashboards done; KHIS submission pending. MOH 710 not needed by the first client |
 | 8. Kitchen, laundry | Diet orders, ward diet list, meal charges; linen movements and status done |
-| 9. Go-live readiness | Patient record access log, patient SMS, required registration details, masked patient details, triage vitals flags and the patient visit queue done; running bill, two legal entities, SmartHealth import pending |
+| 9. Go-live readiness | Patient record access log, patient SMS, required registration details, masked patient details, triage vitals flags, the patient visit queue, the visit's running bill and payment before service done; two legal entities, SmartHealth import pending |
 
 ### Installation
 
@@ -213,6 +213,18 @@ A **Patient Visit** is one arrival: reception checks the patient in, and the vis
 - **At a station:** *Seen* takes the patient off the waiting list; *Send To* moves them on (to Consultation with the practitioner), with an optional note. Every move is kept in Movements with who and when. *Record* opens Vital Signs or a Consultation for the visit; *Complete Visit* and *Cancel Visit* (with a reason) close it.
 - **Links:** vital signs and consultations recorded that day link to the open visit. The visit shows the latest vitals flag; opening the consultation marks the patient seen at Consultation and fills its service type, practitioner and department from the visit.
 - **Receptionist role:** registers patients, checks them in, records insurance policies and appointments; reads practitioners, departments, service types and payers. Added once per site (`roles.py`), then the hospital's to change.
+
+### The visit's bill and payment before service
+
+- **Running bill:** the visit form's Bill section lists everything given or ordered since check-in that is not invoiced yet (consultation, lab, imaging, procedures, drugs from the visit's consultations, bed), priced as the invoice will price it (insurance share included), then the visit's invoices with their balance, and Billed / Paid / To pay. The list's **Bill** pill reads To Bill, Unpaid or Paid, so the lab and pharmacy see at a glance whether a cash patient has paid.
+- **Create Bill** (*Bill* menu, for anyone who can create a Sales Invoice) opens a draft invoice of the unbilled charges, linked to the visit; one draft at a time. Any patient invoice made that day links to the open visit.
+- **Payment before service** (Kenya Health Settings > Payment Before Service, each on by default), for cash patients:
+  - **Laboratory:** a lab test is started from its request only when the request is on a submitted, fully paid invoice. A test done without a request is not released (submitted) until it is paid.
+  - **Radiology:** an imaging exam is marked performed only once paid.
+  - **Pharmacy:** an invoice that issues stock (Update Stock) is submitted only when paid on the spot (Include Payment); a Delivery Note against a patient's invoice only once that invoice is paid.
+  - **Exempt:** insured visits (and requests with an insurance policy), inpatients, casualty visits, and a visit where a manager (Healthcare Administrator, Accounts Manager) used *Allow Services Before Payment* with a reason, shown on the visit.
+- Marley's own *Process Service Request Only If Paid* only checks that a request is invoiced, not paid, and can't tell cash from insured: leave it off.
+- Marley refuses to price a consultation whose practitioner has no OP consulting charge; the Bill section then says so. Set it on every consulting practitioner.
 
 ### Triage vitals flags
 

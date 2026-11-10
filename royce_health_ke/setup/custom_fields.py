@@ -207,6 +207,19 @@ INSURANCE_POLICY = [
 	},
 ]
 
+SALES_INVOICE = [
+	{
+		"fieldname": "ke_patient_visit",
+		"fieldtype": "Link",
+		"label": "Patient Visit",
+		"options": "Patient Visit",
+		"insert_after": "patient_name",
+		"read_only": 1,
+		"search_index": 1,
+		"depends_on": "patient",
+	},
+]
+
 PRACTITIONER = [
 	{
 		"fieldname": "ke_registration_section",
@@ -627,6 +640,7 @@ def apply():
 		VITAL_SIGNS,
 		ENCOUNTER,
 		INSURANCE_POLICY,
+		SALES_INVOICE,
 		PRACTITIONER,
 		CLAIM_COVERAGE,
 		OPERATION_NOTE,
@@ -647,6 +661,7 @@ def apply():
 		"Observation": IMAGING_OBSERVATION,
 		"Item Group": ITEM_GROUP,
 		"Sales Invoice Item": INVOICE_ITEM,
+		"Sales Invoice": SALES_INVOICE,
 		"Healthcare Service Unit": SERVICE_UNIT,
 	}
 	# MOH has its own Patient Encounter fields: combine, don't replace.

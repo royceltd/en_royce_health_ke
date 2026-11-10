@@ -23,6 +23,7 @@ frappe.ui.form.on("Patient Visit", {
 	},
 
 	refresh(frm) {
+		if (!frm.is_new()) render_bill(frm);
 		if (frm.is_new() || frm.doc.status !== "Open") return;
 		const call = (method, args, message) =>
 			frappe.call({ method: `royce_health_ke.visits.${method}`, args, freeze: true }).then(() => {
@@ -69,6 +70,9 @@ frappe.ui.form.on("Patient Visit", {
 			),
 		__("Status"));
 
+		if (frm.doc.allow_credit) {
+			frm.dashboard.add_comment(__("Services before payment approved: {0}", [frm.doc.credit_reason || ""]), "blue", true);
+		}
 		if (frm.doc.vitals_status === "Abnormal") {
 			frm.dashboard.set_headline(__("Abnormal vitals at triage. See the latest vital signs."), "red");
 		}
@@ -144,4 +148,114 @@ function send_to_dialog(frm, call) {
 		},
 	});
 	d.show();
+}
+
+const money = (value, currency) => format_currency(value || 0, currency);
+
+// The running bill: unbilled charges at the prices the invoice will use, the
+// visit's invoices, and what is left to pay. Create Bill hands the cashier a
+// draft invoice of the unbilled charges.
+function render_bill(frm) {
+	const wrapper = frm.get_field("bill_html").$wrapper;
+	wrapper.html(`<div class="text-muted small">${__("Loading the bill...")}</div>`);
+	frappe.call("royce_health_ke.visit_bill.visit_bill", { visit: frm.doc.name }).then(({ message: b }) => {
+		if (!b) return;
+		if (b.error) {
+			wrapper.html(`<div class="text-muted">${frappe.utils.escape_html(b.error)}</div>`);
+			return;
+		}
+		const c = b.currency;
+		const esc = frappe.utils.escape_html;
+		let html = "";
+		if (b.charges.length) {
+			html += `<p class="text-muted small mb-1">${__("Not billed yet")}</p>
+				<table class="table table-sm table-bordered mb-3"><thead><tr>
+				<th>${__("Item")}</th><th class="text-right">${__("Qty")}</th>
+				<th class="text-right">${__("Rate")}</th><th class="text-right">${__("Amount")}</th>
+				${b.insurance || b.charges.some((r) => r.insurance) ? `<th class="text-right">${__("Insurance")}</th>` : ""}
+				</tr></thead><tbody>
+				${b.charges
+					.map(
+						(r) => `<tr><td>${esc(r.item)}<div class="text-muted small">${esc(__(r.reference_dt || ""))}</div></td>
+						<td class="text-right">${r.qty}</td><td class="text-right">${money(r.rate, c)}</td>
+						<td class="text-right">${money(r.amount, c)}</td>
+						${b.charges.some((x) => x.insurance) ? `<td class="text-right">${money(r.insurance, c)}</td>` : ""}</tr>`,
+					)
+					.join("")}
+				<tr><td colspan="3" class="text-right"><b>${__("Total to bill (with tax)")}</b></td>
+				<td class="text-right"><b>${money(b.unbilled_total, c)}</b></td></tr>
+				</tbody></table>`;
+		}
+		if (b.invoices.length) {
+			html += `<p class="text-muted small mb-1">${__("Invoices")}</p>
+				<table class="table table-sm table-bordered mb-3"><thead><tr>
+				<th>${__("Invoice")}</th><th>${__("Status")}</th>
+				<th class="text-right">${__("Total")}</th>${b.insurance ? `<th class="text-right">${__("Insurance")}</th>` : ""}
+				<th class="text-right">${__("Balance")}</th></tr></thead><tbody>
+				${b.invoices
+					.map(
+						(i) => `<tr><td><a href="/app/sales-invoice/${encodeURIComponent(i.name)}">${esc(i.name)}</a></td>
+						<td>${esc(__(i.docstatus ? i.status : "Draft"))}</td>
+						<td class="text-right">${money(i.grand_total, c)}</td>
+						${b.insurance ? `<td class="text-right">${money(i.total_insurance_coverage_amount, c)}</td>` : ""}
+						<td class="text-right">${i.docstatus ? money(i.outstanding_amount, c) : ""}</td></tr>`,
+					)
+					.join("")}
+				</tbody></table>`;
+		}
+		if (!html) {
+			html = `<div class="text-muted">${__("No charges yet.")}</div>`;
+		} else {
+			html += `<div class="d-flex flex-wrap" style="gap: 24px">
+				<div>${__("Billed")}: <b>${money(b.billed, c)}</b></div>
+				${b.insurance ? `<div>${__("Insurance")}: <b>${money(b.insurance, c)}</b></div>` : ""}
+				<div>${__("Paid")}: <b>${money(b.paid, c)}</b></div>
+				<div>${__("To pay")}: <b class="${b.to_pay > 0 ? "text-danger" : ""}">${money(b.to_pay, c)}</b></div>
+			</div>`;
+		}
+		wrapper.html(html);
+		if (b.status !== (frm.doc.bill_status || "")) {
+			frm.doc.bill_status = b.status; // saved on the server already
+			frm.refresh_field("bill_status");
+		}
+
+		if (frm.doc.status !== "Open") return;
+		if (b.can_bill && b.charges.length) {
+			frm.add_custom_button(__("Create Bill"), () => make_bill(frm), __("Bill"));
+		}
+		if (b.can_approve_credit && !frm.doc.allow_credit) {
+			frm.add_custom_button(
+				__("Allow Services Before Payment"),
+				() =>
+					frappe.prompt(
+						{ fieldname: "reason", fieldtype: "Small Text", label: __("Reason"), reqd: 1 },
+						(v) =>
+							frappe
+								.call({
+									method: "royce_health_ke.visit_bill.approve_credit",
+									args: { visit: frm.doc.name, reason: v.reason },
+									freeze: true,
+								})
+								.then(() => frm.reload_doc()),
+						__("Serve this visit before payment"),
+					),
+				__("Bill"),
+			);
+		}
+	});
+}
+
+function make_bill(frm) {
+	frappe.call({ method: "royce_health_ke.visit_bill.make_bill", args: { visit: frm.doc.name }, freeze: true }).then(
+		({ message }) => {
+			if (!message) return;
+			if (message.existing) {
+				frappe.show_alert({ message: __("This visit already has a draft bill."), indicator: "blue" });
+				frappe.set_route("Form", "Sales Invoice", message.existing);
+				return;
+			}
+			const doc = frappe.model.sync(message)[0];
+			frappe.set_route("Form", doc.doctype, doc.name);
+		},
+	);
 }
