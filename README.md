@@ -15,7 +15,7 @@ User guides with screenshots, for hospital staff: [docs/guides](docs/guides/READ
 | 2. SHA / HIE connector | Waiting for AfyaConnect sandbox approval |
 | 3. Billing and private insurance | Done: bed nights, insured visits on Marley's model, claim rejections. Slade360 and separate insurer invoices pending |
 | 4. Maternity | ANC, labour and delivery, newborn, PNC, family planning, maternity packages done (to align with the client's forms) |
-| 5. Theatre | Booking, consent, WHO checklist, anaesthesia record, operation note done |
+| 5. Theatre | Booking, consent, theatre checklist (ward preparation, WHO, counts, post-op), anaesthesia record with the KSA pre-op assessment, operation note, and their prints, done |
 | 6. Radiology | Worklist, perform/report/verify, accession numbers, MOH 717 imaging done; PACS/modality integration pending |
 | 7. MOH reports, KHIS, dashboards | MOH 705A/B, 706, 711 and 717 done (mappings to confirm with the HRIO and lab); management dashboards done; KHIS submission pending. MOH 710 not needed by the first client |
 | 8. Kitchen, laundry | Diet orders, ward diet list, meal charges; linen movements and status done |
@@ -84,10 +84,17 @@ Around Marley's Clinical Procedure (which carries the procedure's price and cons
 
 - **Theatre Booking**: theatre (a service unit whose type is an OT), scheduled start and duration, surgeon, assistant, anaesthetist, priority, insurance pre-authorisation. Clashes on the theatre, surgeon, anaesthetist or patient are refused.
 - **Surgical Consent** (submitted): what was explained, risks, alternatives, anaesthesia and transfusion consent, who consented, witness, scanned form.
-- **Surgical Safety Checklist**: the WHO Sign In, Time Out and Sign Out items; each phase is Done when every item is answered, only after the one before, and time-stamped.
-- **Anaesthesia Record** (submitted): ASA class, technique, airway, drugs and intra-operative vitals, fluids and losses, Aldrete score at recovery discharge.
-- **Operation note** on the Clinical Procedure: indication, findings, procedure details, blood loss, specimens, implants, complications, post-op instructions.
-- **Into Theatre** needs submitted consent, Sign In done and no pending/declined pre-authorisation (an emergency may proceed while pending); it creates and starts the Clinical Procedure. **Complete** needs Time Out, Sign Out and the operation note; it completes the procedure and issues its consumables from the theatre's warehouse.
+- **Surgical Safety Checklist**, laid out like a hospital's paper theatre checklist (v0.18, from Bethesda's forms), one record per operation in tabs:
+  - **Ward Preparation**: consent signed (from the booking), ID band, gown, shaving, jewellery/dentures/limb, fasting and last feed, IV line, catheter, NG tube, investigations (FHG, UEC, serology, X-ray, blood group, cross-match, units available), pre-op observations, pre-medication, and the handover: prepared by, handed over by, received in theatre by (times stamped). Done when the core items are answered.
+  - **WHO Checklist**: Sign In, Time Out and Sign Out; each phase is Done when every item is answered, only after the one before, and time-stamped.
+  - **Counts**: gauze and instrument lines (abdominal packs, gauze swabs, instrument set, blades, needles, add your own) with start, added, end. Sign Out can't confirm the counts unless every counted line balances (end = start + added) and the scrub and circulating nurses are named.
+  - **Post-operative**: vitals, blood loss, level of consciousness, pain, oxygen, vomiting, catheter, dressing, drains, analgesia, infusion, drugs, recovery observations, investigations, remarks, and back to the ward (handed over by, received by, time). Only after Sign Out.
+- **Anaesthesia Record** (submitted), in tabs:
+  - **Pre-op Assessment** (as the GOK/KSA Anaesthesia Record): pre-op diagnosis, weight/height, smoking/alcohol/drugs, HR/BP/RR/SpO2, pallor, cyanosis, GCS (total worked out), a Yes/No review of 24 conditions across six systems, airway (loose teeth, dentures, abnormalities, Mallampati), current medication, steroid use, allergies (from the patient), Hb/Hct/platelets/WBC/PT/INR/APTT (filled from the patient's lab results in the last 30 days; **Fetch Lab Results** refreshes them), RFT/LFT/glucose/sickling, CXR/ECG/echo, ASA I-VI and E, pre-op orders.
+  - **Anaesthesia** (the monitoring chart): technique, airway, E.T.T. size, position, pre-medication and time, induction and maintenance agents, start/end of anaesthesia and of surgery, drugs, intra-operative vitals, fluids and losses.
+  - **Recovery**: Aldrete score, recovery discharge, post-operative instructions for the ward.
+- **Operation note** on the Clinical Procedure: indication, incision, findings, procedure details, blood loss, specimens, implants, complications, post-op instructions.
+- **Into Theatre** needs submitted consent, ward preparation done (an emergency may go in without it, with a warning), Sign In done and no pending/declined pre-authorisation (an emergency may proceed while pending); it creates and starts the Clinical Procedure. **Complete** needs Time Out, Sign Out and the operation note; it completes the procedure and issues its consumables from the theatre's warehouse.
 - **Theatre List** report: the day's list per theatre with consent, checklist and anaesthesia status.
 
 ### Radiology
@@ -158,13 +165,16 @@ Hospital print formats in the same style as kenyan_accountant's Kenya Tax Invoic
 | Patient Encounter | **Prescription**: the medicines slip for the pharmacy (no notes or diagnosis on it) | (Print › choose it) |
 | Discharge Summary | **Patient Discharge Summary**: admission and discharge, length of stay, diagnosis, treatment, medicines to continue, advice, follow-up | Discharge Summary |
 | Observation | **Radiology Report**: exam, modality, accession number, technique (radiographer, contrast, dose), findings, impression, reported/verified by; "Preliminary" until verified. Non-imaging observations print as an Observation Report | Observation |
-| Clinical Procedure | **Operation Note**: with its Theatre Booking and Anaesthesia Record: team, anaesthesia type, ASA, airway, indication, findings, procedure, blood loss, specimens, complications, post-op instructions. Without a theatre booking: Procedure Note | Clinical Procedure |
+| Clinical Procedure | **Operation Note**: with its Theatre Booking and Anaesthesia Record: team, anaesthesia type and agents, ASA, airway, indication, incision, findings, procedure, blood loss, specimens, complications, post-op instructions. Without a theatre booking: Procedure Note | Clinical Procedure |
+| Surgical Consent | **Consent for Operation**: the hospital's wording ("I ... of P.O. Box ... hereby consent to Dr ... performing the operation of ... on myself / my child / my relative"), what was explained, consents ticked, signature lines for the patient or the person consenting, doctor and witness, and a thumbprint box. No Draft badge: it is printed to be signed, then scanned back | Surgical Consent |
+| Surgical Safety Checklist | **Theatre Checklist**: 1 ward preparation and handover, 2 the WHO checklist, 3 the counts table, 4 the post-operative checklist. Unanswered items print as empty boxes and lines, so it also works as the paper form | Surgical Safety Checklist |
+| Anaesthesia Record | **Anaesthesia Record**: the pre-operative assessment, then a page with the anaesthetic monitoring chart (vitals and drugs grids, X/S anaesthesia and surgery times), recovery and ward instructions | Anaesthesia Record |
 | Patient | **Patient Card**: registration slip (details, next of kin, allergies, signatures) and a cut-out wallet card with the patient number and a QR of it | Patient |
 | Diagnostic Report | **Diagnostic Results**: Marley's observation-based results (panels with components, H/L flags, text results) in the Laboratory Report layout | Diagnostic Report |
 
 - With kenyan_accountant installed, the logo, address, accent colour (Kenya Accounting Settings › Printed Documents) and the client's own Letter Head rule are the same as on invoices.
 - Defaults are set once (install, and patch `v0_16.set_hospital_print_formats` on existing sites), replacing only an empty default or Marley's own (Lab Test Print, Encounter Print, Diagnostic Report). A default the client picks afterwards is never touched (ADR-023). The formats are standard: fixes ship with the app; a client customises by duplicating one.
-- Shared layout: `templates/print/health_document.html`; data: `printing.py` (Jinja methods prefixed `health_`).
+- Shared layout: `templates/print/health_document.html` (theatre forms add `templates/print/theatre_forms.html`: boxes and question/answer grids); data: `printing.py` (Jinja methods prefixed `health_`). The three theatre formats are the default through their own doctypes (`default_print_format`), no patch needed.
 
 ### Patient SMS
 
@@ -200,7 +210,7 @@ bench --site <demo-site> set-config royce_health_demo 1
 bench --site <demo-site> execute royce_health_ke.demo.load
 ```
 
-The demo pharmacy has reorder levels, so the dashboard shows amoxicillin below its level. Faith is discharged on the cash normal delivery package (demo price, not an SHA tariff). The demo lab's Hb and malaria slide tests are mapped to their MOH 706 rows. Daniel is nil by mouth on his theatre day, then on a soft diet (meals billed per day); the General Ward has linen issued, collected, returned and one sheet condemned.
+The demo pharmacy has reorder levels, so the dashboard shows amoxicillin below its level. Faith is discharged on the cash normal delivery package (demo price, not an SHA tariff). The demo lab's Hb and malaria slide tests are mapped to their MOH 706 rows. Daniel is nil by mouth on his theatre day, then on a soft diet (meals billed per day); the General Ward has linen issued, collected, returned and one sheet condemned. Daniel's appendicectomy has the full theatre paperwork: ward preparation and handover, balanced counts, the post-operative checklist and the KSA pre-op assessment (existing demo sites get it on the next `demo.load()`).
 
 The loader refuses to run unless the site opts in, so it can't touch a client's live data. It is safe to run again.
 

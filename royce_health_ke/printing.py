@@ -21,7 +21,8 @@ import io
 import re
 
 import frappe
-from frappe.utils import cint, flt, format_datetime, formatdate, get_datetime, getdate
+from frappe import _
+from frappe.utils import cint, flt, format_datetime, formatdate, get_datetime, get_time, getdate
 
 DEFAULT_PRINT_FORMATS = {
 	"Lab Test": "Laboratory Report",
@@ -31,6 +32,9 @@ DEFAULT_PRINT_FORMATS = {
 	"Clinical Procedure": "Operation Note",
 	"Patient": "Patient Card",
 	"Diagnostic Report": "Diagnostic Results",
+	"Surgical Consent": "Consent for Operation",
+	"Surgical Safety Checklist": "Theatre Checklist",
+	"Anaesthesia Record": "Anaesthesia Record",
 }
 # Marley's own formats: not a client's choice, so ours may replace them.
 MARLEY_FORMATS = {
@@ -510,7 +514,15 @@ def operation_details(doc) -> frappe._dict:
 			frappe.db.get_value(
 				"Anaesthesia Record",
 				record,
-				["anaesthesia_type", "asa_class", "asa_emergency", "airway", "complications"],
+				[
+					"anaesthesia_type",
+					"asa_class",
+					"asa_emergency",
+					"airway",
+					"complications",
+					"induction_agents",
+					"maintenance",
+				],
 				as_dict=True,
 			)
 			or frappe._dict()
@@ -539,6 +551,9 @@ def operation_details(doc) -> frappe._dict:
 		anaesthetist=name(booking.get("anaesthetist")),
 		scrub_nurse=booking.get("scrub_nurse") or "",
 		anaesthesia=anaesthesia.get("anaesthesia_type") or "",
+		agent=", ".join(
+			x for x in (anaesthesia.get("induction_agents"), anaesthesia.get("maintenance")) if x
+		),
 		asa=asa,
 		airway=anaesthesia.get("airway") if anaesthesia.get("airway") not in (None, "", "None") else "",
 		anaesthesia_complications=anaesthesia.get("complications") or "",
@@ -548,6 +563,157 @@ def operation_details(doc) -> frappe._dict:
 		blood_loss=f"{cint(doc.get('ke_estimated_blood_loss_ml'))} ml"
 		if cint(doc.get("ke_estimated_blood_loss_ml")) > 0
 		else "",
+	)
+
+
+# Theatre forms ----------------------------------------------------------------------
+
+
+def _booking_team(booking_name) -> frappe._dict:
+	b = (
+		frappe.db.get_value(
+			"Theatre Booking",
+			booking_name,
+			[
+				"name",
+				"company",
+				"inpatient_record",
+				"theatre",
+				"priority",
+				"scheduled_start",
+				"surgeon",
+				"assistant",
+				"anaesthetist",
+				"scrub_nurse",
+				"procedure_template",
+			],
+			as_dict=True,
+		)
+		if booking_name
+		else None
+	) or frappe._dict()
+
+	def name(practitioner):
+		return clinician(practitioner).name if practitioner else ""
+
+	procedure = ""
+	if b.procedure_template:
+		procedure = (
+			frappe.db.get_value("Clinical Procedure Template", b.procedure_template, "template")
+			or b.procedure_template
+		)
+	return frappe._dict(
+		booking=b,
+		procedure=procedure,
+		surgeon=name(b.surgeon),
+		assistant=name(b.assistant),
+		anaesthetist=name(b.anaesthetist),
+		scrub_nurse=b.scrub_nurse or "",
+		theatre=(b.theatre or "").rsplit(" - ", 1)[0],
+		date=format_datetime(b.scheduled_start, "d MMM yyyy") if b.scheduled_start else "",
+	)
+
+
+def _hm(value) -> str:
+	return get_time(value).strftime("%H:%M") if value else ""
+
+
+def _time(value) -> str:
+	return format_datetime(value, "d MMM HH:mm") if value else ""
+
+
+def theatre_details(doc) -> frappe._dict:
+	"""What the consent, theatre checklist and anaesthesia prints share: the
+	booking's team and procedure, and the record's company / inpatient stay
+	(so the hospital header and the ward show)."""
+	team = _booking_team(doc.get("theatre_booking"))
+	if not doc.get("company"):
+		doc.company = team.booking.get("company")
+	if not doc.get("inpatient_record"):
+		doc.inpatient_record = team.booking.get("inpatient_record")
+	return team
+
+
+def consent_details(doc) -> frappe._dict:
+	"""Surgical Consent in the hospital's wording: who consents, of what
+	address, for which operation, on whom."""
+	team = theatre_details(doc)
+	address = frappe.db.sql(
+		"""select a.address_line1, a.address_line2, a.city, a.pincode from `tabAddress` a
+		join `tabDynamic Link` l on l.parent = a.name and l.parenttype = 'Address'
+		where l.link_doctype = 'Patient' and l.link_name = %s
+		order by a.is_primary_address desc, a.creation desc limit 1""",
+		doc.patient,
+		as_dict=True,
+	)
+	a = address[0] if address else frappe._dict()
+	on_whom = {
+		"Patient": _("myself"),
+		"Parent": _("my child"),
+		"Guardian": _("the patient in my care"),
+		"Next of kin": _("my relative"),
+	}.get(doc.consent_by, "")
+	return frappe._dict(
+		team=team,
+		consenter=doc.consenter_name or "",
+		address=", ".join(x for x in (a.get("address_line1"), a.get("address_line2"), a.get("city")) if x),
+		doctor=clinician(doc.explained_by).name if doc.explained_by else team.surgeon,
+		operation=team.procedure or doc.procedure_template or "",
+		on_whom=on_whom,
+		relationship=doc.relationship or "",
+		date=format_datetime(doc.consent_datetime, "d MMM yyyy HH:mm") if doc.consent_datetime else "",
+		by_patient=doc.consent_by == "Patient",
+	)
+
+
+def checklist_details(doc) -> frappe._dict:
+	team = theatre_details(doc)
+	return frappe._dict(
+		team=team,
+		handed_over=_time(doc.get("wp_handed_over_time")),
+		received=_time(doc.get("wp_received_time")),
+		back_in_ward=_time(doc.get("po_received_time")),
+		sign_in=_time(doc.get("sign_in_time")),
+		time_out=_time(doc.get("time_out_time")),
+		sign_out=_time(doc.get("sign_out_time")),
+		premed_time=_time(doc.get("wp_premed_time")),
+		last_feed=_time(doc.get("wp_last_feed")),
+	)
+
+
+def anaesthesia_details(doc) -> frappe._dict:
+	"""The KSA pre-op assessment (systems grouped, a system Abnormal when any
+	condition is Yes) and the monitoring chart (vitals in time order, drugs)."""
+	team = theatre_details(doc)
+	systems = []
+	for row in doc.get("systems_review") or []:
+		if not systems or systems[-1].name != row.system:
+			systems.append(frappe._dict(name=row.system, rows=[], abnormal=False))
+		systems[-1].rows.append(row)
+		if row.present == "Yes":
+			systems[-1].abnormal = True
+	asa = (doc.asa_class or "").replace("ASA ", "")
+	return frappe._dict(
+		team=team,
+		systems=systems,
+		asa=asa,
+		gcs=f"E{doc.gcs_e} M{doc.gcs_m} V{doc.gcs_v} = {doc.gcs_total}" if doc.get("gcs_total") else "",
+		vitals=[
+			frappe._dict(r.as_dict(), at=_hm(r.time))
+			for r in sorted(doc.get("vitals") or [], key=lambda r: _hm(r.time))
+		],
+		drugs=[
+			frappe._dict(r.as_dict(), at=_hm(r.time))
+			for r in sorted(doc.get("drugs") or [], key=lambda r: _hm(r.time))
+		],
+		induction=_time(doc.get("induction_time")),
+		end=_time(doc.get("end_time")),
+		surgery_start=_time(doc.get("surgery_start")),
+		surgery_end=_time(doc.get("surgery_end")),
+		premed_time=_time(doc.get("premed_time")),
+		assessed_on=_time(doc.get("assessed_on")),
+		recovery_out=_time(doc.get("recovery_discharge_time")),
+		anaesthetist=clinician(doc.anaesthetist) if doc.get("anaesthetist") else frappe._dict(),
 	)
 
 
@@ -721,3 +887,15 @@ def health_patient_card(doc):
 
 def health_diagnostic_rows(doc):
 	return diagnostic_rows(doc)
+
+
+def health_consent_details(doc):
+	return consent_details(doc)
+
+
+def health_checklist_details(doc):
+	return checklist_details(doc)
+
+
+def health_anaesthesia_details(doc):
+	return anaesthesia_details(doc)

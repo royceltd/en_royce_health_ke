@@ -1,0 +1,64 @@
+{#-
+  Building blocks for the theatre forms (Consent for Operation, Theatre
+  Checklist, Anaesthesia Record): ticked boxes and question/answer grids laid
+  out like the hospital's paper forms. Used with health_document.html's styles.
+-#}
+
+{%- macro form_styles(ctx) -%}
+<style>
+  .hx-doc .hx-box { display: inline-block; width: 10px; height: 10px; line-height: 10px; border: 1px solid #6b7280; border-radius: 2px; text-align: center; font-size: 8pt; font-weight: 700; color: {{ ctx.accent }}; margin-right: 5px; vertical-align: -1px; font-family: "DejaVu Sans", Arial, sans-serif; }
+  .hx-doc table.hx-qa td { padding: 3px 6px !important; border-bottom: 1px solid #f0f1f3; }
+  .hx-doc table.hx-qa td.hx-q { color: #374151; }
+  .hx-doc table.hx-qa td.hx-a { font-weight: 600; color: #111827; white-space: nowrap; text-align: right; }
+  .hx-doc table.hx-qa td.hx-blank { border-bottom: 1px dotted #9ca3af; min-width: 60px; }
+  .hx-doc td.hx-col { width: 50%; padding-right: 14px !important; }
+  .hx-doc td.hx-col + td.hx-col { padding-right: 0 !important; padding-left: 14px !important; }
+  .hx-doc .hx-fill { border-bottom: 1px dotted #6b7280; font-weight: 700; color: #111827; padding: 0 4px; }
+  .hx-doc .hx-statement { font-size: 10.5pt; line-height: 2; }
+  .hx-doc .hx-part { font-size: 9pt; font-weight: 700; color: #111827; margin: 16px 0 6px; padding: 4px 8px; background: #f3f4f6; border-left: 3px solid {{ ctx.accent }}; }
+  .hx-doc .hx-part .hx-muted { font-weight: 400; font-size: 8pt; }
+  .hx-doc .hx-ok { color: #047857; font-weight: 700; }
+  .hx-doc .hx-bad { color: #b91c1c; font-weight: 700; }
+  .hx-doc .hx-asa { display: inline-block; border: 2px solid #111827; padding: 3px 12px; font-size: 13pt; font-weight: 700; letter-spacing: 0.2em; }
+  .hx-doc .hx-asa b { color: #fff; background: #111827; padding: 0 4px; }
+  .hx-doc .hx-thumb { width: 80px; height: 90px; border: 1px solid #9ca3af; }
+  .hx-doc .hx-page-break { page-break-before: always; }
+</style>
+{%- endmacro -%}
+
+{#- A ticked or empty box: ticked for 1, "Yes", "Done", any answer except "No". -#}
+{%- macro box(value) -%}
+<span class="hx-box">{% if value and value not in ("No", 0, "0") %}&#10003;{% else %}&nbsp;{% endif %}</span>
+{%- endmacro -%}
+
+{#- Question / answer rows: (label, value). Checks show a box; selects and
+    text show their answer; unanswered rows leave a line to write on. -#}
+{%- macro qa(rows, checks=False) -%}
+<table class="hx-qa">
+  {% for label, value in rows %}
+  <tr>
+    <td class="hx-q">{% if checks %}{{ box(value) }}{% endif %}{{ _(label) }}</td>
+    {% if not checks %}
+      {% if value not in (None, "", 0) %}<td class="hx-a">{{ value }}</td>{% else %}<td class="hx-blank"></td>{% endif %}
+    {% endif %}
+  </tr>
+  {% endfor %}
+</table>
+{%- endmacro -%}
+
+{#- Rows split over two columns. -#}
+{%- macro qa2(rows, checks=False) -%}
+{% set half = ((rows | length) + 1) // 2 %}
+<table><tr>
+  <td class="hx-col">{{ qa(rows[:half], checks) }}</td>
+  <td class="hx-col">{{ qa(rows[half:], checks) }}</td>
+</tr></table>
+{%- endmacro -%}
+
+{%- macro part(number, title, note="") -%}
+<div class="hx-part">{{ number }}. {{ _(title) }}{% if note %} <span class="hx-muted">{{ note }}</span>{% endif %}</div>
+{%- endmacro -%}
+
+{%- macro fill(value, width=140) -%}
+<span class="hx-fill">{% if value %}{{ value }}{% else %}<span style="display: inline-block; width: {{ width }}px;"></span>{% endif %}</span>
+{%- endmacro -%}

@@ -1,0 +1,194 @@
+{#- Anaesthesia Record: page 1 the pre-operative assessment (as the GOK/KSA
+    Anaesthesia Record), page 2 the anaesthetic monitoring chart. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, signatures, footer as page_footer -%}
+{%- from "royce_health_ke/templates/print/theatre_forms.html" import form_styles, box, qa, qa2, part -%}
+{%- set a = health_anaesthesia_details(doc) -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set sig = [("Anaesthetist", a.anaesthetist.name, (a.anaesthetist.cadre ~ (" · " if a.anaesthetist.cadre and a.anaesthetist.registration else "") ~ a.anaesthetist.registration))] -%}
+{%- set details = [("Record No.", doc.name), ("Theatre booking", doc.theatre_booking), ("Date", a.team.date)] -%}
+{{ styles(ctx) }}
+{{ form_styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Anaesthesia Record", letter_head, no_letterhead, details) }}
+  {{ patient_band(ctx.patient, [("Weight", (doc.weight ~ " kg") if doc.weight else ""), ("Height", (doc.height ~ " cm") if doc.height else "")]) }}
+
+  <div class="hx-section">
+    {{ chips([
+        ("Proposed procedure", a.team.procedure),
+        ("Surgeon", a.team.surgeon),
+        ("Anaesthetist", a.anaesthetist.name),
+        ("Scrub nurse", a.team.scrub_nurse),
+        ("Theatre", a.team.theatre),
+    ]) }}
+  </div>
+  {% if doc.pre_op_diagnosis %}<div class="hx-section">{{ section_title("Pre-operative diagnosis") }}<div class="hx-pre">{{ doc.pre_op_diagnosis }}</div></div>{% endif %}
+
+  {{ part(1, "Pre-operative assessment") }}
+  {{ chips([
+      ("Smoking", doc.smoking),
+      ("Alcohol", doc.alcohol),
+      ("Other drug use", doc.other_drug_use),
+      ("HR", doc.pre_hr),
+      ("BP", doc.pre_bp),
+      ("RR", doc.pre_rr),
+      ("SpO2", (doc.pre_spo2 ~ "%") if doc.pre_spo2 else ""),
+      ("Pallor", _("Yes") if doc.pallor else ""),
+      ("Cyanosis", _("Yes") if doc.cyanosis else ""),
+      ("GCS", a.gcs),
+  ]) }}
+
+  <div class="hx-section">
+    <table class="hx-table">
+      <thead><tr><th style="width: 18%;">{{ _("System") }}</th><th style="width: 10%;">{{ _("Status") }}</th><th>{{ _("Conditions (Y = yes, N = no)") }}</th></tr></thead>
+      <tbody>
+      {% for s in a.systems %}
+      <tr class="hx-keep">
+        <td><b>{{ _(s.name) }}</b></td>
+        <td class="{{ 'hx-bad' if s.abnormal else 'hx-ok' }}">{{ _("Abnormal") if s.abnormal else (_("Normal") if s.rows | selectattr("present") | list else "") }}</td>
+        <td>
+          {% for r in s.rows %}<span class="hx-nowrap" style="margin-right: 10px;">{% if r.present == "Yes" %}<b class="hx-bad">{{ _(r.finding) }}: Y</b>{% else %}{{ _(r.finding) }}: {{ "N" if r.present == "No" else "__" }}{% endif %}</span> {% endfor %}
+          {% for r in s.rows if r.comment %}<div class="hx-sub">{{ _(r.finding) }}: {{ r.comment }}</div>{% endfor %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% for title, value in [("History of presenting illness", doc.presenting_illness), ("Other significant anaesthetic and medical history", doc.other_history), ("Assessment notes", doc.assessment_notes)] %}
+    {% if value %}<div class="hx-section">{{ section_title(title) }}<div class="hx-pre">{{ value }}</div></div>{% endif %}
+  {% endfor %}
+
+  <table class="hx-section"><tr>
+    <td class="hx-col">
+      {{ section_title("Airway") }}
+      {{ qa([
+          ("Loose teeth", doc.loose_teeth),
+          ("Dentures", doc.dentures),
+          ("Anatomical abnormalities", doc.airway_abnormality),
+          ("Mallampati class", doc.mallampati),
+          ("Comments", doc.airway_assessment),
+      ]) }}
+    </td>
+    <td class="hx-col">
+      {{ section_title("Medication and allergies") }}
+      {{ qa([
+          ("Current medication", doc.current_medication),
+          ("Steroid use", doc.steroid_use),
+          ("Allergies", doc.allergies),
+      ]) }}
+    </td>
+  </tr></table>
+
+  <div class="hx-section hx-keep">
+    {{ section_title("Significant lab results and pre-op tests") }}
+    {{ chips([
+        ("Hb", doc.lab_hb), ("Hct", doc.lab_hct), ("Platelets", doc.lab_plt), ("WBC", doc.lab_wbc),
+        ("PT", doc.lab_pt), ("INR", doc.lab_inr), ("APTT", doc.lab_aptt),
+    ]) }}
+    <div style="height: 6px;"></div>
+    {{ qa2([
+        ("Renal function tests", doc.lab_renal),
+        ("Liver function tests", doc.lab_liver),
+        ("Glucose", doc.lab_glucose),
+        ("Sickling test", doc.lab_sickling),
+        ("Chest X-ray", doc.test_cxr),
+        ("ECG", doc.test_ecg),
+        ("Echo", doc.test_echo),
+        ("Cardiac cath", doc.test_cardiac_cath),
+    ]) }}
+    {% if doc.other_tests %}<div>{{ _("Other tests") }}: {{ doc.other_tests }}</div>{% endif %}
+    {% if doc.lab_findings %}<div class="hx-pre"><b>{{ _("Positive findings and recommendations") }}:</b> {{ doc.lab_findings }}</div>{% endif %}
+  </div>
+
+  <div class="hx-section hx-keep">
+    <span class="hx-asa">ASA&nbsp; {% for n in ["I", "II", "III", "IV", "V", "VI"] %}{% if n == a.asa %}<b>{{ n }}</b>{% else %}{{ n }}{% endif %} {% endfor %}{% if doc.asa_emergency %}<b>E</b>{% else %}E{% endif %}</span>
+    &nbsp; {{ box(doc.fasting_confirmed) }}{{ _("Fasting confirmed") }}
+  </div>
+  {% if doc.pre_op_orders %}<div class="hx-section">{{ section_title("Pre-operative orders / instructions") }}<div class="hx-pre">{{ doc.pre_op_orders }}</div></div>{% endif %}
+  {{ signatures(sig + [("Assessed on", a.assessed_on, "")]) }}
+
+  <div class="hx-page-break"></div>
+  {{ header(ctx, "Anaesthetic Monitoring Chart", letter_head, no_letterhead, details) }}
+  {{ patient_band(ctx.patient) }}
+
+  {{ part(2, "Anaesthesia") }}
+  {{ chips([
+      ("Anaesthesia", doc.anaesthesia_type),
+      ("Airway", doc.airway),
+      ("E.T.T. size", doc.ett_size),
+      ("Position", doc.position),
+  ]) }}
+  <div style="height: 6px;"></div>
+  {{ chips([
+      ("Pre-medication", doc.premedication),
+      ("Given at", a.premed_time),
+      ("Induction", doc.induction_agents),
+      ("Maintenance", doc.maintenance),
+  ]) }}
+  <div style="height: 6px;"></div>
+  {{ chips([
+      ("X Start of anaesthesia", a.induction),
+      ("S Start of surgery", a.surgery_start),
+      ("S End of surgery", a.surgery_end),
+      ("X End of anaesthesia", a.end),
+  ]) }}
+
+  <div class="hx-section">
+    <table><tr>
+      <td style="width: 62%; padding-right: 10px !important;">
+        {{ section_title("Monitoring") }}
+        <table class="hx-table">
+          <thead><tr><th>{{ _("Time") }}</th><th class="hx-num">{{ _("Pulse") }}</th><th class="hx-num">{{ _("BP") }}</th><th class="hx-num">{{ _("SpO2") }}</th><th class="hx-num">{{ _("EtCO2") }}</th><th class="hx-num">{{ _("Temp") }}</th><th>{{ _("Remarks") }}</th></tr></thead>
+          <tbody>
+          {% for v in a.vitals %}
+          <tr>
+            <td>{{ v.at }}</td><td class="hx-num">{{ v.pulse or "" }}</td>
+            <td class="hx-num">{% if v.bp_systolic %}{{ v.bp_systolic }}/{{ v.bp_diastolic or "" }}{% endif %}</td>
+            <td class="hx-num">{{ v.spo2 or "" }}</td><td class="hx-num">{{ v.etco2 or "" }}</td>
+            <td class="hx-num">{{ v.temperature or "" }}</td><td>{{ v.remarks or "" }}</td>
+          </tr>
+          {% endfor %}
+          {% for i in range([0, 8 - (a.vitals | length)] | max) %}<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </td>
+      <td style="width: 38%;">
+        {{ section_title("Drugs and IV fluids") }}
+        <table class="hx-table">
+          <thead><tr><th>{{ _("Time") }}</th><th>{{ _("Drug") }}</th><th>{{ _("Dose") }}</th></tr></thead>
+          <tbody>
+          {% for d in a.drugs %}
+          <tr><td>{{ d.at }}</td><td>{{ d.drug }}{% if d.route %} <span class="hx-muted hx-small">{{ d.route }}</span>{% endif %}</td><td>{{ d.dose or "" }}</td></tr>
+          {% endfor %}
+          {% for i in range([0, 8 - (a.drugs | length)] | max) %}<tr><td>&nbsp;</td><td></td><td></td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </td>
+    </tr></table>
+  </div>
+
+  <div class="hx-section">
+    {{ chips([
+        ("IV fluids", (doc.fluids_ml ~ " ml") if doc.fluids_ml else ""),
+        ("Blood loss", (doc.blood_loss_ml ~ " ml") if doc.blood_loss_ml else ""),
+        ("Urine output", (doc.urine_output_ml ~ " ml") if doc.urine_output_ml else ""),
+        ("Blood transfused", doc.blood_transfused),
+    ]) }}
+  </div>
+  {% if doc.complications %}<div class="hx-section">{{ section_title("Anaesthetic complications") }}<div class="hx-pre">{{ doc.complications }}</div></div>{% endif %}
+
+  {{ part(3, "Recovery") }}
+  {{ chips([
+      ("Aldrete score", doc.aldrete_score or ""),
+      ("Discharged from recovery", a.recovery_out),
+  ]) }}
+  {% if doc.recovery_notes %}<div class="hx-section hx-pre">{{ doc.recovery_notes }}</div>{% endif %}
+  <div class="hx-section">
+    {{ section_title("Post-operative instructions for the ward") }}
+    {% if doc.post_op_ward_instructions %}<div class="hx-pre">{{ doc.post_op_ward_instructions }}</div>{% else %}<div style="height: 40px;"></div>{% endif %}
+  </div>
+
+  {{ signatures(sig) }}
+  {{ page_footer(_("Confidential medical information. Keep with the patient's theatre records."), footer, no_letterhead, ctx) }}
+</div>

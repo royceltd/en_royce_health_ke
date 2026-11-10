@@ -1,0 +1,57 @@
+{
+ "actions": [],
+ "creation": "2026-11-10 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-10 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Anaesthesia System Review",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "system",
+   "fieldtype": "Data",
+   "label": "System",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "finding",
+   "fieldtype": "Data",
+   "label": "Condition",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "present",
+   "fieldtype": "Select",
+   "label": "Present",
+   "options": "\nYes\nNo",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "comment",
+   "fieldtype": "Data",
+   "label": "Comment",
+   "in_list_view": 1,
+   "columns": 4
+  }
+ ],
+ "field_order": [
+  "system",
+  "finding",
+  "present",
+  "comment"
+ ],
+ "istable": 1,
+ "editable_grid": 1,
+ "permissions": []
+}

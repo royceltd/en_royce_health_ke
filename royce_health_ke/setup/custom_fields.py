@@ -270,11 +270,17 @@ OPERATION_NOTE = [
 		"insert_after": "ke_indication",
 	},
 	{
+		"fieldname": "ke_incision",
+		"fieldtype": "Data",
+		"label": "Incision",
+		"insert_after": "ke_findings",
+	},
+	{
 		"fieldname": "ke_procedure_details",
 		"fieldtype": "Text Editor",
 		"label": "Procedure Details",
-		"insert_after": "ke_findings",
-		"description": "Incision, steps, closure. Required to complete a theatre booking.",
+		"insert_after": "ke_incision",
+		"description": "Steps and closure. Required to complete a theatre booking.",
 	},
 	{
 		"fieldname": "ke_operation_note_cb",

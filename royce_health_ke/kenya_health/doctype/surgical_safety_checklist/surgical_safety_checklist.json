@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-08 09:00:00.000000",
+ "modified": "2026-11-10 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Surgical Safety Checklist",
@@ -59,6 +59,15 @@
    "fieldtype": "Column Break"
   },
   {
+   "fieldname": "ward_prep_status",
+   "fieldtype": "Select",
+   "label": "Ward Preparation",
+   "options": "Pending\nDone",
+   "default": "Pending",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
    "fieldname": "sign_in_status",
    "fieldtype": "Select",
    "label": "Sign In",
@@ -84,6 +93,265 @@
    "default": "Pending",
    "read_only": 1,
    "in_list_view": 1
+  },
+  {
+   "fieldname": "post_op_status",
+   "fieldtype": "Select",
+   "label": "Post-op",
+   "options": "Pending\nDone",
+   "default": "Pending",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ward_prep_tab",
+   "fieldtype": "Tab Break",
+   "label": "Ward Preparation"
+  },
+  {
+   "fieldname": "ward_prep_section",
+   "fieldtype": "Section Break",
+   "label": "Patient preparation (ward nurse, before the patient goes to theatre)"
+  },
+  {
+   "fieldname": "wp_ward",
+   "fieldtype": "Data",
+   "label": "Ward",
+   "read_only": 1
+  },
+  {
+   "fieldname": "wp_consent_signed",
+   "fieldtype": "Check",
+   "label": "Consent for operation signed",
+   "read_only": 1,
+   "description": "Ticked when the booking's Surgical Consent is submitted."
+  },
+  {
+   "fieldname": "wp_identity_band",
+   "fieldtype": "Check",
+   "label": "Identification band on"
+  },
+  {
+   "fieldname": "wp_gown",
+   "fieldtype": "Check",
+   "label": "Theatre gown on"
+  },
+  {
+   "fieldname": "wp_shaving",
+   "fieldtype": "Select",
+   "label": "Shaving",
+   "options": "\nDone\nNot applicable"
+  },
+  {
+   "fieldname": "wp_bath",
+   "fieldtype": "Check",
+   "label": "Bath"
+  },
+  {
+   "fieldname": "wp_cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "wp_jewellery_removed",
+   "fieldtype": "Check",
+   "label": "Jewellery, wigs and hairpins removed"
+  },
+  {
+   "fieldname": "wp_nail_varnish_removed",
+   "fieldtype": "Check",
+   "label": "Nail varnish removed"
+  },
+  {
+   "fieldname": "wp_dentures",
+   "fieldtype": "Select",
+   "label": "Dentures",
+   "options": "\nRemoved\nNone"
+  },
+  {
+   "fieldname": "wp_artificial_limb",
+   "fieldtype": "Select",
+   "label": "Artificial limb",
+   "options": "\nRemoved\nNone"
+  },
+  {
+   "fieldname": "wp_fasting",
+   "fieldtype": "Select",
+   "label": "Fasting (starving)",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "wp_last_feed",
+   "fieldtype": "Datetime",
+   "label": "Time of last feed"
+  },
+  {
+   "fieldname": "wp_cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "wp_iv_line",
+   "fieldtype": "Select",
+   "label": "Intravenous line",
+   "options": "\nSited\nNot needed"
+  },
+  {
+   "fieldname": "wp_catheter",
+   "fieldtype": "Select",
+   "label": "Catheter",
+   "options": "\nInserted\nNot needed"
+  },
+  {
+   "fieldname": "wp_ng_tube",
+   "fieldtype": "Select",
+   "label": "Nasogastric tube",
+   "options": "\nInserted\nNot needed"
+  },
+  {
+   "fieldname": "wp_investigations_section",
+   "fieldtype": "Section Break",
+   "label": "Investigations and blood"
+  },
+  {
+   "fieldname": "wp_fhg",
+   "fieldtype": "Check",
+   "label": "Full haemogram (FHG)"
+  },
+  {
+   "fieldname": "wp_uec",
+   "fieldtype": "Check",
+   "label": "UEC"
+  },
+  {
+   "fieldname": "wp_serology",
+   "fieldtype": "Check",
+   "label": "Serology"
+  },
+  {
+   "fieldname": "wp_xray",
+   "fieldtype": "Check",
+   "label": "X-ray"
+  },
+  {
+   "fieldname": "wp_cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "wp_blood_group",
+   "fieldtype": "Data",
+   "label": "Blood group"
+  },
+  {
+   "fieldname": "wp_crossmatch",
+   "fieldtype": "Select",
+   "label": "Grouping and cross-match taken",
+   "options": "\nYes\nNo\nNot needed"
+  },
+  {
+   "fieldname": "wp_blood_units",
+   "fieldtype": "Int",
+   "label": "Units of blood available"
+  },
+  {
+   "fieldname": "wp_other_investigations",
+   "fieldtype": "Data",
+   "label": "Other investigations"
+  },
+  {
+   "fieldname": "wp_obs_section",
+   "fieldtype": "Section Break",
+   "label": "Pre-operative observations"
+  },
+  {
+   "fieldname": "wp_bp_systolic",
+   "fieldtype": "Int",
+   "label": "BP systolic"
+  },
+  {
+   "fieldname": "wp_bp_diastolic",
+   "fieldtype": "Int",
+   "label": "BP diastolic"
+  },
+  {
+   "fieldname": "wp_temperature",
+   "fieldtype": "Float",
+   "label": "Temperature (°C)"
+  },
+  {
+   "fieldname": "wp_cb4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "wp_pulse",
+   "fieldtype": "Int",
+   "label": "Pulse"
+  },
+  {
+   "fieldname": "wp_respiration",
+   "fieldtype": "Int",
+   "label": "Respiration"
+  },
+  {
+   "fieldname": "wp_fhr",
+   "fieldtype": "Int",
+   "label": "Fetal heart rate",
+   "description": "Pregnant patients."
+  },
+  {
+   "fieldname": "wp_cb5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "wp_premedication",
+   "fieldtype": "Data",
+   "label": "Pre-medication (drug and dose)"
+  },
+  {
+   "fieldname": "wp_premed_time",
+   "fieldtype": "Datetime",
+   "label": "Pre-medication given at"
+  },
+  {
+   "fieldname": "wp_premed_given_by",
+   "fieldtype": "Data",
+   "label": "Pre-medication given by"
+  },
+  {
+   "fieldname": "wp_handover_section",
+   "fieldtype": "Section Break",
+   "label": "Handover to theatre"
+  },
+  {
+   "fieldname": "wp_prepared_by",
+   "fieldtype": "Data",
+   "label": "Patient prepared by"
+  },
+  {
+   "fieldname": "wp_handed_over_by",
+   "fieldtype": "Data",
+   "label": "Handed over to theatre by"
+  },
+  {
+   "fieldname": "wp_handed_over_time",
+   "fieldtype": "Datetime",
+   "label": "Handed over at"
+  },
+  {
+   "fieldname": "wp_cb6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "wp_received_by",
+   "fieldtype": "Data",
+   "label": "Received in theatre by"
+  },
+  {
+   "fieldname": "wp_received_time",
+   "fieldtype": "Datetime",
+   "label": "Received in theatre at"
+  },
+  {
+   "fieldname": "who_tab",
+   "fieldtype": "Tab Break",
+   "label": "WHO Checklist"
   },
   {
    "fieldname": "sign_in_section",
@@ -200,6 +468,42 @@
    "label": "Time Out Time"
   },
   {
+   "fieldname": "counts_tab",
+   "fieldtype": "Tab Break",
+   "label": "Counts"
+  },
+  {
+   "fieldname": "counts_section",
+   "fieldtype": "Section Break",
+   "label": "Gauzes and instruments",
+   "description": "Count at the start, add what is opened during the operation, count again at the end. Sign Out can't confirm the counts until every line's end count equals start plus added."
+  },
+  {
+   "fieldname": "counts",
+   "fieldtype": "Table",
+   "label": "Counts",
+   "options": "Theatre Count"
+  },
+  {
+   "fieldname": "count_scrub_nurse",
+   "fieldtype": "Data",
+   "label": "Scrub nurse"
+  },
+  {
+   "fieldname": "counts_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "count_circulating_nurse",
+   "fieldtype": "Data",
+   "label": "Circulating nurse"
+  },
+  {
+   "fieldname": "sign_out_tab",
+   "fieldtype": "Tab Break",
+   "label": "Sign Out"
+  },
+  {
    "fieldname": "sign_out_section",
    "fieldtype": "Section Break",
    "label": "Sign Out (before patient leaves the operating room)"
@@ -243,6 +547,179 @@
    "fieldname": "sign_out_time",
    "fieldtype": "Datetime",
    "label": "Sign Out Time"
+  },
+  {
+   "fieldname": "post_op_tab",
+   "fieldtype": "Tab Break",
+   "label": "Post-operative"
+  },
+  {
+   "fieldname": "post_op_section",
+   "fieldtype": "Section Break",
+   "label": "Post-operative checklist (recovery, before the patient goes back to the ward)"
+  },
+  {
+   "fieldname": "po_bp_systolic",
+   "fieldtype": "Int",
+   "label": "BP systolic"
+  },
+  {
+   "fieldname": "po_bp_diastolic",
+   "fieldtype": "Int",
+   "label": "BP diastolic"
+  },
+  {
+   "fieldname": "po_temperature",
+   "fieldtype": "Float",
+   "label": "Temperature (°C)"
+  },
+  {
+   "fieldname": "po_cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "po_pulse",
+   "fieldtype": "Int",
+   "label": "Pulse"
+  },
+  {
+   "fieldname": "po_respiration",
+   "fieldtype": "Int",
+   "label": "Respiration"
+  },
+  {
+   "fieldname": "po_spo2",
+   "fieldtype": "Int",
+   "label": "Oximetry (SpO2 %)"
+  },
+  {
+   "fieldname": "po_cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "po_blood_loss_ml",
+   "fieldtype": "Int",
+   "label": "Blood loss (ml)"
+  },
+  {
+   "fieldname": "po_consciousness",
+   "fieldtype": "Select",
+   "label": "Level of consciousness",
+   "options": "\nAlert\nSopor (drowsy)\nSedated\nAgitated"
+  },
+  {
+   "fieldname": "po_care_section",
+   "fieldtype": "Section Break",
+   "label": "Care"
+  },
+  {
+   "fieldname": "po_pain",
+   "fieldtype": "Select",
+   "label": "Pain",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "po_oxygen",
+   "fieldtype": "Select",
+   "label": "Oxygen therapy",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "po_vomiting",
+   "fieldtype": "Select",
+   "label": "Vomiting",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "po_catheter",
+   "fieldtype": "Select",
+   "label": "Catheter",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "po_dressing_intact",
+   "fieldtype": "Select",
+   "label": "Dressing dry and intact",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "po_drains",
+   "fieldtype": "Int",
+   "label": "Drains (number)"
+  },
+  {
+   "fieldname": "po_cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "po_analgesia",
+   "fieldtype": "Select",
+   "label": "Analgesic therapy",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "po_infusion",
+   "fieldtype": "Select",
+   "label": "Infusion therapy",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "po_ng_tube",
+   "fieldtype": "Select",
+   "label": "Nasogastric tube",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "po_drugs",
+   "fieldtype": "Select",
+   "label": "Post-operative drugs",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "po_recovery_obs",
+   "fieldtype": "Select",
+   "label": "Recovery room observations done",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "po_management",
+   "fieldtype": "Select",
+   "label": "Post-operative management plan given",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "po_handover_section",
+   "fieldtype": "Section Break",
+   "label": "Back to the ward"
+  },
+  {
+   "fieldname": "po_investigations",
+   "fieldtype": "Small Text",
+   "label": "Investigations ordered (type, specimen, for)"
+  },
+  {
+   "fieldname": "po_remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks on the patient's condition"
+  },
+  {
+   "fieldname": "po_cb4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "po_handed_over_by",
+   "fieldtype": "Data",
+   "label": "Handed over by (theatre nurse)"
+  },
+  {
+   "fieldname": "po_received_by",
+   "fieldtype": "Data",
+   "label": "Received back in ward by"
+  },
+  {
+   "fieldname": "po_received_time",
+   "fieldtype": "Datetime",
+   "label": "Received in ward at"
   }
  ],
  "field_order": [
@@ -252,9 +729,60 @@
   "patient_name",
   "procedure_template",
   "cb0",
+  "ward_prep_status",
   "sign_in_status",
   "time_out_status",
   "sign_out_status",
+  "post_op_status",
+  "ward_prep_tab",
+  "ward_prep_section",
+  "wp_ward",
+  "wp_consent_signed",
+  "wp_identity_band",
+  "wp_gown",
+  "wp_shaving",
+  "wp_bath",
+  "wp_cb1",
+  "wp_jewellery_removed",
+  "wp_nail_varnish_removed",
+  "wp_dentures",
+  "wp_artificial_limb",
+  "wp_fasting",
+  "wp_last_feed",
+  "wp_cb2",
+  "wp_iv_line",
+  "wp_catheter",
+  "wp_ng_tube",
+  "wp_investigations_section",
+  "wp_fhg",
+  "wp_uec",
+  "wp_serology",
+  "wp_xray",
+  "wp_cb3",
+  "wp_blood_group",
+  "wp_crossmatch",
+  "wp_blood_units",
+  "wp_other_investigations",
+  "wp_obs_section",
+  "wp_bp_systolic",
+  "wp_bp_diastolic",
+  "wp_temperature",
+  "wp_cb4",
+  "wp_pulse",
+  "wp_respiration",
+  "wp_fhr",
+  "wp_cb5",
+  "wp_premedication",
+  "wp_premed_time",
+  "wp_premed_given_by",
+  "wp_handover_section",
+  "wp_prepared_by",
+  "wp_handed_over_by",
+  "wp_handed_over_time",
+  "wp_cb6",
+  "wp_received_by",
+  "wp_received_time",
+  "who_tab",
   "sign_in_section",
   "si_identity_confirmed",
   "si_site_marked",
@@ -277,6 +805,13 @@
   "to_nursing_sterility",
   "time_out_by",
   "time_out_time",
+  "counts_tab",
+  "counts_section",
+  "counts",
+  "count_scrub_nurse",
+  "counts_cb",
+  "count_circulating_nurse",
+  "sign_out_tab",
   "sign_out_section",
   "so_procedure_recorded",
   "so_counts_correct",
@@ -285,7 +820,40 @@
   "so_equipment_problems",
   "so_recovery_reviewed",
   "sign_out_by",
-  "sign_out_time"
+  "sign_out_time",
+  "post_op_tab",
+  "post_op_section",
+  "po_bp_systolic",
+  "po_bp_diastolic",
+  "po_temperature",
+  "po_cb1",
+  "po_pulse",
+  "po_respiration",
+  "po_spo2",
+  "po_cb2",
+  "po_blood_loss_ml",
+  "po_consciousness",
+  "po_care_section",
+  "po_pain",
+  "po_oxygen",
+  "po_vomiting",
+  "po_catheter",
+  "po_dressing_intact",
+  "po_drains",
+  "po_cb3",
+  "po_analgesia",
+  "po_infusion",
+  "po_ng_tube",
+  "po_drugs",
+  "po_recovery_obs",
+  "po_management",
+  "po_handover_section",
+  "po_investigations",
+  "po_remarks",
+  "po_cb4",
+  "po_handed_over_by",
+  "po_received_by",
+  "po_received_time"
  ],
  "autoname": "naming_series:",
  "naming_rule": "By \"Naming Series\" field",
@@ -337,5 +905,6 @@
    "email": 1,
    "share": 1
   }
- ]
+ ],
+ "default_print_format": "Theatre Checklist"
 }

@@ -74,6 +74,9 @@ class IntegrationTestPrinting(IntegrationTestCase):
 			("Clinical Procedure", "Operation Note"),
 			("Patient", "Patient Card"),
 			("Diagnostic Report", "Diagnostic Results"),
+			("Surgical Consent", "Consent for Operation"),
+			("Surgical Safety Checklist", "Theatre Checklist"),
+			("Anaesthesia Record", "Anaesthesia Record"),
 		]
 		rendered = 0
 		for doctype, print_format in cases:

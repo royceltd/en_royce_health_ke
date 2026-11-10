@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-08 09:00:00.000000",
+ "modified": "2026-11-10 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Anaesthesia Record",
@@ -68,9 +68,331 @@
    "fetch_if_empty": 1
   },
   {
+   "fieldname": "assessment_tab",
+   "fieldtype": "Tab Break",
+   "label": "Pre-op Assessment"
+  },
+  {
    "fieldname": "assessment_section",
    "fieldtype": "Section Break",
    "label": "Pre-anaesthetic Assessment"
+  },
+  {
+   "fieldname": "pre_op_diagnosis",
+   "fieldtype": "Small Text",
+   "label": "Pre-operative diagnosis"
+  },
+  {
+   "fieldname": "assessment_notes",
+   "fieldtype": "Small Text",
+   "label": "Assessment notes"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "weight",
+   "fieldtype": "Float",
+   "label": "Weight (kg)"
+  },
+  {
+   "fieldname": "height",
+   "fieldtype": "Float",
+   "label": "Height (cm)"
+  },
+  {
+   "fieldname": "history_section",
+   "fieldtype": "Section Break",
+   "label": "History"
+  },
+  {
+   "fieldname": "smoking",
+   "fieldtype": "Select",
+   "label": "Smoking",
+   "options": "\nNo\nYes\nEx-smoker"
+  },
+  {
+   "fieldname": "alcohol",
+   "fieldtype": "Select",
+   "label": "Alcohol",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "other_drug_use",
+   "fieldtype": "Data",
+   "label": "Other drug use"
+  },
+  {
+   "fieldname": "history_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "presenting_illness",
+   "fieldtype": "Small Text",
+   "label": "History of presenting illness"
+  },
+  {
+   "fieldname": "other_history",
+   "fieldtype": "Small Text",
+   "label": "Other significant anaesthetic and medical history"
+  },
+  {
+   "fieldname": "examination_section",
+   "fieldtype": "Section Break",
+   "label": "Examination"
+  },
+  {
+   "fieldname": "pre_hr",
+   "fieldtype": "Int",
+   "label": "Heart rate"
+  },
+  {
+   "fieldname": "pre_bp",
+   "fieldtype": "Data",
+   "label": "BP"
+  },
+  {
+   "fieldname": "pre_rr",
+   "fieldtype": "Int",
+   "label": "Respiratory rate"
+  },
+  {
+   "fieldname": "pre_spo2",
+   "fieldtype": "Int",
+   "label": "SpO2 %"
+  },
+  {
+   "fieldname": "examination_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pallor",
+   "fieldtype": "Check",
+   "label": "Pallor"
+  },
+  {
+   "fieldname": "cyanosis",
+   "fieldtype": "Check",
+   "label": "Cyanosis"
+  },
+  {
+   "fieldname": "gcs_e",
+   "fieldtype": "Int",
+   "label": "GCS eye (1-4)"
+  },
+  {
+   "fieldname": "gcs_m",
+   "fieldtype": "Int",
+   "label": "GCS motor (1-6)"
+  },
+  {
+   "fieldname": "gcs_v",
+   "fieldtype": "Int",
+   "label": "GCS verbal (1-5)"
+  },
+  {
+   "fieldname": "gcs_total",
+   "fieldtype": "Int",
+   "label": "GCS total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "systems_section",
+   "fieldtype": "Section Break",
+   "label": "Systems review",
+   "description": "Answer Yes or No for each condition; any Yes marks that system Abnormal."
+  },
+  {
+   "fieldname": "systems_review",
+   "fieldtype": "Table",
+   "label": "Systems Review",
+   "options": "Anaesthesia System Review"
+  },
+  {
+   "fieldname": "airway_section",
+   "fieldtype": "Section Break",
+   "label": "Airway"
+  },
+  {
+   "fieldname": "loose_teeth",
+   "fieldtype": "Select",
+   "label": "Loose teeth",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "dentures",
+   "fieldtype": "Select",
+   "label": "Dentures",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "airway_abnormality",
+   "fieldtype": "Select",
+   "label": "Anatomical abnormalities",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "airway_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mallampati",
+   "fieldtype": "Select",
+   "label": "Mallampati class",
+   "options": "\nI\nII\nIII\nIV"
+  },
+  {
+   "fieldname": "airway_assessment",
+   "fieldtype": "Data",
+   "label": "Airway comments"
+  },
+  {
+   "fieldname": "medication_section",
+   "fieldtype": "Section Break",
+   "label": "Current medication and allergies"
+  },
+  {
+   "fieldname": "current_medication",
+   "fieldtype": "Small Text",
+   "label": "Current medication"
+  },
+  {
+   "fieldname": "steroid_use",
+   "fieldtype": "Select",
+   "label": "Steroid use",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "medication_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "allergies",
+   "fieldtype": "Small Text",
+   "label": "Allergies",
+   "description": "Filled from the patient's record."
+  },
+  {
+   "fieldname": "labs_section",
+   "fieldtype": "Section Break",
+   "label": "Significant lab results",
+   "description": "Filled from the patient's results in the last 30 days when the record is created; use Fetch Lab Results to refresh."
+  },
+  {
+   "fieldname": "lab_hb",
+   "fieldtype": "Data",
+   "label": "Hb"
+  },
+  {
+   "fieldname": "lab_hct",
+   "fieldtype": "Data",
+   "label": "Hct"
+  },
+  {
+   "fieldname": "lab_plt",
+   "fieldtype": "Data",
+   "label": "Platelets"
+  },
+  {
+   "fieldname": "lab_wbc",
+   "fieldtype": "Data",
+   "label": "WBC"
+  },
+  {
+   "fieldname": "labs_cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lab_pt",
+   "fieldtype": "Data",
+   "label": "PT"
+  },
+  {
+   "fieldname": "lab_inr",
+   "fieldtype": "Data",
+   "label": "INR"
+  },
+  {
+   "fieldname": "lab_aptt",
+   "fieldtype": "Data",
+   "label": "APTT"
+  },
+  {
+   "fieldname": "labs_cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lab_renal",
+   "fieldtype": "Select",
+   "label": "Renal function tests",
+   "options": "\nNormal\nAbnormal\nN/A"
+  },
+  {
+   "fieldname": "lab_liver",
+   "fieldtype": "Select",
+   "label": "Liver function tests",
+   "options": "\nNormal\nAbnormal\nN/A"
+  },
+  {
+   "fieldname": "lab_glucose",
+   "fieldtype": "Select",
+   "label": "Glucose",
+   "options": "\nNormal\nAbnormal\nN/A"
+  },
+  {
+   "fieldname": "lab_sickling",
+   "fieldtype": "Select",
+   "label": "Sickling test",
+   "options": "\nNormal\nAbnormal\nN/A"
+  },
+  {
+   "fieldname": "tests_section",
+   "fieldtype": "Section Break",
+   "label": "Other significant pre-op tests"
+  },
+  {
+   "fieldname": "test_cxr",
+   "fieldtype": "Select",
+   "label": "Chest X-ray",
+   "options": "\nNormal\nAbnormal\nN/A"
+  },
+  {
+   "fieldname": "test_ecg",
+   "fieldtype": "Select",
+   "label": "ECG",
+   "options": "\nNormal\nAbnormal\nN/A"
+  },
+  {
+   "fieldname": "test_echo",
+   "fieldtype": "Select",
+   "label": "Echo",
+   "options": "\nNormal\nAbnormal\nN/A"
+  },
+  {
+   "fieldname": "test_cardiac_cath",
+   "fieldtype": "Select",
+   "label": "Cardiac cath",
+   "options": "\nNormal\nAbnormal\nN/A"
+  },
+  {
+   "fieldname": "tests_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "other_tests",
+   "fieldtype": "Data",
+   "label": "Other tests"
+  },
+  {
+   "fieldname": "lab_findings",
+   "fieldtype": "Small Text",
+   "label": "Positive findings and recommendations"
+  },
+  {
+   "fieldname": "asa_section",
+   "fieldtype": "Section Break",
+   "label": "ASA and orders"
   },
   {
    "fieldname": "asa_class",
@@ -90,23 +412,23 @@
    "label": "Fasting confirmed"
   },
   {
-   "fieldname": "cb1",
+   "fieldname": "asa_cb",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "weight",
-   "fieldtype": "Float",
-   "label": "Weight (kg)"
-  },
-  {
-   "fieldname": "airway_assessment",
-   "fieldtype": "Data",
-   "label": "Airway Assessment (e.g. Mallampati)"
-  },
-  {
-   "fieldname": "assessment_notes",
+   "fieldname": "pre_op_orders",
    "fieldtype": "Small Text",
-   "label": "Assessment Notes"
+   "label": "Pre-operative orders / instructions"
+  },
+  {
+   "fieldname": "assessed_on",
+   "fieldtype": "Datetime",
+   "label": "Assessed on"
+  },
+  {
+   "fieldname": "intraop_tab",
+   "fieldtype": "Tab Break",
+   "label": "Anaesthesia"
   },
   {
    "fieldname": "technique_section",
@@ -127,18 +449,61 @@
    "options": "\nFace mask\nLaryngeal mask\nEndotracheal tube\nNone"
   },
   {
+   "fieldname": "premedication",
+   "fieldtype": "Data",
+   "label": "Pre-medication"
+  },
+  {
+   "fieldname": "premed_time",
+   "fieldtype": "Datetime",
+   "label": "Pre-medication given at"
+  },
+  {
+   "fieldname": "induction_agents",
+   "fieldtype": "Data",
+   "label": "Induction",
+   "description": "Agents and doses, e.g. Propofol 150 mg, Suxamethonium 100 mg."
+  },
+  {
+   "fieldname": "maintenance",
+   "fieldtype": "Data",
+   "label": "Maintenance",
+   "description": "e.g. Isoflurane in O2/air."
+  },
+  {
+   "fieldname": "ett_size",
+   "fieldtype": "Data",
+   "label": "E.T.T. size"
+  },
+  {
+   "fieldname": "position",
+   "fieldtype": "Select",
+   "label": "Position",
+   "options": "\nSupine\nLithotomy\nLateral\nProne\nTrendelenburg\nSitting\nOther"
+  },
+  {
    "fieldname": "cb2",
    "fieldtype": "Column Break"
   },
   {
    "fieldname": "induction_time",
    "fieldtype": "Datetime",
-   "label": "Induction / Start"
+   "label": "Start of Anaesthesia (induction)"
   },
   {
    "fieldname": "end_time",
    "fieldtype": "Datetime",
    "label": "End of Anaesthesia"
+  },
+  {
+   "fieldname": "surgery_start",
+   "fieldtype": "Datetime",
+   "label": "Start of Surgery"
+  },
+  {
+   "fieldname": "surgery_end",
+   "fieldtype": "Datetime",
+   "label": "End of Surgery"
   },
   {
    "fieldname": "drugs_section",
@@ -197,6 +562,11 @@
    "label": "Anaesthetic Complications"
   },
   {
+   "fieldname": "recovery_tab",
+   "fieldtype": "Tab Break",
+   "label": "Recovery"
+  },
+  {
    "fieldname": "recovery_section",
    "fieldtype": "Section Break",
    "label": "Recovery"
@@ -221,6 +591,11 @@
    "label": "Recovery Notes"
   },
   {
+   "fieldname": "post_op_ward_instructions",
+   "fieldtype": "Small Text",
+   "label": "Post-operative instructions for the ward"
+  },
+  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -238,20 +613,90 @@
   "procedure_template",
   "cb0",
   "anaesthetist",
+  "assessment_tab",
   "assessment_section",
+  "pre_op_diagnosis",
+  "assessment_notes",
+  "cb1",
+  "weight",
+  "height",
+  "history_section",
+  "smoking",
+  "alcohol",
+  "other_drug_use",
+  "history_cb",
+  "presenting_illness",
+  "other_history",
+  "examination_section",
+  "pre_hr",
+  "pre_bp",
+  "pre_rr",
+  "pre_spo2",
+  "examination_cb",
+  "pallor",
+  "cyanosis",
+  "gcs_e",
+  "gcs_m",
+  "gcs_v",
+  "gcs_total",
+  "systems_section",
+  "systems_review",
+  "airway_section",
+  "loose_teeth",
+  "dentures",
+  "airway_abnormality",
+  "airway_cb",
+  "mallampati",
+  "airway_assessment",
+  "medication_section",
+  "current_medication",
+  "steroid_use",
+  "medication_cb",
+  "allergies",
+  "labs_section",
+  "lab_hb",
+  "lab_hct",
+  "lab_plt",
+  "lab_wbc",
+  "labs_cb1",
+  "lab_pt",
+  "lab_inr",
+  "lab_aptt",
+  "labs_cb2",
+  "lab_renal",
+  "lab_liver",
+  "lab_glucose",
+  "lab_sickling",
+  "tests_section",
+  "test_cxr",
+  "test_ecg",
+  "test_echo",
+  "test_cardiac_cath",
+  "tests_cb",
+  "other_tests",
+  "lab_findings",
+  "asa_section",
   "asa_class",
   "asa_emergency",
   "fasting_confirmed",
-  "cb1",
-  "weight",
-  "airway_assessment",
-  "assessment_notes",
+  "asa_cb",
+  "pre_op_orders",
+  "assessed_on",
+  "intraop_tab",
   "technique_section",
   "anaesthesia_type",
   "airway",
+  "premedication",
+  "premed_time",
+  "induction_agents",
+  "maintenance",
+  "ett_size",
+  "position",
   "cb2",
   "induction_time",
   "end_time",
+  "surgery_start",
+  "surgery_end",
   "drugs_section",
   "drugs",
   "vitals_section",
@@ -263,11 +708,13 @@
   "urine_output_ml",
   "blood_transfused",
   "complications",
+  "recovery_tab",
   "recovery_section",
   "aldrete_score",
   "recovery_discharge_time",
   "cb4",
   "recovery_notes",
+  "post_op_ward_instructions",
   "amended_from"
  ],
  "autoname": "naming_series:",
@@ -333,5 +780,6 @@
    "cancel": 1,
    "amend": 1
   }
- ]
+ ],
+ "default_print_format": "Anaesthesia Record"
 }

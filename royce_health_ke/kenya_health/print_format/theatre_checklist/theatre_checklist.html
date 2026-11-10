@@ -1,0 +1,188 @@
+{#- Surgical Safety Checklist printed like the hospital's theatre checklist:
+    1 ward preparation and handover, 2 the WHO checklist, 3 gauze and
+    instrument counts, 4 the post-operative checklist. Unanswered items leave
+    a box or a line, so it also works as a paper form. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, footer as page_footer -%}
+{%- from "royce_health_ke/templates/print/theatre_forms.html" import form_styles, box, qa, qa2, part -%}
+{%- set c = health_checklist_details(doc) -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set _ignore = ctx.update({"badge": ""}) -%}
+{%- set bp = (doc.wp_bp_systolic ~ "/" ~ doc.wp_bp_diastolic) if doc.wp_bp_systolic else "" -%}
+{%- set po_bp = (doc.po_bp_systolic ~ "/" ~ doc.po_bp_diastolic) if doc.po_bp_systolic else "" -%}
+{{ styles(ctx) }}
+{{ form_styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Theatre Checklist", letter_head, no_letterhead, [
+      ("Checklist No.", doc.name),
+      ("Theatre booking", doc.theatre_booking),
+      ("Date", c.team.date),
+  ]) }}
+
+  {{ patient_band(ctx.patient) }}
+
+  <div class="hx-section">
+    {{ chips([
+        ("Operation", c.team.procedure),
+        ("Theatre", c.team.theatre),
+        ("Priority", c.team.booking.priority),
+        ("Surgeon", c.team.surgeon),
+        ("Anaesthetist", c.team.anaesthetist),
+    ]) }}
+  </div>
+
+  {{ part(1, "Ward preparation", "(" ~ _("ward nurse, before the patient goes to theatre") ~ ")") }}
+  {{ qa2([
+      ("Consent for operation signed", doc.wp_consent_signed),
+      ("Identification band on", doc.wp_identity_band),
+      ("Theatre gown on", doc.wp_gown),
+      ("Bath", doc.wp_bath),
+      ("Jewellery, wigs and hairpins removed", doc.wp_jewellery_removed),
+      ("Nail varnish removed", doc.wp_nail_varnish_removed),
+  ], checks=True) }}
+  {{ qa2([
+      ("Shaving", doc.wp_shaving),
+      ("Dentures", doc.wp_dentures),
+      ("Artificial limb", doc.wp_artificial_limb),
+      ("Fasting (starving)", doc.wp_fasting),
+      ("Time of last feed", c.last_feed),
+      ("Intravenous line", doc.wp_iv_line),
+      ("Catheter", doc.wp_catheter),
+      ("Nasogastric tube", doc.wp_ng_tube),
+  ]) }}
+  <div class="hx-section">
+    {{ section_title("Investigations and blood") }}
+    {{ qa2([
+        ("Full haemogram (FHG)", doc.wp_fhg),
+        ("UEC", doc.wp_uec),
+        ("Serology", doc.wp_serology),
+        ("X-ray", doc.wp_xray),
+    ], checks=True) }}
+    {{ qa2([
+        ("Blood group", doc.wp_blood_group),
+        ("Grouping and cross-match taken", doc.wp_crossmatch),
+        ("Units of blood available", doc.wp_blood_units),
+        ("Other investigations", doc.wp_other_investigations),
+    ]) }}
+  </div>
+  <div class="hx-section">
+    {{ section_title("Pre-operative observations and pre-medication") }}
+    {{ qa2([
+        ("Blood pressure", bp),
+        ("Temperature (°C)", doc.wp_temperature),
+        ("Pulse", doc.wp_pulse),
+        ("Respiration", doc.wp_respiration),
+        ("Fetal heart rate", doc.wp_fhr),
+        ("Pre-medication", doc.wp_premedication),
+        ("Given at", c.premed_time),
+        ("Given by", doc.wp_premed_given_by),
+    ]) }}
+  </div>
+  <div class="hx-section hx-keep">
+    {{ section_title("Handover to theatre") }}
+    {{ qa2([
+        ("Patient prepared by", doc.wp_prepared_by),
+        ("Handed over to theatre by", doc.wp_handed_over_by),
+        ("Handed over at", c.handed_over),
+        ("Received in theatre by", doc.wp_received_by),
+        ("Received at", c.received),
+    ]) }}
+  </div>
+
+  {{ part(2, "WHO Surgical Safety Checklist") }}
+  <table><tr>
+    <td class="hx-col" style="width: 33%;">
+      {{ section_title("Sign In (before induction)") }}
+      {{ qa([
+          ("Identity, site, procedure and consent confirmed", doc.si_identity_confirmed),
+          ("Site marked: " ~ (doc.si_site_marked or ""), doc.si_site_marked),
+          ("Anaesthesia machine and medication check complete", doc.si_anaesthesia_check),
+          ("Pulse oximeter on and working", doc.si_pulse_oximeter),
+          ("Known allergy: " ~ (doc.si_known_allergy or ""), doc.si_known_allergy and 1),
+          ("Difficult airway / aspiration risk: " ~ (doc.si_difficult_airway or ""), doc.si_difficult_airway and 1),
+          ("Risk of >500 ml blood loss: " ~ (doc.si_blood_loss_risk or ""), doc.si_blood_loss_risk and 1),
+      ], checks=True) }}
+      <div class="hx-small hx-muted">{{ doc.sign_in_by or "" }} {{ c.sign_in }}</div>
+    </td>
+    <td class="hx-col" style="width: 34%;">
+      {{ section_title("Time Out (before incision)") }}
+      {{ qa([
+          ("Team introduced by name and role", doc.to_team_introduced),
+          ("Patient, site and procedure confirmed", doc.to_confirmed),
+          ("Antibiotic prophylaxis in the last 60 min: " ~ (doc.to_antibiotic or ""), doc.to_antibiotic),
+          ("Essential imaging displayed: " ~ (doc.to_imaging or ""), doc.to_imaging),
+          ("Surgeon: critical steps, duration, blood loss", doc.to_surgeon_events),
+          ("Anaesthetist: patient-specific concerns", doc.to_anaesthetist_concerns),
+          ("Nursing: sterility, equipment", doc.to_nursing_sterility),
+      ], checks=True) }}
+      <div class="hx-small hx-muted">{{ doc.time_out_by or "" }} {{ c.time_out }}</div>
+    </td>
+    <td class="hx-col" style="width: 33%;">
+      {{ section_title("Sign Out (before leaving theatre)") }}
+      {{ qa([
+          ("Name of the procedure recorded", doc.so_procedure_recorded),
+          ("Instrument, sponge and needle counts correct", doc.so_counts_correct),
+          ("Specimen labelled: " ~ (doc.so_specimen_labelled or ""), doc.so_specimen_labelled),
+          ("Key concerns for recovery reviewed", doc.so_recovery_reviewed),
+      ], checks=True) }}
+      {% if doc.so_equipment_problems %}<div class="hx-small"><b>{{ _("Equipment problems") }}:</b> {{ doc.so_equipment_problems }}</div>{% endif %}
+      <div class="hx-small hx-muted">{{ doc.sign_out_by or "" }} {{ c.sign_out }}</div>
+    </td>
+  </tr></table>
+
+  {{ part(3, "Gauzes and instruments") }}
+  <table class="hx-table hx-keep">
+    <thead><tr>
+      <th>{{ _("Item") }}</th><th class="hx-num">{{ _("Start") }}</th><th class="hx-num">{{ _("Added") }}</th>
+      <th class="hx-num">{{ _("Total") }}</th><th class="hx-num">{{ _("End") }}</th><th>{{ _("Result") }}</th>
+    </tr></thead>
+    <tbody>
+    {% for row in doc.counts %}
+    <tr>
+      <td>{{ row.item }} <span class="hx-muted hx-small">{{ _(row.category) }}</span></td>
+      <td class="hx-num">{{ row.start_count or "" }}</td>
+      <td class="hx-num">{{ row.added or "" }}</td>
+      <td class="hx-num">{{ ((row.start_count or 0) + (row.added or 0)) or "" }}</td>
+      <td class="hx-num">{{ row.end_count or "" }}</td>
+      <td class="{{ 'hx-ok' if row.result == _('Correct') else 'hx-bad' }}">{{ row.result or "" }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="hx-section">{{ chips([("Scrub nurse", doc.count_scrub_nurse), ("Circulating nurse", doc.count_circulating_nurse)]) }}</div>
+
+  {{ part(4, "Post-operative checklist", "(" ~ _("recovery, before the patient goes back to the ward") ~ ")") }}
+  {{ qa2([
+      ("Blood pressure", po_bp),
+      ("Temperature (°C)", doc.po_temperature),
+      ("Pulse", doc.po_pulse),
+      ("Respiration", doc.po_respiration),
+      ("Oximetry (SpO2 %)", doc.po_spo2),
+      ("Blood loss (ml)", doc.po_blood_loss_ml),
+      ("Level of consciousness", doc.po_consciousness),
+      ("Drains (number)", doc.po_drains),
+  ]) }}
+  {{ qa2([
+      ("Pain", doc.po_pain),
+      ("Oxygen therapy", doc.po_oxygen),
+      ("Vomiting", doc.po_vomiting),
+      ("Catheter", doc.po_catheter),
+      ("Dressing dry and intact", doc.po_dressing_intact),
+      ("Analgesic therapy", doc.po_analgesia),
+      ("Infusion therapy", doc.po_infusion),
+      ("Nasogastric tube", doc.po_ng_tube),
+      ("Post-operative drugs", doc.po_drugs),
+      ("Recovery room observations done", doc.po_recovery_obs),
+      ("Post-operative management plan given", doc.po_management),
+  ]) }}
+  {% if doc.po_investigations %}<div class="hx-section">{{ section_title("Investigations ordered") }}<div class="hx-pre">{{ doc.po_investigations }}</div></div>{% endif %}
+  {% if doc.po_remarks %}<div class="hx-section">{{ section_title("Remarks on the patient's condition") }}<div class="hx-pre">{{ doc.po_remarks }}</div></div>{% endif %}
+  <div class="hx-section hx-keep">
+    {{ qa2([
+        ("Handed over by (theatre nurse)", doc.po_handed_over_by),
+        ("Received back in ward by", doc.po_received_by),
+        ("Received in ward at", c.back_in_ward),
+    ]) }}
+  </div>
+
+  {{ page_footer(_("Confidential medical information. Keep with the patient's theatre records."), footer, no_letterhead, ctx) }}
+</div>

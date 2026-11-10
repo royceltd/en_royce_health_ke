@@ -1,0 +1,86 @@
+{#- Surgical Consent as the hospital's "Consent Form for Operation": printed
+    for the patient (or the person consenting) and the doctor to sign, then
+    scanned back onto the record. No Draft badge: it is printed before it is
+    signed. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, signatures, footer as page_footer -%}
+{%- from "royce_health_ke/templates/print/theatre_forms.html" import form_styles, box, fill -%}
+{%- set c = health_consent_details(doc) -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set _ignore = ctx.update({"badge": "Cancelled" if doc.docstatus == 2 else ""}) -%}
+{{ styles(ctx) }}
+{{ form_styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Consent for Operation", letter_head, no_letterhead, [
+      ("Consent No.", doc.name),
+      ("Theatre booking", doc.theatre_booking),
+      ("Date", c.date),
+  ]) }}
+
+  {{ patient_band(ctx.patient) }}
+
+  <div class="hx-section hx-statement">
+    {{ _("I") }}, {{ fill(c.consenter, 220) }} {{ _("of P.O. Box / address") }} {{ fill(c.address, 160) }},
+    {{ _("hereby consent to Dr") }} {{ fill(c.doctor, 200) }} {{ _("performing the operation of") }}
+    {{ fill(c.operation, 240) }} {{ _("on") }} {{ fill(c.on_whom, 90) }}{% if not c.by_patient %}, {{ fill(doc.patient_name, 160) }}{% if c.relationship %} ({{ c.relationship }}){% endif %}{% endif %}.
+  </div>
+  <div class="hx-section">
+    {{ _("The nature and possible complications of the operation and of the general or local anaesthetic have been explained to me fully by the doctor. I also consent to any further or alternative procedures which the doctor may find necessary during the operation.") }}
+  </div>
+  <div class="hx-section">
+    {{ _("I acknowledge that the doctor named above will undertake the operation.") }}
+  </div>
+
+  <div class="hx-section">
+    {{ section_title("What was explained") }}
+    <table class="hx-table">
+      <tr><td style="width: 30%;" class="hx-muted">{{ _("The operation and its expected benefit") }}</td><td class="hx-pre">{{ doc.procedure_explained or "" }}</td></tr>
+      <tr><td class="hx-muted">{{ _("Risks and complications") }}</td><td class="hx-pre">{{ doc.risks_explained or "" }}</td></tr>
+      <tr><td class="hx-muted">{{ _("Alternatives") }}</td><td class="hx-pre">{{ doc.alternatives_explained or "" }}</td></tr>
+    </table>
+  </div>
+
+  <div class="hx-section">
+    <div>{{ box(doc.anaesthesia_consent) }}{{ _("I consent to the anaesthetic") }}</div>
+    <div>{{ box(doc.blood_transfusion_consent) }}{{ _("I consent to a blood transfusion if needed") }}</div>
+    <div>{{ box(doc.additional_procedures_consent) }}{{ _("I consent to further procedures found necessary during the operation") }}</div>
+  </div>
+
+  {% if not c.by_patient and doc.reason_not_patient %}
+  <div class="hx-section">{{ section_title("Why the patient is not signing") }}<div class="hx-pre">{{ doc.reason_not_patient }}</div></div>
+  {% endif %}
+  {% if doc.interpreter %}
+  <div class="hx-section">{{ chips([("Interpreter / language", doc.interpreter)]) }}</div>
+  {% endif %}
+
+  <table class="hx-sign hx-keep"><tr>
+    <td style="width: 34%;">
+      <div style="height: 26px;"></div>
+      <div class="hx-sign-line">
+        <div class="hx-caption">{{ _("Patient's signature") if c.by_patient else _("Signature of person consenting") }}</div>
+        <div class="hx-sign-name">{{ c.consenter }}</div>
+        <div class="hx-small hx-muted">{{ _("Date") }}: {{ fill("", 80) }}</div>
+      </div>
+    </td>
+    <td style="width: 33%;">
+      <div style="height: 26px;"></div>
+      <div class="hx-sign-line">
+        <div class="hx-caption">{{ _("Doctor's signature") }}</div>
+        <div class="hx-sign-name">{{ c.doctor }}</div>
+        <div class="hx-small hx-muted">{{ _("Date") }}: {{ fill("", 80) }}</div>
+      </div>
+    </td>
+    <td style="width: 23%;">
+      <div style="height: 26px;"></div>
+      <div class="hx-sign-line">
+        <div class="hx-caption">{{ _("Witness") }}</div>
+        <div class="hx-sign-name">{{ doc.witness_name or "" }}</div>
+      </div>
+    </td>
+    <td style="width: 10%;">
+      <div class="hx-thumb"></div>
+      <div class="hx-small hx-muted">{{ _("Left thumbprint if unable to sign") }}</div>
+    </td>
+  </tr></table>
+
+  {{ page_footer(_("Confidential medical information. Keep the signed form with the patient's file."), footer, no_letterhead, ctx) }}
+</div>

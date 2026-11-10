@@ -37,13 +37,14 @@
     <div style="height: 6px;"></div>
     {{ chips([
         ("Anaesthesia", op.anaesthesia),
+        ("Anaesthetic agent", op.agent),
         ("ASA", op.asa),
         ("Airway", op.airway),
     ]) }}
   </div>
   {% endif %}
 
-  {% for title, value in [("Indication", doc.ke_indication), ("Findings", doc.ke_findings)] %}
+  {% for title, value in [("Indication", doc.ke_indication), ("Incision", doc.ke_incision), ("Findings", doc.ke_findings)] %}
     {% if value %}<div class="hx-section">{{ section_title(title) }}<div class="hx-pre">{{ value }}</div></div>{% endif %}
   {% endfor %}
 

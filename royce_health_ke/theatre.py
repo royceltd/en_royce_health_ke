@@ -5,13 +5,22 @@
 Checklist, anaesthesia record and operation note, around Marley's Clinical
 Procedure (which carries the procedure's billing and its consumables).
 
+The Surgical Safety Checklist follows the hospital's paper theatre checklist:
+ward preparation and handover, the WHO Sign In / Time Out / Sign Out, the
+gauze and instrument counts, and the post-operative checklist back to the
+ward.
+
 Gates, in theatre order:
-- Start (patient into theatre): signed consent, checklist Sign In done, and
-  no pending or declined pre-authorisation (an Emergency may proceed while
-  it is pending). Starting creates, submits and starts the Clinical Procedure.
-- Complete: checklist Time Out and Sign Out done and the operation note's
-  procedure details written. Completing completes the Clinical Procedure,
-  which issues its consumables from stock."""
+- Start (patient into theatre): signed consent, ward preparation done (an
+  Emergency may skip it, with a warning), checklist Sign In done, and no
+  pending or declined pre-authorisation (an Emergency may proceed while it is
+  pending). Starting creates, submits and starts the Clinical Procedure.
+- Complete: checklist Time Out and Sign Out done (Sign Out can't confirm the
+  counts unless every count line balances) and the operation note's procedure
+  details written. Completing completes the Clinical Procedure, which issues
+  its consumables from stock."""
+
+import re
 
 import frappe
 from frappe import _
@@ -45,6 +54,31 @@ SIGN_OUT = (
 	"so_specimen_labelled",
 	"so_recovery_reviewed",
 	"sign_out_by",
+)
+WARD_PREP = (
+	"wp_consent_signed",
+	"wp_identity_band",
+	"wp_gown",
+	"wp_jewellery_removed",
+	"wp_dentures",
+	"wp_fasting",
+	"wp_prepared_by",
+	"wp_handed_over_by",
+	"wp_received_by",
+)
+POST_OP = (
+	"po_pulse",
+	"po_bp_systolic",
+	"po_consciousness",
+	"po_handed_over_by",
+	"po_received_by",
+)
+DEFAULT_COUNTS = (
+	("Gauze", "Abdominal packs"),
+	("Gauze", "Detectable gauze swabs"),
+	("Instrument", "Instrument set"),
+	("Instrument", "Surgical blades"),
+	("Instrument", "Needles"),
 )
 PHASES = (
 	("sign_in_status", "sign_in_time", SIGN_IN, _("Sign In")),
@@ -136,6 +170,17 @@ def start(booking: str):
 		and frappe.db.get_value("Surgical Safety Checklist", doc.safety_checklist, "sign_in_status") == "Done"
 	):
 		frappe.throw(_("Complete the Surgical Safety Checklist Sign In first."))
+	ward_prep = frappe.db.get_value("Surgical Safety Checklist", doc.safety_checklist, "ward_prep_status")
+	if ward_prep != "Done":
+		if doc.priority != "Emergency":
+			frappe.throw(
+				_("Complete the ward preparation and handover on the Surgical Safety Checklist first.")
+			)
+		frappe.msgprint(
+			_("Emergency: going into theatre before the ward preparation is complete."),
+			indicator="orange",
+			alert=True,
+		)
 	if doc.pre_authorisation == "Declined":
 		frappe.throw(_("The insurer declined pre-authorisation for this procedure."))
 	if doc.pre_authorisation == "Pending":
@@ -239,8 +284,45 @@ def link_to_booking(doc, field):
 
 
 def validate_checklist(doc):
-	"""Each phase is Done when all its items are answered, and only after the
-	phase before it; its time is stamped when it becomes Done."""
+	"""Ward preparation is Done when its items are answered (consent from the
+	booking). Each WHO phase is Done when all its items are answered, and only
+	after the phase before it; its time is stamped when it becomes Done. The
+	post-op checklist is Done when answered, after Sign Out."""
+	if doc.get("theatre_booking"):
+		booking = frappe.db.get_value(
+			"Theatre Booking", doc.theatre_booking, ["surgical_consent", "inpatient_record"], as_dict=True
+		)
+		if booking:
+			doc.wp_consent_signed = int(
+				bool(booking.surgical_consent)
+				and frappe.db.get_value("Surgical Consent", booking.surgical_consent, "docstatus") == 1
+			)
+			if booking.inpatient_record and not doc.get("wp_ward"):
+				ward = frappe.db.get_value(
+					"Inpatient Occupancy",
+					{"parent": booking.inpatient_record, "parenttype": "Inpatient Record"},
+					"service_unit",
+					order_by="idx desc",
+				)
+				if ward:
+					ward = (
+						frappe.db.get_value("Healthcare Service Unit", ward, "parent_healthcare_service_unit")
+						or ward
+					)
+				doc.wp_ward = ward.rsplit(" - ", 1)[0] if ward else None
+	if doc.is_new() and not doc.get("counts"):
+		for category, item in DEFAULT_COUNTS:
+			doc.append("counts", {"category": category, "item": item})
+	ward_done = all(doc.get(f) for f in WARD_PREP)
+	doc.ward_prep_status = "Done" if ward_done else "Pending"
+	if ward_done:
+		if not doc.get("wp_handed_over_time"):
+			doc.wp_handed_over_time = now_datetime()
+		if not doc.get("wp_received_time"):
+			doc.wp_received_time = now_datetime()
+
+	validate_counts(doc)
+
 	previous_done = True
 	for status_field, time_field, fields, label in PHASES:
 		answered = all(doc.get(f) for f in fields)
@@ -250,6 +332,150 @@ def validate_checklist(doc):
 		if answered and not doc.get(time_field):
 			doc.set(time_field, now_datetime())
 		previous_done = answered
+
+	post_done = all(doc.get(f) for f in POST_OP)
+	if post_done and doc.sign_out_status != "Done":
+		frappe.throw(_("The post-operative checklist can't be completed before Sign Out."))
+	doc.post_op_status = "Done" if post_done else "Pending"
+	if post_done and not doc.get("po_received_time"):
+		doc.po_received_time = now_datetime()
+
+
+def validate_counts(doc):
+	"""Each line's result; ticking 'counts correct' at Sign Out needs every
+	counted line to balance (end = start + added) and both nurses named."""
+	wrong = []
+	counted = False
+	for row in doc.get("counts") or []:
+		expected = (row.start_count or 0) + (row.added or 0)
+		if not expected and not row.end_count:
+			row.result = ""
+			continue
+		counted = True
+		if row.end_count == expected:
+			row.result = _("Correct")
+		elif row.end_count < expected:
+			row.result = _("Missing {0}").format(expected - row.end_count)
+			wrong.append(row)
+		else:
+			row.result = _("{0} extra").format(row.end_count - expected)
+			wrong.append(row)
+	if not doc.get("so_counts_correct") or not counted:
+		return
+	if wrong:
+		frappe.throw(
+			"<br>".join(
+				_("{0}: start {1} + added {2}, end {3} ({4})").format(
+					r.item, r.start_count or 0, r.added or 0, r.end_count or 0, r.result
+				)
+				for r in wrong
+			),
+			title=_("The counts don't balance"),
+		)
+	if not (doc.get("count_scrub_nurse") and doc.get("count_circulating_nurse")):
+		frappe.throw(_("Name the scrub nurse and the circulating nurse who did the counts."))
+
+
+# Anaesthesia record
+
+SYSTEMS_REVIEW = (
+	(
+		"Cardiovascular",
+		(
+			"Hypertension / hypotension",
+			"Easy fatiguability",
+			"Murmur",
+			"Chest pain / angina / CAD",
+			"Congestive heart failure",
+			"Arrhythmia",
+			"Peripheral vascular disease",
+			"Congenital / valvular heart disease",
+		),
+	),
+	("Respiratory", ("Asthma", "TB", "COPD")),
+	("Endocrine", ("Diabetes", "Thyroid disease", "Recent steroid use")),
+	(
+		"Neurological",
+		("Seizures", "Elevated ICP", "Neuromuscular disease", "CVA / cerebrovascular disease"),
+	),
+	("Renal", ("Acute renal failure", "Chronic renal failure", "Haemodialysis")),
+	(
+		"Gastroenterological",
+		("Hepatitis / cirrhosis / jaundice", "Increased risk of reflux", "Peptic ulcer disease"),
+	),
+)
+
+# Lab result names (lower case) -> anaesthesia record field.
+LAB_PATTERNS = (
+	("lab_hb", re.compile(r"\bh(a)?emoglobin\b|\bhb\b")),
+	("lab_hct", re.compile(r"h(a)?ematocrit|\bpcv\b|\bhct\b")),
+	("lab_plt", re.compile(r"platelet|\bplt\b")),
+	("lab_wbc", re.compile(r"white (blood )?cell|\bwbc\b|leu[ck]ocyte count|total leu[ck]ocyte")),
+	("lab_inr", re.compile(r"\binr\b")),
+	("lab_aptt", re.compile(r"\baptt\b|\bptt\b|partial thromboplastin")),
+	("lab_pt", re.compile(r"prothrombin time|^pt\b|\(pt\)")),
+)
+LAB_DAYS = 30
+
+
+def lab_field(test_name):
+	name = (test_name or "").lower()
+	# HbA1c and the red cell indices (MCH, MCHC, MPV, RDW) aren't Hb or platelets
+	if any(word in name for word in ("a1c", "glyc", "mean ", "mch", "mpv", "distribution width")):
+		return None
+	for field, pattern in LAB_PATTERNS:
+		if pattern.search(name):
+			return field
+	return None
+
+
+@frappe.whitelist()
+def latest_labs(patient: str, on=None) -> dict:
+	"""The patient's latest Hb, Hct, platelets, WBC, PT, INR and APTT from
+	submitted lab tests in the last LAB_DAYS days, as 'value unit'."""
+	frappe.has_permission("Lab Test", "read", throw=True)
+	since = add_to_date(get_datetime(on or now_datetime()), days=-LAB_DAYS)
+	rows = frappe.db.sql(
+		"""select r.lab_test_name, r.lab_test_event, r.result_value, r.lab_test_uom
+		from `tabNormal Test Result` r join `tabLab Test` t on t.name = r.parent
+		where r.parenttype = 'Lab Test' and t.patient = %s and t.docstatus = 1
+			and coalesce(t.result_date, date(t.creation)) >= %s and coalesce(r.result_value, '') != ''
+		order by coalesce(t.result_date, date(t.creation)) desc, t.creation desc, r.idx""",
+		(patient, getdate(since)),
+		as_dict=True,
+	)
+	found = {}
+	for r in rows:
+		field = lab_field(r.lab_test_event) or lab_field(r.lab_test_name)
+		if field and field not in found:
+			found[field] = f"{r.result_value} {r.lab_test_uom or ''}".strip()
+	return found
+
+
+def validate_anaesthesia(doc):
+	if doc.is_new():
+		if not doc.get("systems_review"):
+			for system, findings in SYSTEMS_REVIEW:
+				for finding in findings:
+					doc.append("systems_review", {"system": system, "finding": finding})
+		if not doc.get("allergies") and doc.get("patient"):
+			doc.allergies = frappe.db.get_value("Patient", doc.patient, "allergies")
+		if doc.get("patient") and not any(doc.get(f) for f, _p in LAB_PATTERNS):
+			try:
+				doc.update(latest_labs(doc.patient))
+			except frappe.PermissionError:
+				pass
+	scores = [doc.get("gcs_e"), doc.get("gcs_m"), doc.get("gcs_v")]
+	for value, top, label in zip(scores, (4, 6, 5), (_("eye"), _("motor"), _("verbal")), strict=True):
+		if value and not 1 <= value <= top:
+			frappe.throw(_("GCS {0} must be between 1 and {1}.").format(label, top))
+	doc.gcs_total = sum(scores) if all(scores) else 0
+	for start, end, label in (
+		("induction_time", "end_time", _("anaesthesia")),
+		("surgery_start", "surgery_end", _("surgery")),
+	):
+		if doc.get(start) and doc.get(end) and get_datetime(doc.get(end)) < get_datetime(doc.get(start)):
+			frappe.throw(_("The end of {0} is before its start.").format(label))
 
 
 @frappe.whitelist()

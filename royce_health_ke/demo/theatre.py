@@ -4,7 +4,9 @@
 """Demo theatre: Daniel comes in this morning with acute appendicitis, is
 admitted and has an emergency open appendicectomy - consent, WHO checklist,
 anaesthesia record, operation note - with sutures and gloves issued from the
-theatre's stock."""
+theatre's stock. The checklist and anaesthesia record are filled the way the
+hospital's paper forms are: ward preparation and handover, counts, the
+post-operative checklist, and the KSA pre-operative assessment."""
 
 import frappe
 from frappe.utils import add_to_date, get_datetime, getdate, now_datetime, today
@@ -146,11 +148,169 @@ def _theatre_stock(company, a):
 		journey._push_stock(company)
 
 
+WARD_PREP = {
+	"wp_identity_band": 1,
+	"wp_gown": 1,
+	"wp_shaving": "Done",
+	"wp_jewellery_removed": 1,
+	"wp_nail_varnish_removed": 1,
+	"wp_dentures": "None",
+	"wp_artificial_limb": "None",
+	"wp_fasting": "Yes",
+	"wp_iv_line": "Sited",
+	"wp_catheter": "Not needed",
+	"wp_ng_tube": "Not needed",
+	"wp_fhg": 1,
+	"wp_uec": 1,
+	"wp_blood_group": "O+",
+	"wp_crossmatch": "Yes",
+	"wp_blood_units": 1,
+	"wp_bp_systolic": 122,
+	"wp_bp_diastolic": 76,
+	"wp_temperature": 38.1,
+	"wp_pulse": 104,
+	"wp_respiration": 20,
+	"wp_premedication": "None (emergency)",
+	"wp_prepared_by": "Nurse Wanjiru (demo)",
+	"wp_handed_over_by": "Nurse Wanjiru (demo)",
+	"wp_received_by": "Nurse Mercy (demo)",
+}
+COUNTS = (
+	# item, start, added, end
+	("Abdominal packs", 5, 0, 5),
+	("Detectable gauze swabs", 10, 5, 15),
+	("Instrument set", 1, 0, 1),
+	("Surgical blades", 2, 0, 2),
+	("Needles", 3, 1, 4),
+)
+COUNT_NURSES = {"count_scrub_nurse": "Nurse Mercy (demo)", "count_circulating_nurse": "Nurse Otieno (demo)"}
+POST_OP = {
+	"po_bp_systolic": 118,
+	"po_bp_diastolic": 72,
+	"po_temperature": 37.2,
+	"po_pulse": 88,
+	"po_respiration": 18,
+	"po_spo2": 98,
+	"po_blood_loss_ml": 50,
+	"po_consciousness": "Alert",
+	"po_pain": "Yes",
+	"po_oxygen": "No",
+	"po_vomiting": "No",
+	"po_catheter": "No",
+	"po_dressing_intact": "Yes",
+	"po_drains": 0,
+	"po_analgesia": "Yes",
+	"po_infusion": "Yes",
+	"po_ng_tube": "No",
+	"po_drugs": "Yes",
+	"po_recovery_obs": "Yes",
+	"po_management": "Yes",
+	"po_remarks": "Awake and comfortable, wound dressing dry.",
+	"po_handed_over_by": "Nurse Mercy (demo)",
+	"po_received_by": "Nurse Wanjiru (demo)",
+}
+ANAESTHESIA = {
+	"pre_op_diagnosis": "Acute appendicitis",
+	"height": 172,
+	"smoking": "No",
+	"alcohol": "No",
+	"presenting_illness": "18 h abdominal pain migrating to the right iliac fossa, vomiting x3, fever.",
+	"pre_hr": 104,
+	"pre_bp": "122/76",
+	"pre_rr": 20,
+	"pre_spo2": 98,
+	"gcs_e": 4,
+	"gcs_m": 6,
+	"gcs_v": 5,
+	"loose_teeth": "No",
+	"dentures": "No",
+	"airway_abnormality": "No",
+	"mallampati": "I",
+	"steroid_use": "No",
+	"lab_renal": "Normal",
+	"lab_glucose": "Normal",
+	"test_cxr": "N/A",
+	"test_ecg": "N/A",
+	"pre_op_orders": "NPO. Ceftriaxone 1 g IV at induction. Consent signed.",
+	"premedication": "None",
+	"induction_agents": "Propofol 150 mg, Suxamethonium 100 mg",
+	"maintenance": "Isoflurane 1-1.5% in O2/air",
+	"ett_size": "7.5",
+	"position": "Supine",
+	"post_op_ward_instructions": "Observations 4-hourly. Sips at 6 h. Analgesia: paracetamol 1 g 8-hourly, "
+	"tramadol 50 mg if needed.",
+}
+
+
+def fill_paper_forms(booking_name, start):
+	"""Ward preparation, counts, post-op checklist and the anaesthesia
+	assessment on an existing demo operation (sites built before v0.18)."""
+	booking = frappe.get_doc("Theatre Booking", booking_name)
+	checklist = frappe.get_doc("Surgical Safety Checklist", booking.safety_checklist)
+	if not checklist.wp_prepared_by:
+		checklist.update(WARD_PREP)
+		checklist.wp_last_feed = add_to_date(start, hours=-14)
+		checklist.wp_handed_over_time = add_to_date(start, minutes=-10)
+		checklist.wp_received_time = add_to_date(start, minutes=-5)
+		checklist.set("counts", [])
+		for item, first, added, end in COUNTS:
+			checklist.append(
+				"counts",
+				{
+					"category": "Gauze"
+					if "gauze" in item.lower() or "pack" in item.lower()
+					else "Instrument",
+					"item": item,
+					"start_count": first,
+					"added": added,
+					"end_count": end,
+				},
+			)
+		checklist.update(COUNT_NURSES)
+		if checklist.sign_out_status == "Done" or checklist.so_counts_correct:
+			checklist.update(POST_OP)
+			checklist.po_received_time = add_to_date(start, minutes=120)
+		checklist.save(ignore_permissions=True)
+	record = booking.anaesthesia_record
+	if record and not frappe.db.get_value("Anaesthesia Record", record, "pre_op_diagnosis"):
+		doc = frappe.get_doc("Anaesthesia Record", record)
+		values = {
+			**ANAESTHESIA,
+			"gcs_total": 15,
+			"surgery_start": add_to_date(start, minutes=20),
+			"surgery_end": add_to_date(start, minutes=60),
+			"assessed_on": add_to_date(start, minutes=-40),
+			"allergies": frappe.db.get_value("Patient", doc.patient, "allergies"),
+		}
+		frappe.db.set_value("Anaesthesia Record", record, values, update_modified=False)
+		if not doc.get("systems_review"):
+			from royce_health_ke.theatre import SYSTEMS_REVIEW
+
+			for system, findings in SYSTEMS_REVIEW:
+				for finding in findings:
+					row = doc.append(
+						"systems_review", {"system": system, "finding": finding, "present": "No"}
+					)
+					row.db_insert()
+	if booking.clinical_procedure and not frappe.db.get_value(
+		"Clinical Procedure", booking.clinical_procedure, "ke_incision"
+	):
+		frappe.db.set_value(
+			"Clinical Procedure", booking.clinical_procedure, "ke_incision", "Lanz (right iliac fossa)"
+		)
+
+
 def run(company):
 	existing = frappe.db.get_value("Patient", {"first_name": "Daniel", "last_name": "Kioko"})
 	if existing:
+		booking = frappe.db.get_value(
+			"Theatre Booking", {"patient": existing, "status": "Completed"}, ["name", "scheduled_start"]
+		)
+		if booking:
+			fill_paper_forms(booking[0], get_datetime(booking[1]))
 		return {"patient": existing, "created": False}
 	from royce_health_ke import theatre
+	from royce_health_ke.theatre import SYSTEMS_REVIEW
 
 	a = masters.abbr(company)
 	brian = frappe.db.get_value("Healthcare Practitioner", {"first_name": "Brian"})
@@ -243,6 +403,10 @@ def run(company):
 			"si_difficult_airway": "No",
 			"si_blood_loss_risk": "No",
 			"sign_in_by": "Dr Halima Abdi",
+			**WARD_PREP,
+			"wp_last_feed": add_to_date(start, hours=-14),
+			"wp_handed_over_time": add_to_date(start, minutes=-10),
+			"wp_received_time": add_to_date(start, minutes=-5),
 		}
 	)
 	theatre.start(booking.name)
@@ -250,6 +414,15 @@ def run(company):
 		{
 			"doctype": "Anaesthesia Record",
 			"theatre_booking": booking.name,
+			**ANAESTHESIA,
+			"surgery_start": add_to_date(start, minutes=20),
+			"surgery_end": add_to_date(start, minutes=60),
+			"assessed_on": add_to_date(start, minutes=-40),
+			"systems_review": [
+				{"system": system, "finding": finding, "present": "No"}
+				for system, findings in SYSTEMS_REVIEW
+				for finding in findings
+			],
 			"asa_class": "ASA I",
 			"asa_emergency": 1,
 			"fasting_confirmed": 1,
@@ -312,6 +485,7 @@ def run(company):
 		{
 			"ke_indication": "Acute appendicitis, Alvarado 8.",
 			"ke_findings": "Inflamed, non-perforated retrocaecal appendix. No pus, no free fluid.",
+			"ke_incision": "Lanz (right iliac fossa)",
 			"ke_procedure_details": "<p>Lanz incision RIF. Muscle split. Appendix delivered, mesoappendix ligated, base "
 			"ligated and appendix excised. Stump inverted. Peritoneum and muscle closed with Vicryl 2-0, skin "
 			"subcuticular.</p>",
@@ -323,6 +497,9 @@ def run(company):
 	)
 	procedure.save(ignore_permissions=True)
 	checklist.reload()
+	for row, (_item, first, added, end) in zip(checklist.counts, COUNTS, strict=False):
+		row.update({"start_count": first, "added": added, "end_count": end})
+	checklist.update(COUNT_NURSES)
 	checklist.update(
 		{
 			"so_procedure_recorded": 1,
@@ -334,6 +511,9 @@ def run(company):
 	)
 	checklist.save(ignore_permissions=True)
 	result = theatre.complete(booking.name)
+	checklist.reload()
+	checklist.update({**POST_OP, "po_received_time": add_to_date(start, minutes=120)})
+	checklist.save(ignore_permissions=True)
 	if journey._etims_active(company):
 		journey._push_stock(company)
 	booking.reload()
@@ -343,6 +523,12 @@ def run(company):
 		"created": True,
 		"booking": booking.name,
 		"status": booking.status,
-		"checklist": [checklist.sign_in_status, checklist.time_out_status, checklist.sign_out_status],
+		"checklist": [
+			checklist.ward_prep_status,
+			checklist.sign_in_status,
+			checklist.time_out_status,
+			checklist.sign_out_status,
+			checklist.post_op_status,
+		],
 		**result,
 	}
