@@ -96,6 +96,7 @@ class TestVisitBill(IntegrationTestCase):
 
 		si = self.bill_and_submit()
 		self.assertEqual(si.ke_patient_visit, self.visit.name)
+		self.assertEqual(si.grand_total, bill["unbilled_total"])  # the bill shown is the bill made
 		self.assertEqual(frappe.db.get_value("Patient Visit", self.visit.name, "bill_status"), "Unpaid")
 		with self.assertRaises(frappe.ValidationError):
 			self.start_lab_test(request)  # billed is not paid

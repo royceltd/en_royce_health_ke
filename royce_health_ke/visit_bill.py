@@ -136,6 +136,20 @@ def _invoice(visit, lines):
 	return si
 
 
+def _apply_billing_rules(si):
+	"""What saving the invoice will add or change (the Sales Invoice
+	before_validate rules: bed nights, meals, a pending maternity package),
+	so the bill shown on the visit is the bill the cashier gets."""
+	from royce_health_ke.billing import apply_bed_charge_basis
+	from royce_health_ke.kitchen import apply_meal_charges
+	from royce_health_ke.packages import apply_maternity_package
+
+	for rule in (apply_bed_charge_basis, apply_meal_charges, apply_maternity_package):
+		rule(si)
+	si.calculate_taxes_and_totals()
+	si.calculate_patient_insurance_coverage()
+
+
 def invoices(visit_name):
 	return frappe.get_all(
 		"Sales Invoice",
@@ -180,6 +194,7 @@ def visit_bill(visit: str) -> dict:
 			return {"error": _("The patient has no customer record, so nothing can be priced or billed.")}
 		with _as_administrator():
 			si = _invoice(doc, lines)
+			_apply_billing_rules(si)
 		currency = si.currency
 		unbilled_total = si.grand_total
 		charges = [
