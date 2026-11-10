@@ -11,6 +11,7 @@
 //   expand  - collapsed section headings to open, first one scrolled to
 //   click   - a button in the page header to press (e.g. "Nursing Dialog")
 //   pane    - a pane inside the dialog that opens (e.g. "Medication")
+//   tab     - a form tab to open first (e.g. "Ward Preparation")
 // kenyan_accountant's "Finish setting up your documents" pop-up is dismissed
 // with "Remind me later", which changes no data.
 const fs = require("fs");
@@ -46,6 +47,10 @@ async function dismissSetupPopup(page) {
 			await page.goto(base + s.url, { waitUntil: "networkidle", timeout: 60000 });
 			await page.waitForTimeout(2500);
 			await dismissSetupPopup(page);
+			if (s.tab) {
+				await page.locator(".form-tabs .nav-link").filter({ hasText: s.tab }).first().click();
+				await page.waitForTimeout(1200);
+			}
 			if (s.expand) {
 				for (const label of s.expand) {
 					await page.locator(".section-head").filter({ hasText: label }).first().click();

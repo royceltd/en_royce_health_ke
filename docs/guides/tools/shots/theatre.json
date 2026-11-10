@@ -1,0 +1,72 @@
+[
+ {
+  "file": "01-booking.png",
+  "url": "/desk/kenya-health/theatre-booking/THB-2026-00001"
+ },
+ {
+  "file": "02-theatre-list.png",
+  "url": "/desk/kenya-health/query-report/Theatre List?date=2026-11-07"
+ },
+ {
+  "file": "03-consent.png",
+  "url": "/desk/kenya-health/surgical-consent/CONS-2026-00001"
+ },
+ {
+  "file": "04-consent-print.png",
+  "url": "/printview?doctype=Surgical%20Consent&name=CONS-2026-00001&format=Consent%20for%20Operation&no_letterhead=1"
+ },
+ {
+  "file": "05-ward-prep.png",
+  "url": "/desk/kenya-health/surgical-safety-checklist/SSC-2026-00001",
+  "tab": "Ward Preparation"
+ },
+ {
+  "file": "06-who-checklist.png",
+  "url": "/desk/kenya-health/surgical-safety-checklist/SSC-2026-00001",
+  "tab": "WHO Checklist"
+ },
+ {
+  "file": "07-anaesthesia-assessment.png",
+  "url": "/desk/kenya-health/anaesthesia-record/ANR-2026-00001",
+  "tab": "Pre-op Assessment"
+ },
+ {
+  "file": "08-systems-review.png",
+  "url": "/desk/kenya-health/anaesthesia-record/ANR-2026-00001",
+  "tab": "Pre-op Assessment",
+  "scroll": "[data-fieldname=\"systems_review\"]"
+ },
+ {
+  "file": "10-anaesthesia-chart.png",
+  "url": "/desk/kenya-health/anaesthesia-record/ANR-2026-00001",
+  "tab": "Anaesthesia"
+ },
+ {
+  "file": "11-counts.png",
+  "url": "/desk/kenya-health/surgical-safety-checklist/SSC-2026-00001",
+  "tab": "Counts"
+ },
+ {
+  "file": "12-sign-out.png",
+  "url": "/desk/kenya-health/surgical-safety-checklist/SSC-2026-00001",
+  "tab": "Sign Out"
+ },
+ {
+  "file": "13-operation-note.png",
+  "url": "/desk/kenya-health/clinical-procedure/HLC-CPR-2026-00001",
+  "scroll": "[data-fieldname=\"ke_indication\"]"
+ },
+ {
+  "file": "14-post-op.png",
+  "url": "/desk/kenya-health/surgical-safety-checklist/SSC-2026-00001",
+  "tab": "Post-operative"
+ },
+ {
+  "file": "15-checklist-print.png",
+  "url": "/printview?doctype=Surgical%20Safety%20Checklist&name=SSC-2026-00001&format=Theatre%20Checklist&no_letterhead=1"
+ },
+ {
+  "file": "16-anaesthesia-print.png",
+  "url": "/printview?doctype=Anaesthesia%20Record&name=ANR-2026-00001&format=Anaesthesia%20Record&no_letterhead=1"
+ }
+]

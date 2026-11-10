@@ -13,8 +13,10 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 | [07 Cashier day-end](07-cashier-day-end.md) | Cashier, accountant | 2026-11-07, v0.14.0 |
 | [08 Administrator setup](08-administrator-setup.md) | System administrator | 2026-11-07, v0.14.0 |
 | [09 Patient SMS](09-patient-sms.md) | Reception, clinical staff, administrator | 2026-11-08, v0.15.1 |
+| [10 Theatre](10-theatre.md) | Surgeons, anaesthetists, theatre and ward nurses | 2026-11-10, v0.18.0 |
+| [11 Theatre testing](11-theatre-testing.md) | The hospital's testers, before go-live | 2026-11-10, v0.18.0 |
 
-Planned next: theatre, radiology, emergency, kitchen and laundry, MOH reporting for the HRIO.
+Planned next: radiology, emergency, kitchen and laundry, MOH reporting for the HRIO.
 
 ## Writing a guide
 
@@ -55,4 +57,4 @@ Add new guides to its list and update its "Guide checked" date when the guides a
 
 ## Demo records behind the guides
 
-Insurance and maternity follow the demo loader's patients (Peter Otieno Kamau, Faith Njeri Wambui). The outpatient, inpatient, pharmacy, cashier and administrator guides also use records created on the demo site on 2026-11-07 after the loader ran: Lucy Wairimu Ndung'u (outpatient), Mary Atieno Odhiambo (inpatient, with ward medication), a supplier delivery, a stock count, the M-Pesa settlement and two staff users. They are not created by `royce_health_ke.demo.load`; a fresh demo site will have different record numbers, so update the guide text with the shots.
+Insurance, maternity and theatre follow the demo loader's patients (Peter Otieno Kamau, Faith Njeri Wambui, Daniel Mutua Kioko). The outpatient, inpatient, pharmacy, cashier and administrator guides also use records created on the demo site on 2026-11-07 after the loader ran: Lucy Wairimu Ndung'u (outpatient), Mary Atieno Odhiambo (inpatient, with ward medication), a supplier delivery, a stock count, the M-Pesa settlement and two staff users. They are not created by `royce_health_ke.demo.load`; a fresh demo site will have different record numbers, so update the guide text with the shots.

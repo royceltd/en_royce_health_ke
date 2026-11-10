@@ -33,6 +33,8 @@ const guides = [
   ["07-cashier-day-end.md", "07 RoyceERP Health - Cashier Day-End"],
   ["08-administrator-setup.md", "08 RoyceERP Health - Administrator Setup"],
   ["09-patient-sms.md", "09 RoyceERP Health - Patient SMS", "8 November 2026"],
+  ["10-theatre.md", "10 RoyceERP Health - Theatre Workflow", "10 November 2026"],
+  ["11-theatre-testing.md", "11 RoyceERP Health - Theatre Testing Guide", "10 November 2026"],
 ];
 const css = `
 @page { size: A4; margin: 18mm 16mm 20mm 16mm; }
@@ -60,7 +62,7 @@ const page = await browser.newPage();
 for (const [file, title, checked = "7 November 2026"] of guides) {
   if (process.env.ONLY && !file.startsWith(process.env.ONLY)) continue;
   let md = fs.readFileSync(path.join(guidesDir, file), "utf8");
-  md = md.replace(/\]\(((?:0[1-9])-[a-z-]+)\.md\)/g, "]($1.pdf)");
+  md = md.replace(/\]\((\d{2}-[a-z-]+)\.md\)/g, "]($1.pdf)");
   let body = micromark(md, { extensions: [gfm()], htmlExtensions: [gfmHtml()] });
   const cover = `<div class="cover"><div class="brand">RoyceERP Health · Royce Technologies Ltd</div><div class="meta">Guide checked ${checked} on the demo hospital (Kijani Valley Hospital Ltd). All patients, staff and records shown are fictional.</div></div>`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><base href="file://${guidesDir}/"><title>${title}</title><style>${css}</style></head><body>${cover}${body}</body></html>`;

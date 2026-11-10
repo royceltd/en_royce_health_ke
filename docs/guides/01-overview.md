@@ -94,16 +94,27 @@ Fields follow the MOH ANC, maternity and PNC registers. We will align them with 
 
 ## Theatre and radiology
 
-A patient cannot go into theatre without signed consent and the WHO Sign In, and an imaging report is released only after a radiologist verifies it.
+A patient cannot go into theatre without signed consent, the ward preparation and the WHO Sign In, and the swab count must balance before Sign Out. The forms follow the hospital's own paper theatre forms and print in the same layout. See the [Theatre guide](10-theatre.md).
 
 **Theatre** (demo patient **Daniel Mutua Kioko**):
 
 1. **Theatre Booking:** theatre, start time and duration, surgeon, assistant, anaesthetist, priority and insurance pre-authorisation. Clashes on the theatre, a surgeon, the anaesthetist or the patient are refused.
-2. **Surgical Consent:** what was explained, risks, alternatives, anaesthesia and transfusion consent, witness and the scanned form.
-3. **WHO Surgical Safety Checklist:** Sign In, Time Out and Sign Out, each time-stamped and done only after the one before.
-4. **Into Theatre** needs submitted consent, Sign In done and no pending or declined pre-authorisation; an emergency may proceed while it is pending.
-5. **Anaesthesia Record:** ASA class, technique, airway, drugs, vitals during surgery, fluids and losses, recovery score.
-6. **Complete** needs Time Out, Sign Out and the operation note, then issues the consumables from the theatre store.
+2. **Consent for Operation:** what was explained, risks, alternatives, anaesthesia and transfusion consent, witness; printed in the hospital's wording for signature or thumbprint, then the scan is attached.
+3. **Surgical Safety Checklist**, one per operation:
+   - ward preparation and handover to theatre
+   - the WHO Sign In, Time Out and Sign Out, each time-stamped and done only after the one before
+   - the swab and instrument count
+   - the post-operative checklist back to the ward
+4. **Into Theatre** needs:
+   - submitted consent
+   - ward preparation done; an emergency may go in without it, with a warning
+   - Sign In done
+   - no pending or declined pre-authorisation; an emergency may go in while it is pending
+5. **Anaesthesia Record:**
+   - the KSA pre-anaesthetic assessment: systems review, airway, GCS, ASA, and lab results filled in from the patient's tests
+   - the monitoring chart: agents, drugs, vitals, fluids and losses
+   - recovery and the post-operative instructions for the ward
+6. **Complete** needs Time Out, Sign Out and the operation note (findings, incision, procedure). It then issues the consumables from the theatre store.
 
 **Radiology** (demo patient **Joseph Kamau Njoroge**):
 
