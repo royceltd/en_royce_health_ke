@@ -38,7 +38,19 @@ doc_events = {
 	"Journal Entry": {"on_cancel": "royce_health_ke.claims.on_settlement_cancel"},
 	"Observation": {"before_insert": "royce_health_ke.radiology.before_insert_observation"},
 	"Lab Test": {"on_submit": "royce_health_ke.sms.lab_test_submitted"},
-	"Vital Signs": {"validate": "royce_health_ke.vitals.validate_vital_signs"},
+	"Vital Signs": {
+		"validate": [
+			"royce_health_ke.visits.link_vital_signs",
+			"royce_health_ke.vitals.validate_vital_signs",
+		],
+		"on_update": "royce_health_ke.visits.vital_signs_saved",
+		"on_submit": "royce_health_ke.visits.vital_signs_saved",
+	},
+	"Patient Encounter": {
+		"validate": "royce_health_ke.visits.link_encounter",
+		"on_update": "royce_health_ke.visits.encounter_saved",
+		"on_submit": "royce_health_ke.visits.encounter_saved",
+	},
 }
 
 jinja = {
@@ -68,6 +80,7 @@ doctype_js = {
 	"Insurance Claim": "public/js/insurance_claim.js",
 	"Observation": "public/js/observation.js",
 	"Vital Signs": "public/js/vital_signs.js",
+	"Patient Appointment": "public/js/patient_appointment.js",
 }
 
 doctype_list_js = {"Vital Signs": "public/js/vital_signs_list.js"}

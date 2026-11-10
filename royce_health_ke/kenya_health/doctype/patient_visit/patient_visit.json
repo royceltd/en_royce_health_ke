@@ -1,0 +1,485 @@
+{
+ "actions": [],
+ "creation": "2026-11-10 22:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "visit_section",
+  "naming_series",
+  "patient",
+  "patient_name",
+  "sex",
+  "age",
+  "company",
+  "visit_cb",
+  "visit_date",
+  "arrival",
+  "visit_type",
+  "appointment_type",
+  "visit_cb2",
+  "practitioner",
+  "practitioner_name",
+  "department",
+  "is_referral",
+  "referred_from",
+  "appointment",
+  "payment_section",
+  "payment_method",
+  "insurance_payor",
+  "insurance_plan",
+  "insurance_policy",
+  "member_number",
+  "policy_expiry",
+  "payment_cb",
+  "relation",
+  "principal_member",
+  "principal_member_number",
+  "cover_limit",
+  "authorisation_code",
+  "insurance_remarks",
+  "queue_section",
+  "current_station",
+  "queue_status",
+  "sent_at",
+  "sent_by",
+  "queue_cb",
+  "acknowledged_at",
+  "acknowledged_by",
+  "vitals_status",
+  "vital_signs",
+  "encounter",
+  "status",
+  "status_reason",
+  "movements_section",
+  "movements",
+  "notes_section",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "visit_section",
+   "fieldtype": "Section Break",
+   "label": "Visit"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "VIS-.YYYY.-",
+   "default": "VIS-.YYYY.-",
+   "hidden": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "patient.patient_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "sex",
+   "fieldtype": "Link",
+   "label": "Sex",
+   "options": "Gender",
+   "fetch_from": "patient.sex",
+   "read_only": 1
+  },
+  {
+   "fieldname": "age",
+   "fieldtype": "Data",
+   "label": "Age",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "visit_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "visit_date",
+   "fieldtype": "Date",
+   "label": "Visit Date",
+   "default": "Today",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "arrival",
+   "fieldtype": "Datetime",
+   "label": "Arrived",
+   "default": "now",
+   "read_only": 1
+  },
+  {
+   "fieldname": "visit_type",
+   "fieldtype": "Select",
+   "label": "Visit Type",
+   "options": "Outpatient\nReview\nCasualty\nLab only\nRadiology only\nPharmacy only",
+   "default": "Outpatient",
+   "reqd": 1
+  },
+  {
+   "fieldname": "appointment_type",
+   "fieldtype": "Link",
+   "label": "Service Type",
+   "options": "Appointment Type",
+   "mandatory_depends_on": "eval:['Outpatient','Review'].includes(doc.visit_type)",
+   "description": "The consultation the patient came for, e.g. General Consultation."
+  },
+  {
+   "fieldname": "visit_cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "practitioner",
+   "fieldtype": "Link",
+   "label": "Practitioner",
+   "options": "Healthcare Practitioner",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "practitioner_name",
+   "fieldtype": "Data",
+   "label": "Practitioner Name",
+   "fetch_from": "practitioner.practitioner_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Medical Department",
+   "fetch_from": "practitioner.department",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "is_referral",
+   "fieldtype": "Check",
+   "label": "Referred In"
+  },
+  {
+   "fieldname": "referred_from",
+   "fieldtype": "Data",
+   "label": "Referred From",
+   "depends_on": "is_referral",
+   "mandatory_depends_on": "is_referral"
+  },
+  {
+   "fieldname": "appointment",
+   "fieldtype": "Link",
+   "label": "Appointment",
+   "options": "Patient Appointment",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_section",
+   "fieldtype": "Section Break",
+   "label": "Payment"
+  },
+  {
+   "fieldname": "payment_method",
+   "fieldtype": "Select",
+   "label": "Payment Method",
+   "options": "Cash\nInsurance",
+   "default": "Cash",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "insurance_payor",
+   "fieldtype": "Link",
+   "label": "Payer",
+   "options": "Insurance Payor",
+   "depends_on": "eval:doc.payment_method=='Insurance'",
+   "mandatory_depends_on": "eval:doc.payment_method=='Insurance'"
+  },
+  {
+   "fieldname": "insurance_plan",
+   "fieldtype": "Link",
+   "label": "Scheme",
+   "options": "Insurance Payor Eligibility Plan",
+   "depends_on": "eval:doc.payment_method=='Insurance'"
+  },
+  {
+   "fieldname": "insurance_policy",
+   "fieldtype": "Link",
+   "label": "Insurance Policy",
+   "options": "Patient Insurance Policy",
+   "depends_on": "eval:doc.payment_method=='Insurance'",
+   "description": "The patient's policy with this payer. Leave empty for a new member: it is created from the details below."
+  },
+  {
+   "fieldname": "member_number",
+   "fieldtype": "Data",
+   "label": "Member / Policy No.",
+   "depends_on": "eval:doc.payment_method=='Insurance'",
+   "mandatory_depends_on": "eval:doc.payment_method=='Insurance' && !doc.insurance_policy"
+  },
+  {
+   "fieldname": "policy_expiry",
+   "fieldtype": "Date",
+   "label": "Cover Valid Until",
+   "depends_on": "eval:doc.payment_method=='Insurance' && !doc.insurance_policy",
+   "mandatory_depends_on": "eval:doc.payment_method=='Insurance' && !doc.insurance_policy"
+  },
+  {
+   "fieldname": "payment_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "relation",
+   "fieldtype": "Select",
+   "label": "Relation to Principal",
+   "options": "Principal\nSpouse\nChild\nOther",
+   "default": "Principal",
+   "depends_on": "eval:doc.payment_method=='Insurance'"
+  },
+  {
+   "fieldname": "principal_member",
+   "fieldtype": "Data",
+   "label": "Principal Member Name",
+   "depends_on": "eval:doc.payment_method=='Insurance' && doc.relation!='Principal'"
+  },
+  {
+   "fieldname": "principal_member_number",
+   "fieldtype": "Data",
+   "label": "Principal Member No.",
+   "depends_on": "eval:doc.payment_method=='Insurance' && doc.relation!='Principal'"
+  },
+  {
+   "fieldname": "cover_limit",
+   "fieldtype": "Currency",
+   "label": "Limit",
+   "depends_on": "eval:doc.payment_method=='Insurance'"
+  },
+  {
+   "fieldname": "authorisation_code",
+   "fieldtype": "Data",
+   "label": "Authorisation Code",
+   "depends_on": "eval:doc.payment_method=='Insurance'"
+  },
+  {
+   "fieldname": "insurance_remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks",
+   "depends_on": "eval:doc.payment_method=='Insurance'"
+  },
+  {
+   "fieldname": "queue_section",
+   "fieldtype": "Section Break",
+   "label": "Queue"
+  },
+  {
+   "fieldname": "current_station",
+   "fieldtype": "Select",
+   "label": "Station",
+   "options": "Triage\nConsultation\nCasualty\nLaboratory\nRadiology\nPharmacy\nProcedure Room\nCashier\nAdmission",
+   "in_standard_filter": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "queue_status",
+   "fieldtype": "Select",
+   "label": "Queue Status",
+   "options": "Waiting\nSeen",
+   "default": "Waiting",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sent_at",
+   "fieldtype": "Datetime",
+   "label": "Waiting Since",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "sent_by",
+   "fieldtype": "Link",
+   "label": "Sent By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "queue_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "acknowledged_at",
+   "fieldtype": "Datetime",
+   "label": "Seen At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "acknowledged_by",
+   "fieldtype": "Link",
+   "label": "Seen By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "vitals_status",
+   "fieldtype": "Select",
+   "label": "Vitals",
+   "options": "\nNormal\nAbnormal",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "vital_signs",
+   "fieldtype": "Link",
+   "label": "Latest Vital Signs",
+   "options": "Vital Signs",
+   "read_only": 1
+  },
+  {
+   "fieldname": "encounter",
+   "fieldtype": "Link",
+   "label": "Latest Consultation",
+   "options": "Patient Encounter",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Open\nCompleted\nCancelled",
+   "default": "Open",
+   "read_only": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "status_reason",
+   "fieldtype": "Small Text",
+   "label": "Cancelled Reason",
+   "read_only": 1,
+   "depends_on": "eval:doc.status=='Cancelled'"
+  },
+  {
+   "fieldname": "movements_section",
+   "fieldtype": "Section Break",
+   "label": "Movements"
+  },
+  {
+   "fieldname": "movements",
+   "fieldtype": "Table",
+   "label": "Movements",
+   "options": "Patient Visit Movement",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes_section",
+   "fieldtype": "Section Break",
+   "label": "Notes",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-10 22:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Patient Visit",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "naming_series:",
+ "naming_rule": "By \"Naming Series\" field",
+ "title_field": "patient_name",
+ "search_fields": "patient_name,current_station",
+ "show_title_field_in_link": 1,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Receptionist",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "print": 1
+  },
+  {
+   "role": "Laboratory User",
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "print": 1
+  },
+  {
+   "role": "Accounts User",
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "print": 1
+  }
+ ]
+}

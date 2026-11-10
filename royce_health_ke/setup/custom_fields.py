@@ -152,12 +152,58 @@ VITAL_SIGNS = [
 		"depends_on": "eval:doc.ke_vitals_status == 'Abnormal'",
 	},
 	{
+		"fieldname": "ke_patient_visit",
+		"fieldtype": "Link",
+		"label": "Patient Visit",
+		"options": "Patient Visit",
+		"insert_after": "encounter",
+		"read_only": 1,
+		"description": "The day's open visit, linked on save.",
+	},
+	{
 		"fieldname": "ke_abnormal_fields",
 		"fieldtype": "Data",
 		"label": "Abnormal Fields",
 		"insert_after": "ke_vitals_flags",
 		"hidden": 1,
 		"read_only": 1,
+	},
+]
+
+ENCOUNTER = [
+	{
+		"fieldname": "ke_patient_visit",
+		"fieldtype": "Link",
+		"label": "Patient Visit",
+		"options": "Patient Visit",
+		"insert_after": "appointment",
+		"read_only": 1,
+		"description": "The day's open visit, linked on save.",
+	},
+]
+
+INSURANCE_POLICY = [
+	{
+		"fieldname": "ke_relation",
+		"fieldtype": "Select",
+		"label": "Relation to Principal",
+		"options": "Principal\nSpouse\nChild\nOther",
+		"default": "Principal",
+		"insert_after": "policy_number",
+	},
+	{
+		"fieldname": "ke_principal_member",
+		"fieldtype": "Data",
+		"label": "Principal Member Name",
+		"insert_after": "ke_relation",
+		"depends_on": "eval:doc.ke_relation != 'Principal'",
+	},
+	{
+		"fieldname": "ke_principal_member_number",
+		"fieldtype": "Data",
+		"label": "Principal Member No.",
+		"insert_after": "ke_principal_member",
+		"depends_on": "eval:doc.ke_relation != 'Principal'",
 	},
 ]
 
@@ -579,6 +625,8 @@ def apply():
 		SERVICE_UNIT,
 		PATIENT,
 		VITAL_SIGNS,
+		ENCOUNTER,
+		INSURANCE_POLICY,
 		PRACTITIONER,
 		CLAIM_COVERAGE,
 		OPERATION_NOTE,
@@ -588,19 +636,21 @@ def apply():
 	):
 		for field in fields:
 			field.setdefault("module", MODULE)
-	create_custom_fields(
-		{
-			"Patient": PATIENT,
-			"Vital Signs": VITAL_SIGNS,
-			"Healthcare Practitioner": PRACTITIONER,
-			"Insurance Claim Coverage": CLAIM_COVERAGE,
-			"Clinical Procedure": OPERATION_NOTE,
-			"Observation Template": IMAGING_TEMPLATE,
-			"Observation": IMAGING_OBSERVATION,
-			"Item Group": ITEM_GROUP,
-			"Sales Invoice Item": INVOICE_ITEM,
-			"Healthcare Service Unit": SERVICE_UNIT,
-			**MOH,
-		},
-		update=True,
-	)
+	fields = {
+		"Patient": PATIENT,
+		"Vital Signs": VITAL_SIGNS,
+		"Patient Insurance Policy": INSURANCE_POLICY,
+		"Healthcare Practitioner": PRACTITIONER,
+		"Insurance Claim Coverage": CLAIM_COVERAGE,
+		"Clinical Procedure": OPERATION_NOTE,
+		"Observation Template": IMAGING_TEMPLATE,
+		"Observation": IMAGING_OBSERVATION,
+		"Item Group": ITEM_GROUP,
+		"Sales Invoice Item": INVOICE_ITEM,
+		"Healthcare Service Unit": SERVICE_UNIT,
+	}
+	# MOH has its own Patient Encounter fields: combine, don't replace.
+	for doctype, extra in MOH.items():
+		fields[doctype] = [*fields.get(doctype, []), *extra]
+	fields["Patient Encounter"] = [*fields.get("Patient Encounter", []), *ENCOUNTER]
+	create_custom_fields(fields, update=True)

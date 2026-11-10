@@ -19,7 +19,7 @@ User guides with screenshots, for hospital staff: [docs/guides](docs/guides/READ
 | 6. Radiology | Worklist, perform/report/verify, accession numbers, MOH 717 imaging done; PACS/modality integration pending |
 | 7. MOH reports, KHIS, dashboards | MOH 705A/B, 706, 711 and 717 done (mappings to confirm with the HRIO and lab); management dashboards done; KHIS submission pending. MOH 710 not needed by the first client |
 | 8. Kitchen, laundry | Diet orders, ward diet list, meal charges; linen movements and status done |
-| 9. Go-live readiness | Patient record access log, patient SMS, required registration details, masked patient details and triage vitals flags done; patient queue, running bill, two legal entities, SmartHealth import pending |
+| 9. Go-live readiness | Patient record access log, patient SMS, required registration details, masked patient details, triage vitals flags and the patient visit queue done; running bill, two legal entities, SmartHealth import pending |
 
 ### Installation
 
@@ -202,6 +202,17 @@ Patients' phone numbers, email, ID number and next of kin's phone are shown as X
 
 - Frappe's own field masking: it applies to lists, reports and forms. Server code (SMS, prints, claims) reads the real values, and a masked user saving a patient never overwrites them.
 - Applied once per site (`privacy.apply_defaults`), then the hospital's to change: who sees what in Role Permissions Manager (the Mask column), which fields in Customize Form (Mask). Patient, Inpatient Record and Lab Test permissions become custom permissions when it runs.
+
+### Patient visits and the queue
+
+A **Patient Visit** is one arrival: reception checks the patient in, and the visit moves from station to station until it is completed.
+
+- **Check-in** (from the Patient's *Create > Check In (New Visit)*, an appointment's *Start Visit*, or *+ Add*): visit type, service type, practitioner and department, referral, and payment. **Insurance** takes the payer, scheme, member number, relation to the principal member, limit, authorisation code and remarks. The patient's existing policy is picked up (or chosen); a new member's Patient Insurance Policy is created and submitted from what reception typed. Expired cover is refused. One open visit per patient per day. An appointment the patient came for is marked Checked In.
+- **First station** from the visit type: outpatient and review go to Triage, casualty to Casualty, lab-, radiology- and pharmacy-only visits straight there.
+- **The queue** is the Patient Visit list filtered by Station: each row shows the station and whether the patient is waiting or seen, minutes waiting (orange after 30, red after 60), payment method and the triage vitals flag. No phone or ID numbers.
+- **At a station:** *Seen* takes the patient off the waiting list; *Send To* moves them on (to Consultation with the practitioner), with an optional note. Every move is kept in Movements with who and when. *Record* opens Vital Signs or a Consultation for the visit; *Complete Visit* and *Cancel Visit* (with a reason) close it.
+- **Links:** vital signs and consultations recorded that day link to the open visit. The visit shows the latest vitals flag; opening the consultation marks the patient seen at Consultation and fills its service type, practitioner and department from the visit.
+- **Receptionist role:** registers patients, checks them in, records insurance policies and appointments; reads practitioners, departments, service types and payers. Added once per site (`roles.py`), then the hospital's to change.
 
 ### Triage vitals flags
 

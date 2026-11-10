@@ -32,6 +32,7 @@
   "privacy_section",
   "track_record_access",
   "privacy_defaults_applied",
+  "role_defaults_version",
   "registration_section",
   "require_registration_details"
  ],
@@ -209,6 +210,13 @@
    "default": "0"
   },
   {
+   "fieldname": "role_defaults_version",
+   "fieldtype": "Int",
+   "label": "Role Defaults Version",
+   "hidden": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "registration_section",
    "fieldtype": "Section Break",
    "label": "Patient Registration"
@@ -223,7 +231,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-10 20:51:21.104233",
+ "modified": "2026-11-10 21:01:14.243865",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

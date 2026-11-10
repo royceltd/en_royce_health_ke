@@ -1,0 +1,83 @@
+{
+ "actions": [],
+ "creation": "2026-11-10 22:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "from_station",
+  "to_station",
+  "sent_at",
+  "sent_by",
+  "practitioner",
+  "note",
+  "acknowledged_at",
+  "acknowledged_by"
+ ],
+ "fields": [
+  {
+   "fieldname": "from_station",
+   "fieldtype": "Data",
+   "label": "From",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "to_station",
+   "fieldtype": "Data",
+   "label": "To",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "sent_at",
+   "fieldtype": "Datetime",
+   "label": "Sent At",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "sent_by",
+   "fieldtype": "Link",
+   "label": "Sent By",
+   "options": "User",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "practitioner",
+   "fieldtype": "Link",
+   "label": "Practitioner",
+   "options": "Healthcare Practitioner"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Data",
+   "label": "Note",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "acknowledged_at",
+   "fieldtype": "Datetime",
+   "label": "Seen At"
+  },
+  {
+   "fieldname": "acknowledged_by",
+   "fieldtype": "Link",
+   "label": "Seen By",
+   "options": "User"
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-10 22:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "name": "Patient Visit Movement",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 0,
+ "permissions": []
+}

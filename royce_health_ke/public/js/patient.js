@@ -12,6 +12,13 @@ frappe.ui.form.on("Patient", {
 			for (const f of KE_REQUIRED) frm.toggle_reqd(f, true);
 		}
 		if (frm.is_new()) return;
+		if (frappe.model.can_create("Patient Visit")) {
+			frm.add_custom_button(
+				__("Check In (New Visit)"),
+				() => frappe.new_doc("Patient Visit", { patient: frm.doc.name }),
+				__("Create")
+			);
+		}
 		if (frappe.model.can_read("Patient Record Access")) {
 			frm.add_custom_button(
 				__("Who Opened This Record"),
