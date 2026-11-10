@@ -1,0 +1,34 @@
+[
+ {
+  "file": "01-check-in-insured.png",
+  "url": "/desk/kenya-health/patient-visit/VIS-2026-00003",
+  "scroll": "[data-fieldname=\"payment_section\"]"
+ },
+ {
+  "file": "02-queue.png",
+  "url": "/desk/kenya-health/patient-visit"
+ },
+ {
+  "file": "03-vitals-abnormal.png",
+  "url": "/desk/outpatient/vital-signs/HLC-VTS-2026-00010"
+ },
+ {
+  "file": "04-bill-to-bill.png",
+  "url": "/desk/kenya-health/patient-visit/VIS-2026-00002",
+  "scroll": "[data-fieldname=\"bill_section\"]"
+ },
+ {
+  "file": "05-bill-paid.png",
+  "url": "/desk/kenya-health/patient-visit/VIS-2026-00002",
+  "scroll": "[data-fieldname=\"bill_section\"]"
+ },
+ {
+  "file": "06-invoice.png",
+  "url": "/desk/outpatient/sales-invoice/ACC-SINV-2026-00016"
+ },
+ {
+  "file": "07-settings.png",
+  "url": "/desk/kenya-health/kenya-health-settings",
+  "scroll": "[data-fieldname=\"registration_section\"]"
+ }
+]

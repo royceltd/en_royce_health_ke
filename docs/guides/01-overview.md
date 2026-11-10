@@ -8,9 +8,9 @@ This guide follows a live demo hospital, **Kijani Valley Hospital Ltd**. The hos
 
 | Area | What it covers |
 | --- | --- |
-| Outpatient | Registration, appointments, triage and vitals, consultation, lab and imaging orders, prescriptions |
+| Outpatient | Registration, check-in and station waiting lists, appointments, triage with vitals flags, consultation, lab and imaging orders, prescriptions |
 | Inpatient | Admission, beds and wards, ward rounds, medication orders, discharge summary |
-| Billing and cashier | Invoices from services ordered, M-Pesa and cash receipts, per-night bed charges, packages |
+| Billing and cashier | A running bill on each visit, invoices from services ordered, payment before lab, radiology and pharmacy, M-Pesa and cash receipts, per-night bed charges, packages |
 | Insurance | Policies, copay at the cashier, claims per visit, approvals, rejections and their settlement |
 | Maternity | Pregnancy record, ANC visits, labour care guide, delivery, newborn, postnatal care, family planning |
 | Theatre and radiology | Theatre booking, consent, WHO safety checklist, anaesthesia record; imaging worklist and reports |
@@ -26,19 +26,21 @@ This guide follows a live demo hospital, **Kijani Valley Hospital Ltd**. The hos
 - The **search bar** at the top finds any patient, invoice or record by name or number.
 - Every record links to the next step in its journey, for example from an encounter to its lab tests and invoice.
 
-Step-by-step guides: [Outpatient](02-outpatient.md) · [Inpatient](03-inpatient.md).
+Step-by-step guides: [Reception, queue and billing](12-reception-queue-billing.md) · [Outpatient](02-outpatient.md) · [Inpatient](03-inpatient.md).
 
 ## Outpatient journey
 
 An outpatient visit runs registration, triage, consultation, cashier and lab in one record, and the receipt is signed with KRA eTIMS. In the demo, follow **Grace Wanjiku Mwangi**, a walk-in patient with malaria, or **Lucy Wairimu Ndung'u** in the [Outpatient guide](02-outpatient.md).
 
-1. **Registration (reception).** Create the Patient with ID type and number, SHA member number, county and next of kin. Phone numbers are stored as +254, and a second patient with the same ID is refused, naming the existing record.
-2. **Appointment.** Book a Patient Appointment with a practitioner, for example Dr Amina Achieng, Outpatient.
-3. **Triage (nurse).** Record Vital Signs: temperature, pulse, blood pressure, weight and height.
+1. **Registration (reception).** Create the Patient with ID type and number, contact number, nationality, county, residence and next of kin; these are required. Phone numbers are stored as +254, and a second patient with the same ID is refused, naming the existing record. Other staff see phone and ID numbers masked.
+2. **Check-in (reception).** Open a **Patient Visit**: service type and doctor, cash or insurance (payer, member number, authorisation code). The patient joins the first waiting list, and every station sends them on with **Send To**. A booked Patient Appointment starts its visit with **Start Visit**.
+3. **Triage (nurse).** Record Vital Signs: temperature, pulse, blood pressure, SpO2, weight and height. Readings out of range are flagged **Abnormal** in red, on the visit and the waiting list.
 4. **Consultation (doctor).** Open a Patient Encounter. Record symptoms and diagnosis (ICD-11 codes are loaded), then order lab tests and prescribe drugs from the same screen.
-5. **Cashier.** Create the Sales Invoice with *Get items from Healthcare Services*: consultation, tests and drugs come in from what was ordered. Take payment by M-Pesa or cash.
+5. **Cashier.** The visit's **Bill** shows what is not billed yet; **Create Bill** turns it into the Sales Invoice (or use *Get items from Healthcare Services*). Take payment by M-Pesa or cash.
 6. **KRA eTIMS.** On submit, the invoice is sent to KRA and comes back signed with a KRA invoice number and QR code for the receipt.
-7. **Lab.** Lab tests are created from the doctor's orders, results are entered and verified, and they appear in the patient's history.
+7. **Lab.** Lab tests are created from the doctor's orders once paid (cash patients), results are entered and verified, and they appear in the patient's history. Radiology and the pharmacy also wait for payment; insured patients, inpatients and casualty are served first.
+
+The full flow, with each station's waiting list and the visit's bill, is in the [Reception, queue and billing guide](12-reception-queue-billing.md).
 
 **Practitioner records** hold the cadre, regulator (KMPDC, NCK, COC, PPB, KMLTTB), registration and licence numbers. Administrators are warned 30, 14, 7 and 1 day before a licence expires.
 

@@ -4,8 +4,8 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 
 | Guide | For | Last checked |
 | --- | --- | --- |
-| [01 Overview](01-overview.md) | Management, ICT | 2026-11-07, v0.14.0 |
-| [02 Outpatient](02-outpatient.md) | Reception, triage, doctors, lab, cashier, pharmacy | 2026-11-07, v0.14.0 |
+| [01 Overview](01-overview.md) | Management, ICT | 2026-11-10, v0.21.0 (text) |
+| [02 Outpatient](02-outpatient.md) | Reception, triage, doctors, lab, cashier, pharmacy | 2026-11-10, v0.21.0 (text) |
 | [03 Inpatient](03-inpatient.md) | Doctors, ward nurses, pharmacy, cashier | 2026-11-07, v0.14.0 |
 | [04 Insurance](04-insurance.md) | Reception, cashier, claims officer, finance | 2026-11-07, v0.14.0 |
 | [05 Maternity](05-maternity.md) | ANC nurses, midwives, MCH, cashier | 2026-11-07, v0.14.0 |
@@ -15,6 +15,8 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 | [09 Patient SMS](09-patient-sms.md) | Reception, clinical staff, administrator | 2026-11-08, v0.15.1 |
 | [10 Theatre](10-theatre.md) | Surgeons, anaesthetists, theatre and ward nurses | 2026-11-10, v0.18.0 |
 | [11 Theatre testing](11-theatre-testing.md) | The hospital's testers, before go-live | 2026-11-10, v0.18.0 |
+| [12 Reception, queue and billing](12-reception-queue-billing.md) | Reception, triage, cashier, lab, pharmacy, managers | 2026-11-10, v0.21.0 |
+| [13 Reception and billing testing](13-reception-billing-testing.md) | The hospital's testers, before go-live | 2026-11-10, v0.21.0 |
 
 Planned next: radiology, emergency, kitchen and laundry, MOH reporting for the HRIO.
 

@@ -1,0 +1,104 @@
+# Reception, Queue and Billing — Testing Guide
+
+A short script to test registration, check-in, the waiting lists, the vitals flags, the visit's bill and payment before service, before using them with real patients. Each test says what to do and what the system should do. Tick each one off. If anything behaves differently, send a screenshot.
+
+Test on the demo hospital (hospital.royceltd.com), not on your live site, because the tests create patients, visits and invoices. The steps are explained in full in the [Reception, queue and billing guide](12-reception-queue-billing.md).
+
+## Before you start
+
+You need three logins (Royce can create them for you on the demo):
+
+| Login | Roles | Used for |
+| --- | --- | --- |
+| Reception | Receptionist | Registration and check-in |
+| Nurse | Nursing User | Triage, and seeing masked details |
+| Manager | Healthcare Administrator, Accounts User, Laboratory User | Cashier, lab and approving services before payment |
+
+Use the doctor **Dr Amina Achieng** and the service type **General Consultation**. Write down the visit numbers you create (VIS-…).
+
+## A. Registration
+
+Log in as **Reception**. Healthcare › Patient › *+ Add Patient*.
+
+| # | Do this | The system should |
+| --- | --- | --- |
+| 1 | Enter a first and last name, sex and date of birth (an adult) only. Save. | Refuse, listing what is missing: ID, mobile number, county and residence (nationality starts as Kenya). |
+| 2 | Add ID type *National ID* and a number, a mobile number, nationality **Kenya** and a residence, but no county. Save. | Refuse: the county is needed for a Kenyan. Choose a county and save. |
+| 3 | Register a child of 5 with ID type **None**, no mobile, and the next of kin's phone. | Save it. |
+| 4 | Register an adult with ID type **None**. | Refuse: *None* is only for children. |
+| 5 | Enter the ID number of the patient from test 2 on a new patient. | Refuse, naming the existing patient. |
+
+## B. Masked details
+
+| # | Do this | The system should |
+| --- | --- | --- |
+| 6 | As **Nurse**, open the Patient list, then the patient from test 2. | The list shows no phone or ID. On the form, the mobile and ID number show as XXXXXXXX. |
+| 7 | As **Nurse**, change the patient's blood group and save. As **Reception**, open the patient. | Reception sees the real mobile and ID number, unchanged. |
+
+## C. Check-in and the waiting lists
+
+As **Reception**:
+
+| # | Do this | The system should |
+| --- | --- | --- |
+| 8 | On the patient from test 2, **Create › Check In (New Visit)**. Visit type *Outpatient*, General Consultation, Dr Amina, Cash. Save. | Save the visit at **Triage: waiting**, with the age worked out and one line under Movements (Reception → Triage). |
+| 9 | Check the same patient in again. | Refuse with **Already checked in**, naming the visit from test 8. |
+| 10 | Check in a different patient as *Lab only*. | It goes straight to **Laboratory: waiting**. |
+| 11 | Open Kenya Health › Patient Visit and set **Station** to Triage. | Show the visit from test 8 with its minutes waiting. After 30 minutes the time turns orange. |
+| 12 | Check in *Peter Otieno Kamau* with **Insurance**, payer *Mlima Health Assurance (Demo)*. | His policy fills in by itself, with the member number. |
+| 13 | Check in another patient with **Insurance**, a new member number and **Cover Valid Until** yesterday. | Refuse: the cover has expired. Change the date to next year and save: a Patient Insurance Policy is created for the patient. |
+
+## D. Triage and consultation
+
+As **Nurse**, on the visit from test 8:
+
+| # | Do this | The system should |
+| --- | --- | --- |
+| 14 | Press **Seen**. | The status turns **Triage: seen** and the movement gets the time seen. |
+| 15 | **Record › Vital Signs**: temperature 38.9, pulse 110, SpO2 91, BP 120/80. Save. | Flag it **Abnormal**, with the temperature, pulse and SpO2 in red and listed at the top. The visit shows Vitals **Abnormal**, and so does the waiting list. |
+| 16 | Record vital signs for another adult: temperature 36.8, pulse 80, SpO2 98, BP 118/76. | Flag them **Normal**. |
+| 17 | On the visit, **Send To** Consultation, Dr Amina. | The visit moves to **Consultation: waiting**, with a second movement line. |
+| 18 | As **Manager** (or a doctor), **Record › Consultation**. Order a **Malaria Blood Slide**. Save and submit. | The consultation opens with Dr Amina and General Consultation filled in. The visit turns **Consultation: seen**. |
+
+## E. The bill
+
+| # | Do this | The system should |
+| --- | --- | --- |
+| 19 | Open the visit from test 8. | The **Bill** section lists the consultation (1,500) and the malaria slide (500) under *Not billed yet*, To pay 2,000. Bill status **To Bill**, and the same in the waiting list. |
+| 20 | As **Manager**, start the lab test: open the malaria slide's **Service Request** and create the lab test. | Refuse: **Payment required** … *Send the patient to the Cashier*. |
+| 21 | On the visit, **Bill › Create Bill**. Save the invoice and submit it. Don't take payment. | The invoice shows the two lines and the visit number. The visit turns **Unpaid**. |
+| 22 | Try test 20 again. | Still refused: billed is not paid. |
+| 23 | On the invoice, **Create › Payment** for the full amount and submit. | The visit turns **Paid**: the invoice shows with balance 0, To pay 0. |
+| 24 | Try test 20 again. | The lab test is created. |
+| 25 | Open the **Bill** menu on the visit. | **Create Bill** is no longer offered: nothing is waiting to be billed. |
+
+## F. Exemptions and approval
+
+| # | Do this | The system should |
+| --- | --- | --- |
+| 26 | On Peter's insured visit (test 12), have the doctor order a malaria slide, then start the lab test without billing. | Let it start: insured patients are served first. |
+| 27 | Check in a new cash patient, order a test, then as **Manager** use **Bill › Allow Services Before Payment** with the reason *Staff, pays at month end*. Start the lab test. | The reason shows at the top of the visit. The lab test starts unpaid. |
+| 28 | As **Reception**, open the same visit. | No *Allow Services Before Payment* option: only managers have it. |
+
+## G. Pharmacy
+
+| # | Do this | The system should |
+| --- | --- | --- |
+| 29 | For a cash patient's visit, make a Sales Invoice with paracetamol, **Update Stock** ticked and the pharmacy store. Submit without **Include Payment**. | Refuse: *Drugs leave the store only when paid.* |
+| 30 | Tick **Include Payment**, enter the payment for the full amount, and submit. | Submit it; the stock goes down. |
+| 31 | Make a second invoice without Update Stock, submit it unpaid, then **Create › Delivery Note** and submit. | Refuse the Delivery Note: the invoice is unpaid. Pay the invoice and submit the Delivery Note again: it goes through. |
+
+## H. Closing
+
+| # | Do this | The system should |
+| --- | --- | --- |
+| 32 | On the visit from test 8, **Status › Complete Visit**. | The visit turns **Completed** and leaves the waiting lists. **Send To** is no longer offered. |
+| 33 | Cancel the visit from test 10 with a reason. | It turns **Cancelled**, with the reason shown. |
+
+## Tell us
+
+1. Any test where the system did something different, with a screenshot.
+2. **Vitals limits:** are these right for your hospital? Fever above 37.5 °C, SpO2 below 94 %, blood pressure 90–139 / 60–89 from 13 years, pulse and breathing rate by age band (the full table is in the guide).
+3. **Payment before service:** should any department or patient group also be served first (for example antenatal mothers, or staff)?
+4. **Stations:** are Triage, Consultation, Casualty, Laboratory, Radiology, Pharmacy, Procedure Room, Cashier and Admission the right list? What do you call yours?
+5. Which details may nurses and doctors see in full (for example the phone number, to call a patient back)?

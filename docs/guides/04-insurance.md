@@ -37,6 +37,8 @@ Demo records: insurer *Mlima Health Assurance (Demo)*, plan *Corporate Gold (Dem
 
 Check the card at every visit: an expired policy means the patient pays in full.
 
+**At check-in:** reception can do this step on the Patient Visit instead. Choosing *Insurance* picks up the patient's policy with that payer, or creates and submits a new one from the member number, validity, relation to the principal member and the principal's details typed at the desk. The visit also keeps the limit and the authorisation code, and refuses expired cover. Insured patients are served by the lab, radiology and pharmacy without paying first. See the [Reception, queue and billing guide](12-reception-queue-billing.md), Step 2.
+
 Demo record: policy INS-PLCY-2026-00001 for *Peter Otieno Kamau* on Corporate Gold.
 
 ![Patient Insurance Policy](images/insurance/03-policy.png)

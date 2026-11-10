@@ -2,6 +2,8 @@
 
 How a walk-in patient moves through RoyceERP Health from registration to consultation, lab, payment and medicine, shown on the demo hospital at hospital.royceltd.com.
 
+Since v0.21 each arrival is also a **Patient Visit**: reception checks the patient in, stations pass them on through waiting lists, the visit shows its running bill, and cash patients pay before the lab, radiology and pharmacy serve them. That part is in the [Reception, queue and billing guide](12-reception-queue-billing.md); this guide covers the clinical records and invoices.
+
 ## At a glance
 
 ![Outpatient flow: 8 steps, 2 payments](images/outpatient/00-flow.png)
@@ -17,6 +19,8 @@ The highlighted steps are the two payments. Each step below says who does it, wh
 3. Add next of kin, blood group and allergies (write *No known drug allergies* if none).
 4. Save. A second patient with the same ID number is refused and the existing record is named, so returning patients are found rather than duplicated.
 
+ID, mobile number (the next of kin's for a child), nationality, county and residence are required for a new patient. Nurses, doctors, lab and pharmacy staff see the phone and ID numbers masked.
+
 Demo record: *Lucy Wairimu Ndung'u*, ID 0007788.
 
 ![Patient record for Lucy Wairimu Ndungu](images/outpatient/01-patient.png)
@@ -30,6 +34,7 @@ Demo record: *Lucy Wairimu Ndung'u*, ID 0007788.
 1. Choose the patient, appointment type (for example General Consultation) and the doctor.
 2. Pick the department, consultation room, date and time, and add a short note on why the patient came.
 3. Save. The appointment carries the consultation fee, and the doctor's encounter will link back to it.
+4. When the patient arrives, press **Start Visit** to check them in: the appointment turns *Checked In* and the patient joins the triage waiting list.
 
 The **Records** panel at the top of the appointment collects everything from the visit: encounters, vital signs and the medical record.
 
@@ -45,7 +50,7 @@ Demo record: HLC-APP-2026-00004, Dr Amina Achieng, OPD Room 1, 09:00.
 
 1. Choose the patient and link the appointment.
 2. Record temperature, pulse, respiratory rate, blood pressure, height and weight; BMI is worked out on the form.
-3. Add a triage note (for example *Priority. Febrile, alert.*) and submit.
+3. Add a triage note (for example *Priority. Febrile, alert.*) and submit. Readings out of range for the patient's age are flagged **Abnormal** and shown in red.
 
 The doctor sees these vitals when opening the consultation.
 
@@ -76,7 +81,7 @@ Demo record: consultation HLC-ENC-2026-00009 orders BS for MPS, Hb and WBC.
 
 **Who:** cashier. **Where:** Outpatient › Sales Invoice › *+ Add*.
 
-1. Choose the patient, then **Get Items From › Healthcare Services**. The consultation and the ordered tests come in.
+1. On the patient's visit, **Bill › Create Bill**: the consultation and the ordered tests come in, linked to the visit. (Or, on a new invoice, choose the patient, then **Get Items From › Healthcare Services**.)
 2. Check the lines and submit.
 3. **Create › Payment**: M-Pesa with its transaction code, or cash.
 4. The invoice is sent to KRA eTIMS and comes back *Sent*, with a KRA receipt number and QR code on the receipt.
@@ -103,7 +108,7 @@ KRA receipt 32. Medical services are VAT exempt, so no VAT is added.
 
 **Who:** lab technologist. **Where:** Diagnostics › Lab Test, or the open **Service Request** for the test.
 
-1. Open the lab test created from the doctor's order; the template brings in the result lines and normal ranges.
+1. Open the lab test created from the doctor's order; the template brings in the result lines and normal ranges. For a cash patient, the test starts only once the bill is paid (the visit's **Bill** reads *Paid*).
 2. Enter each result value (for example *P. falciparum seen (+)*, Hb 12.4).
 3. Submit. The status becomes *Completed* and the result appears in the patient's history for the doctor.
 
@@ -138,7 +143,7 @@ A dosage's quantity comes from the tablets per dose set in Setup › Prescriptio
 
 1. Choose the patient. Use **Get Items From › Prescriptions** (the review encounter) to bring in the drugs with their quantities.
 2. Tick **Update Stock** and set the pharmacy store as the warehouse, so the drugs leave stock when the bill is submitted.
-3. Submit, take payment by M-Pesa or cash, and the invoice is signed by KRA eTIMS.
+3. Tick **Include Payment** and enter the M-Pesa or cash payment, then submit; the invoice is signed by KRA eTIMS. An unpaid bill that issues stock is refused for a cash patient. Alternatively bill without Update Stock and let the pharmacy issue the drugs with a **Delivery Note** once the bill is paid.
 4. The pharmacist hands over the medicines against the paid bill, with the dosing instructions from the prescription.
 
 | Pharmacy bill ACC-SINV-2026-00009 | Qty | KES |
@@ -147,7 +152,7 @@ A dosage's quantity comes from the tablets per dose set in Setup › Prescriptio
 | Paracetamol 500 mg | 9 | 45 |
 | **Total, paid by M-Pesa** | | **645** |
 
-KRA receipt 33. Stock in the pharmacy store went down by 24 and 9 tablets.
+KRA receipt 33. Stock in the pharmacy store went down by 24 and 9 tablets. (This demo bill was made before payment-first dispensing and paid just after submitting; today it would need Include Payment.)
 
 Today the paid bill is the dispensing record. A pharmacy queue with a separate dispense step, partial dispensing and labels is on the roadmap.
 

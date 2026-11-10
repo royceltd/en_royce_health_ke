@@ -48,9 +48,11 @@ Medicines leave the pharmacy store three ways:
 
 | Where to | How | Guide |
 | --- | --- | --- |
-| Outpatient | The pharmacy bill with **Update Stock** ticked; stock leaves when the bill is submitted | [Outpatient](02-outpatient.md), Step 8 |
+| Outpatient | The pharmacy bill with **Update Stock** ticked and the payment taken on it; stock leaves when the bill is submitted. Or a **Delivery Note** from the bill once it is paid | [Outpatient](02-outpatient.md), Step 8 |
 | Inpatient | **Medication Entry** moves the due doses to the patient's bed; each dose leaves when the nurse records it as *Given* | [Inpatient](03-inpatient.md), Steps 5–6 |
 | Theatre | Consumables leave the theatre store when the procedure is completed | [Overview](01-overview.md), Theatre |
+
+**Paid first:** for a cash patient, a bill that issues stock must be paid on the spot (Include Payment), and a Delivery Note against an unpaid bill is refused. Insured patients, inpatients, casualty and visits a manager has approved are served first. The switch is in Kenya Health Settings › Payment Before Service.
 
 **Returning unused ward stock:** doses left at a bed after discharge go back to the pharmacy with a **Stock Entry** of type *Material Transfer* (Stock › Stock Entry › *+ Add*): from the bed's store to the pharmacy store. A transfer inside the hospital is not reported to KRA.
 

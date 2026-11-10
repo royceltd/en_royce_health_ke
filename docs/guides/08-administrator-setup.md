@@ -26,18 +26,20 @@ The company, chart of accounts, VAT, KRA eTIMS and payroll are set up by Royce d
 
 | Job | Roles |
 | --- | --- |
+| Reception | Receptionist (registers and checks in patients, records insurance policies, sees phone and ID numbers) |
 | Doctor | Physician |
 | Nurse, midwife | Nursing User |
 | Lab technologist | Laboratory User; LabTest Approver to verify results |
 | Pharmacist | Stock User |
 | Cashier | Accounts User |
+| Manager who approves services before payment | Healthcare Administrator or Accounts Manager |
 | Kitchen, laundry | Kitchen User, Laundry User |
 | Hospital administrator | Healthcare Administrator |
 
 3. Save, then set a password under **Password** or let the welcome email do it.
 4. When someone leaves, untick **Enabled**; never delete a user, so their records keep their name.
 
-Roles decide what each person sees: a nurse does not see revenue, and only administrators read the patient record access log.
+Roles decide what each person sees: a nurse does not see revenue, only administrators read the patient record access log, and only Receptionist, Healthcare Administrator and System Manager see patients' phone and ID numbers (others see XXXXXXXX). Who sees them can be changed in Role Permissions Manager (the Mask column).
 
 Demo users: *amina.achieng@kijanivalley.example* (Physician) and *nurse.wanjiru@kijanivalley.example* (Nursing User), both fictional.
 
@@ -51,7 +53,7 @@ Demo users: *amina.achieng@kijanivalley.example* (Physician) and *nurse.wanjiru@
 
 1. Enter the name, department and **User** (the login from Step 1), so encounters and orders carry the right doctor.
 2. In the registration section, enter the **cadre**, **regulator** (KMPDC, NCK, COC, PPB, KMLTTB), registration number, practising licence number and **licence expiry**.
-3. Under **Charges**, set the consultation fee if it differs by doctor.
+3. Under **Charges**, set the **OP consulting charge item** and fee for every doctor who sees outpatients. Without it the consultation can't be priced, and the visit's bill says so.
 4. Add a **Practitioner Schedule** for the days and times they see patients, so reception can book them.
 
 Healthcare Administrators are notified 30, 14, 7 and 1 day before a licence expires, then weekly once it has expired.
@@ -134,6 +136,8 @@ Demo record: GW Bed 03 in the General Ward, type General Ward Bed, warehouse GW 
 | Linen Store and Laundry | Your linen stores |
 | Fetal heart rate alert limit | 110 (WHO) or 120 if your form says so |
 | Patient record access log | On |
+| Require full registration details | On |
+| Payment before service: laboratory, radiology, pharmacy | On (cash patients pay first; insured, inpatient and casualty are served first) |
 
 Save the page once after installation, even if you change nothing, so every default is stored.
 
