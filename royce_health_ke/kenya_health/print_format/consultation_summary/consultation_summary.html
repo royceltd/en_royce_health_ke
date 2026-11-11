@@ -29,10 +29,51 @@
   </div>
   {% endif %}
 
+  {% if doc.get("ke_hx_allergies") %}
+  <div class="hx-section">
+    {{ section_title("Allergies") }}
+    <div><b>{{ doc.ke_hx_allergies }}</b></div>
+  </div>
+  {% endif %}
+
+  {% if doc.get("ke_chief_complaint") %}
+  <div class="hx-section">
+    {{ section_title("Chief complaint") }}
+    <div class="hx-pre">{{ doc.ke_chief_complaint }}</div>
+  </div>
+  {% endif %}
+
   {% if doc.symptoms %}
   <div class="hx-section">
     {{ section_title("Presenting complaints") }}
     <div>{{ doc.symptoms | map(attribute="complaint") | join(", ") }}</div>
+  </div>
+  {% endif %}
+
+  {% for field, title in [
+      ("ke_hpi", "History of presenting illness"),
+      ("ke_review_of_systems", "Review of systems"),
+      ("ke_examination", "Physical examination"),
+  ] %}
+  {% if doc.get(field) %}
+  <div class="hx-section">
+    {{ section_title(title) }}
+    <div class="hx-pre">{{ doc.get(field) }}</div>
+  </div>
+  {% endif %}
+  {% endfor %}
+
+  {% set history = [
+      ("Current medication", doc.get("ke_hx_medication")),
+      ("Past medical", doc.get("ke_hx_medical")),
+      ("Past surgical", doc.get("ke_hx_surgical")),
+      ("Family", doc.get("ke_hx_family")),
+      ("Social", doc.get("ke_hx_social")),
+  ] | selectattr(1) | list %}
+  {% if history %}
+  <div class="hx-section">
+    {{ section_title("Medical history") }}
+    <div class="hx-lines">{% for label, text in history %}<div><b>{{ label }}:</b> {{ text }}</div>{% endfor %}</div>
   </div>
   {% endif %}
 

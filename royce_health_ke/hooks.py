@@ -62,9 +62,13 @@ doc_events = {
 	},
 	"Patient Encounter": {
 		"validate": "royce_health_ke.visits.link_encounter",
-		"on_update": "royce_health_ke.visits.encounter_saved",
+		"on_update": [
+			"royce_health_ke.visits.encounter_saved",
+			"royce_health_ke.history.save_history_to_patient",
+		],
 		"on_submit": [
 			"royce_health_ke.visits.encounter_saved",
+			"royce_health_ke.history.save_history_to_patient",
 			"royce_health_ke.visit_bill.orders_changed",
 		],
 	},

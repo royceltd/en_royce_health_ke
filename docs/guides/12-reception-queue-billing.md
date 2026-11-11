@@ -94,7 +94,7 @@ Demo record: *Lucy Wairimu Ndung'u*, visit VIS-2026-00001, vital signs **HLC-VTS
 
 **Who:** doctor. **Where:** on the visit, **Record › Consultation**.
 
-The consultation opens with the patient, doctor, department and service type from the visit, and opening it marks the patient seen at Consultation. Order lab tests, imaging and drugs as usual (see the [Outpatient guide](02-outpatient.md), Steps 4 and 7), then **Send To** the Cashier.
+The consultation opens with the patient, doctor, department and service type from the visit, and opening it marks the patient seen at Consultation. Write the chief complaint, history and examination, and check the patient's medical history shown on the form: changes there are saved to the patient's record (see the [Outpatient guide](02-outpatient.md), Step 4). Order lab tests, imaging and drugs as usual (see the [Outpatient guide](02-outpatient.md), Steps 4 and 7), then **Send To** the Cashier.
 
 ## Step 6 — The visit's bill, and the cashier
 

@@ -62,12 +62,13 @@ Demo record: HLC-VTS-2026-00005, temperature 38.6 °C, pulse 98.
 
 ## Step 4 — Consultation and lab orders
 
-**Who:** doctor. **Where:** Outpatient › Encounter › *+ Add*, or **Create › Patient Encounter** on the appointment.
+**Who:** doctor. **Where:** Outpatient › Consultation › *+ Add*, or **Create › Consultation** on the appointment. (The system calls it *Consultation*; Marley's documentation says *Patient Encounter*, the same record.)
 
 1. Link the appointment; patient, doctor and department fill in from it.
-2. Record symptoms and examination notes.
-3. In **Lab Prescription**, add the tests (for example malaria slide, Hb, WBC).
-4. Submit. Each test becomes an order that the cashier can bill and the lab can work on.
+2. Under **Presenting Complaint**, write the **Chief Complaint** (in the patient's words, with how long), the **History of Presenting Illness**, **Review of Systems** and **Physical Examination**. Pick coded **Symptoms** as well if you use them for reports.
+3. **Medical History** shows the patient's allergies, current medication, past medical and surgical history, family and social history from the patient's record. Correct or add to them here: when you save, the patient's record is updated, and the patient shows a note naming this consultation. The next clinician starts from the updated history. To clear a line, write *None* rather than leaving it blank (a blank field is refilled from the record).
+4. In **Lab Prescription**, add the tests (for example malaria slide, Hb, WBC).
+5. Submit. Each test becomes an order that the cashier can bill and the lab can work on.
 
 If the diagnosis is already clear, add it and the drug prescription now and skip to Step 8.
 
@@ -122,7 +123,7 @@ Demo records: HLC-LAB-2026-00006 (malaria slide, positive), HLC-LAB-2026-00005 (
 
 ## Step 7 — Review results and prescribe
 
-**Who:** doctor. **Where:** a new encounter on the same appointment (Outpatient › Encounter).
+**Who:** doctor. **Where:** a new encounter on the same appointment (Outpatient › Consultation).
 
 1. Link the same appointment, so the review is not charged as a second consultation.
 2. Read the results (Patient History, or the lab tests linked to the patient) and record the diagnosis.

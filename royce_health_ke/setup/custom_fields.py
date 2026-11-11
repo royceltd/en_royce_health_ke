@@ -134,6 +134,20 @@ PATIENT = [
 		"description": "Appointment reminders, results-ready alerts and hospital announcements. "
 		"Ask the patient at registration.",
 	},
+	{
+		"fieldname": "ke_family_history",
+		"fieldtype": "Small Text",
+		"label": "Family History",
+		"insert_after": "surgical_history",
+		"description": "E.g. diabetes, hypertension, sickle cell, TB in the family.",
+	},
+	{
+		"fieldname": "ke_social_history",
+		"fieldtype": "Small Text",
+		"label": "Social History",
+		"insert_after": "ke_family_history",
+		"description": "Living situation, alcohol, smoking, occupation hazards.",
+	},
 ]
 
 VITAL_SIGNS = [
@@ -192,6 +206,80 @@ ENCOUNTER = [
 		"read_only": 1,
 		"description": "The day's open visit, linked on save.",
 	},
+	# Clerking, before Marley's symptoms and diagnosis
+	{
+		"fieldname": "ke_clerking_section",
+		"fieldtype": "Section Break",
+		"label": "Presenting Complaint",
+		"insert_after": "submit_orders_on_save",
+	},
+	{
+		"fieldname": "ke_chief_complaint",
+		"fieldtype": "Small Text",
+		"label": "Chief Complaint",
+		"insert_after": "ke_clerking_section",
+		"in_preview": 1,
+		"description": "In the patient's words, with how long (e.g. fever and headache for 3 days).",
+	},
+	{
+		"fieldname": "ke_hpi",
+		"fieldtype": "Text",
+		"label": "History of Presenting Illness",
+		"insert_after": "ke_chief_complaint",
+	},
+	{"fieldname": "ke_clerking_cb", "fieldtype": "Column Break", "insert_after": "ke_hpi"},
+	{
+		"fieldname": "ke_review_of_systems",
+		"fieldtype": "Small Text",
+		"label": "Review of Systems",
+		"insert_after": "ke_clerking_cb",
+	},
+	{
+		"fieldname": "ke_examination",
+		"fieldtype": "Text",
+		"label": "Physical Examination",
+		"insert_after": "ke_review_of_systems",
+		"description": "General and systemic examination findings.",
+	},
+	# The patient's history, shown and editable here; saved back to the patient
+	{
+		"fieldname": "ke_history_section",
+		"fieldtype": "Section Break",
+		"label": "Medical History",
+		"insert_after": "ke_examination",
+		"description": "From the patient's record. Changes made here update the patient's record when you save.",
+	},
+	*[
+		{
+			"fieldname": f"ke_hx_{field}",
+			"fieldtype": "Small Text",
+			"label": label,
+			"insert_after": after,
+			"fetch_from": f"patient.{source}",
+			"fetch_if_empty": 1,
+		}
+		for field, source, label, after in (
+			("allergies", "allergies", "Allergies", "ke_history_section"),
+			("medication", "medication", "Current Medication", "ke_hx_allergies"),
+			("medical", "medical_history", "Past Medical History", "ke_hx_medication"),
+		)
+	],
+	{"fieldname": "ke_history_cb", "fieldtype": "Column Break", "insert_after": "ke_hx_medical"},
+	*[
+		{
+			"fieldname": f"ke_hx_{field}",
+			"fieldtype": "Small Text",
+			"label": label,
+			"insert_after": after,
+			"fetch_from": f"patient.{source}",
+			"fetch_if_empty": 1,
+		}
+		for field, source, label, after in (
+			("surgical", "surgical_history", "Past Surgical History", "ke_history_cb"),
+			("family", "ke_family_history", "Family History", "ke_hx_surgical"),
+			("social", "ke_social_history", "Social History", "ke_hx_family"),
+		)
+	],
 ]
 
 INSURANCE_POLICY = [
