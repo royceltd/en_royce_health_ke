@@ -124,6 +124,10 @@ def after_insert_visit(doc):
 		"Confirmed",
 	):
 		frappe.db.set_value("Patient Appointment", doc.appointment, "status", "Checked In")
+	if doc.appointment and doc.payment_method == "Insurance" and doc.insurance_policy:
+		from royce_health_ke.schemes import cover_appointment
+
+		cover_appointment(doc.appointment, doc.insurance_policy)
 
 
 def find_or_create_policy(doc):
@@ -273,9 +277,28 @@ def link_encounter(doc, method=None):
 		visit = frappe.db.get_value(
 			"Patient Visit",
 			doc.ke_patient_visit,
-			["appointment_type", "practitioner", "department", "payment_method", "insurance_policy"],
+			[
+				"appointment_type",
+				"practitioner",
+				"department",
+				"payment_method",
+				"insurance_policy",
+				"appointment",
+			],
 			as_dict=True,
 		)
+		# The visit's first consultation is the appointment's: linked, Marley
+		# bills the consultation fee once (on the appointment), not again on
+		# the consultation. A later review in the same visit stays separate.
+		if (
+			visit.appointment
+			and not doc.get("appointment")
+			and not frappe.db.exists(
+				"Patient Encounter",
+				{"appointment": visit.appointment, "docstatus": ["<", 2], "name": ["!=", doc.name]},
+			)
+		):
+			doc.appointment = visit.appointment
 		# An insured visit's orders are covered: Marley gives the consultation's
 		# service requests insurance cover (and the scheme's prices) from its
 		# policy.

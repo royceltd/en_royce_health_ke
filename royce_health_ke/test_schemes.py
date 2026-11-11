@@ -150,3 +150,83 @@ class IntegrationTestSchemes(IntegrationTestCase):
 		self.assertEqual(self.consultation_charge()["rate"], self.doctor_fee)
 		line = self.consultation_charge(self.unpriced)
 		self.assertEqual((line["rate"], line["insurance"]), (self.doctor_fee, self.doctor_fee))
+
+	def appointment_visit_charges(self, plan=None):
+		"""A booked appointment, checked in with Start Visit, consulted: the
+		visit bill's consultation lines."""
+		frappe.flags.in_test = True
+		patient = (
+			frappe.get_doc(
+				{
+					"doctype": "Patient",
+					"first_name": "Booked",
+					"last_name": f"Test {frappe.generate_hash(length=6)}",
+					"sex": "Male",
+					"dob": add_to_date(today(), years=-50),
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+		appointment = frappe.get_doc(
+			{
+				"doctype": "Patient Appointment",
+				"patient": patient,
+				"practitioner": self.practitioner,
+				"appointment_type": self.appointment_type,
+				"appointment_date": today(),
+				"appointment_time": "23:30:00",
+				"duration": 15,
+				"company": self.company,
+				"department": frappe.db.get_value("Healthcare Practitioner", self.practitioner, "department"),
+			}
+		).insert(ignore_permissions=True)
+		insurance = (
+			{
+				"payment_method": "Insurance",
+				"insurance_payor": DEMO_INSURER,
+				"insurance_plan": plan,
+				"member_number": f"M-{frappe.generate_hash(length=6)}",
+				"policy_expiry": add_days(today(), 100),
+			}
+			if plan
+			else {}
+		)
+		visit = frappe.get_doc(
+			{
+				"doctype": "Patient Visit",
+				"patient": patient,
+				"company": self.company,
+				"visit_type": "Outpatient",
+				"appointment_type": self.appointment_type,
+				"practitioner": self.practitioner,
+				"appointment": appointment.name,
+				**insurance,
+			}
+		).insert(ignore_permissions=True)
+		encounter = frappe.get_doc(
+			{
+				"doctype": "Patient Encounter",
+				"patient": patient,
+				"practitioner": self.practitioner,
+				"encounter_date": today(),
+				"company": self.company,
+				"ke_patient_visit": visit.name,
+			}
+		).insert(ignore_permissions=True)
+		encounter.submit()
+		self.assertEqual(encounter.appointment, appointment.name)
+		bill = visit_bill.visit_bill(visit.name)
+		self.assertFalse(bill.get("error"))
+		return [
+			c for c in bill["charges"] if c["reference_dt"] in ("Patient Appointment", "Patient Encounter")
+		]
+
+	def test_booked_visit_charges_the_consultation_once(self):
+		lines = self.appointment_visit_charges()
+		self.assertEqual(len(lines), 1)
+		self.assertEqual(lines[0]["reference_dt"], "Patient Appointment")
+
+	def test_booked_insured_visit_covers_the_appointment(self):
+		(line,) = self.appointment_visit_charges(self.sha_phc)
+		self.assertEqual((line["rate"], line["insurance"]), (500, 500))

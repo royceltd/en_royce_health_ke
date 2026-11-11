@@ -13,6 +13,9 @@ here:
 - A consultation opened from an insured visit (no appointment) had no
   insurance cover, so the consultation fee was billed to the patient. It
   now gets cover on submit, as Marley gives an insured appointment.
+- An appointment booked without insurance, for a patient then checked in
+  on an insured visit, is billed with the visit's cover (the consultation
+  fee is billed on the appointment).
 - Marley prices a consultation's cover at the doctor's cash charge. The
   scheme's own price for the consultation item wins when it has one."""
 
@@ -98,3 +101,23 @@ def cover_consultation(doc, method=None):
 		return
 	if cover and cover.get("coverage"):
 		doc.db_set("insurance_coverage", cover.get("coverage"))
+
+
+def cover_appointment(appointment, policy):
+	"""Insurance cover for an appointment's fee when the patient checks in on
+	an insured visit and the appointment has none yet."""
+	appt = frappe.get_doc("Patient Appointment", appointment)
+	if appt.get("insurance_coverage") or appt.get("invoiced"):
+		return
+	try:
+		appt.db_set("insurance_policy", policy)
+		appt.make_insurance_coverage()
+	except frappe.ValidationError as e:
+		frappe.clear_last_message()
+		frappe.msgprint(
+			_("The consultation fee is not covered by insurance: {0}").format(
+				frappe.utils.strip_html(str(e))
+			),
+			indicator="orange",
+			alert=True,
+		)
