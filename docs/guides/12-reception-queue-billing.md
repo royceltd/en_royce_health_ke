@@ -125,6 +125,8 @@ To bill:
 
 **Only the cashier takes money** when *Only cashiers take payments* is on (Kenya Health Settings › Cashiers): other service points can create the bill but don't see **Create › Payment** or *Include Payment*, and a payment they try anyway is refused. With shifts on, the cashier opens their **Cashier Shift** at the start of the day and closes it with the count (see the [Cashier Day-End guide](07-cashier-day-end.md)).
 
+**Insured visits are billed automatically** (Kenya Health Settings › *Bill insured visits automatically*, on by default): each charge goes onto the visit's draft bill as it is ordered, and closing the visit submits it, with the insurer's share on the claim and any copay left for the cashier. See the [Insurance guide](04-insurance.md).
+
 A visit has one draft bill at a time: Create Bill opens the existing draft instead of making a second one. Every invoice made for the patient that day links to the visit.
 
 Demo record: Joseph's bill **ACC-SINV-2026-00016** (consultation 1,500 and white cell count 400), made with Create Bill and paid by M-Pesa. His visit shows **Paid** and he is sent on to the lab.

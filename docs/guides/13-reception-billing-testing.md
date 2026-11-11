@@ -83,6 +83,10 @@ As **Nurse**, on the visit from test 8:
 | 28 | As **Reception**, open the same visit. | No *Allow Services Before Payment* option: only managers have it. |
 | 28a | As **Administrator**, make a price list *SHA-PHC (test)* (Selling) with General Consultation at 500, and set it as the **Price List** of the plan *Corporate Gold (Demo)*. Check in a new patient on that insurer and plan, consult and submit the consultation. Open the visit's **Bill**. | The consultation is 500, not the doctor's 1,500, and the insurer's share shows. The consultation carries the visit's policy, and its coverage is under Insurance › Coverage. Put the plan's price list back afterwards. |
 
+| 28g | Check in a new patient on the demo insurer (plan Corporate Gold), consult and order a malaria slide, submit. Open the visit's **Bill**. | Without pressing Create Bill, the visit has a draft invoice with the consultation and the test, each with the insurer's share. |
+| 28h | Order another test in a review consultation. | The same draft invoice gains the new lines; there is still one invoice. |
+| 28i | **Close** the visit. | The invoice is submitted (signed by KRA), the insurer's share is on it and the copay is what the patient owes. |
+
 ## F2. Cashiers and shifts
 
 As **Administrator**, in Kenya Health Settings › Cashiers tick both switches. Give a test user only the **Cashier** role.

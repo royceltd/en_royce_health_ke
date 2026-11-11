@@ -237,6 +237,7 @@ def refresh_bill_status(visit_name):
 	if not visit_name or not frappe.db.exists("Patient Visit", visit_name):
 		return
 	visit = frappe.get_doc("Patient Visit", visit_name)
+	auto_bill(visit)
 	try:
 		status = bill_status(unbilled_lines(visit), invoices(visit_name))
 	except Exception:
@@ -245,6 +246,93 @@ def refresh_bill_status(visit_name):
 		return
 	if status != (visit.bill_status or ""):
 		frappe.db.set_value("Patient Visit", visit_name, "bill_status", status, update_modified=False)
+
+
+# Insured visits are billed automatically (Kenya Health Settings > Billing)
+
+
+def auto_bills_insured():
+	return bool(frappe.db.get_single_value("Kenya Health Settings", "auto_bill_insured"))
+
+
+def _insured(visit):
+	return visit.payment_method == "Insurance" and visit.insurance_policy
+
+
+def auto_bill(visit, closing=False):
+	"""Keep an insured visit's draft invoice current: whatever was ordered or
+	given and is not billed yet is added to it (the draft is made with the
+	first charge). Never stops the clinical work that triggered it."""
+	if frappe.flags.ke_auto_billing or not auto_bills_insured():
+		return None
+	if (visit.status != "Open" and not closing) or not _insured(visit):
+		return None
+	if not frappe.db.get_value("Patient", visit.patient, "customer"):
+		return None
+	frappe.flags.ke_auto_billing = True
+	frappe.db.savepoint("ke_auto_bill")
+	try:
+		with _as_administrator():
+			lines = unbilled_lines(visit)
+			draft = frappe.db.get_value(
+				"Sales Invoice", {"ke_patient_visit": visit.name, "docstatus": 0}, "name"
+			)
+			if draft:
+				si = frappe.get_doc("Sales Invoice", draft)
+				on_bill = {(r.reference_dt, r.reference_dn) for r in si.items}
+				new = [line for line in lines if (line["dt"], line["dn"]) not in on_bill]
+				if new:
+					si.set_healthcare_services(new)
+					si.flags.ignore_permissions = True
+					si.save()
+			elif lines:
+				si = _invoice(visit, lines)
+				si.flags.ignore_permissions = True
+				si.insert()
+			else:
+				si = None
+		return si
+	except Exception:
+		frappe.db.rollback(save_point="ke_auto_bill")
+		frappe.log_error(title=f"Automatic bill of {visit.name}")
+		return None
+	finally:
+		frappe.flags.ke_auto_billing = False
+
+
+def finalize_insured_bill(visit):
+	"""Patient Visit closed: bring the insured visit's draft invoice up to date
+	and submit it, so the insurer's share goes to its claim and KRA signs it.
+	A copay stays on the invoice for the cashier. If it can't be submitted,
+	the visit still closes and the bill waits in draft for the cashier."""
+	if not auto_bills_insured() or not _insured(visit):
+		return
+	auto_bill(visit, closing=True)
+	draft = frappe.db.get_value("Sales Invoice", {"ke_patient_visit": visit.name, "docstatus": 0}, "name")
+	if not draft:
+		return
+	frappe.db.savepoint("ke_insured_submit")
+	try:
+		with _as_administrator():
+			si = frappe.get_doc("Sales Invoice", draft)
+			si.flags.ignore_permissions = True
+			si.submit()
+		frappe.msgprint(
+			_("Insured bill {0} submitted.").format(frappe.utils.get_link_to_form("Sales Invoice", draft)),
+			alert=True,
+			indicator="green",
+		)
+	except Exception as e:
+		frappe.db.rollback(save_point="ke_insured_submit")
+		frappe.clear_last_message()
+		frappe.log_error(title=f"Submit insured bill of {visit.name}")
+		frappe.msgprint(
+			_(
+				"The visit is closed, but its bill {0} could not be submitted and waits in draft for the cashier: {1}"
+			).format(frappe.utils.get_link_to_form("Sales Invoice", draft), frappe.utils.strip_html(str(e))),
+			title=_("Bill not submitted"),
+			indicator="orange",
+		)
 
 
 @frappe.whitelist()

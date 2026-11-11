@@ -15,3 +15,9 @@ class PatientVisit(Document):
 
 	def after_insert(self):
 		visits.after_insert_visit(self)
+
+	def on_update(self):
+		if self.status == "Completed" and self.has_value_changed("status"):
+			from royce_health_ke.visit_bill import finalize_insured_bill
+
+			finalize_insured_bill(self)

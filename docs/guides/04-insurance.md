@@ -8,6 +8,14 @@ How an insured patient is billed in RoyceERP Health: the patient pays only the c
 
 The insurer covers 90% on this plan, so Peter paid KES 240 at the cashier. One claim line was rejected and settled by billing Peter.
 
+## How an insured patient's bill is made and settled
+
+1. **Check-in.** Reception chooses *Insurance*, the payer and the scheme, and the member number (Patient Visit). The patient is not asked to pay before the lab, radiology or pharmacy.
+2. **As services are ordered** (consultation, tests, imaging, drugs), each gets an insurance coverage at the scheme's price and share, and goes onto the visit's **draft bill** straight away (with *Bill insured visits automatically*, Kenya Health Settings › Payment Before Service, on by default). Nobody has to press Create Bill; the visit's Bill section shows the running total and the insurer's share.
+3. **When the visit is closed**, the bill is submitted: KRA eTIMS signs one invoice to the patient for the full amount; the insurer's share moves to the insurer's claims account; the **copay** (if the scheme has one) stays on the invoice as what the patient owes.
+4. **The cashier** takes the copay (Step 4). If the bill could not be submitted at closing (a price or setup missing), the person closing the visit is told why, and the bill waits in draft for the cashier.
+5. **The claim** (Step 5): the insurance desk puts the period's covered lines on an Insurance Claim, sends it, and records the insurer's decision. Rejected lines are billed to the patient or written off (Step 6), and the insurer's payment clears the claims account.
+
 ## Step 1 — Set up the insurer and plan (one-time)
 
 **Who:** finance or administrator. **Where:** Insurance › Policies & Contracts.
@@ -78,9 +86,9 @@ Demo records: coverages INS-COV-2026-00001 to 00003 for Peter's consultation, ma
 
 ## Step 4 — Bill the full amount and collect the copay
 
-**Who:** cashier. **Where:** Insurance › Sales Invoice (or Outpatient › Sales Invoice) › *+ Add*.
+**Who:** cashier. **Where:** the visit's bill (made automatically for insured visits, see above), or Insurance › Sales Invoice › *+ Add* for a patient without a visit.
 
-1. Choose the patient, then **Get Items From › Healthcare Services**. Each covered line carries the insurer's share.
+1. On a manual invoice, choose the patient, then **Get Items From › Healthcare Services**. Each covered line carries the insurer's share.
 2. Submit. The invoice shows **Total Insurance Coverage Amount** (the insurer's share) and **Patient Payable Amount** (the copay).
 3. Take the copay from the patient by M-Pesa or cash.
 4. The insurer's share moves automatically to the insurer's claims receivable.

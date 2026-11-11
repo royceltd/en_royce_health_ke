@@ -94,6 +94,7 @@ def default_settings():
 		("pay_before_lab", 1),
 		("pay_before_radiology", 1),
 		("pay_before_pharmacy", 1),
+		("auto_bill_insured", 1),
 	):
 		if not frappe.db.exists("Singles", {"doctype": "Kenya Health Settings", "field": field}):
 			frappe.db.set_single_value("Kenya Health Settings", field, value)

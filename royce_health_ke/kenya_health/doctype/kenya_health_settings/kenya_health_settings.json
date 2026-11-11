@@ -40,6 +40,7 @@
   "pay_before_radiology",
   "payment_cb",
   "pay_before_pharmacy",
+  "auto_bill_insured",
   "cashier_section",
   "only_cashiers_take_payment",
   "cashier_cb",
@@ -290,6 +291,12 @@
    "fieldtype": "Check",
    "label": "Payments need an open cashier shift",
    "description": "A cashier opens a Cashier Shift before taking payments; each payment is recorded on the shift, and closing it compares what was received with what was counted."
+  },
+  {
+   "fieldname": "auto_bill_insured",
+   "fieldtype": "Check",
+   "label": "Bill insured visits automatically",
+   "description": "An insured visit's charges go on its draft invoice as they are ordered, and the invoice is submitted (insurer's share to the claim, signed by KRA) when the visit is closed. A copay stays on the invoice for the cashier."
   }
  ],
  "issingle": 1,
