@@ -68,5 +68,23 @@
  {
   "file": "16-anaesthesia-print.png",
   "url": "/printview?doctype=Anaesthesia%20Record&name=ANR-2026-00001&format=Anaesthesia%20Record&no_letterhead=1"
+ },
+ {
+  "file": "17-progress-notes.png",
+  "url": "/desk/kenya-health/theatre-booking/THB-2026-00001",
+  "scroll": "[data-fieldname=\"continuation_section\"]"
+ },
+ {
+  "file": "18-treatment-sheet.png",
+  "url": "/desk/kenya-health/treatment-sheet/TRS-2026-00001",
+  "scroll": "[data-fieldname=\"regular_section\"]"
+ },
+ {
+  "file": "19-continuation-print.png",
+  "url": "/printview?doctype=Theatre%20Booking&name=THB-2026-00001&format=Continuation%20Sheet"
+ },
+ {
+  "file": "20-treatment-sheet-print.png",
+  "url": "/printview?doctype=Treatment%20Sheet&name=TRS-2026-00001&format=Treatment%20Sheet"
  }
 ]

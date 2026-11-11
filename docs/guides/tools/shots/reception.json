@@ -30,5 +30,10 @@
   "file": "07-settings.png",
   "url": "/desk/kenya-health/kenya-health-settings",
   "scroll": "[data-fieldname=\"registration_section\"]"
+ },
+ {
+  "file": "08-residence.png",
+  "url": "/desk/healthcare/patient/Lucy Wairimu Ndungu",
+  "scroll": "[data-fieldname=\"ke_nationality\"]"
  }
 ]

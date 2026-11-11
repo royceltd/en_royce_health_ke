@@ -263,6 +263,14 @@ Print **Continuation Sheet** from the booking: the operation header (diagnosis, 
 
 Demo record: THB-2026-00001 has four notes, from the closure to the handover in the ward.
 
+![Continuation notes on the booking](images/theatre/17-progress-notes.png)
+
+*Continuation Notes on the booking: time, stage, note and who wrote it.*
+
+![Continuation Sheet print](images/theatre/19-continuation-print.png)
+
+*The printed Continuation Sheet: the operation header, procedure and findings, then the notes.*
+
 ## Step 11 — Post-operative treatment sheet
 
 **Who:** the surgeon or anaesthetist, in theatre or recovery. **Where:** on the booking, *Records › Write Treatment Sheet* (or Kenya Health › Theatre › Treatment Sheet).
@@ -282,6 +290,14 @@ To change the orders, cancel the sheet and amend it, as long as the ward has not
 Print **Treatment Sheet**: laid out like the paper sheet, with the drugs in capitals, an administration grid for the initials and codes (X taken, D declined, V vomited, S spat, R repeated, OS out of stock), and the once-only drugs.
 
 Demo record: TRS-2026-00001: amoxicillin 500 mg every 8 hours for 5 days, paracetamol 1 g every 6 hours for 2 days and when required after that, and a first dose of paracetamol on arrival in the ward.
+
+![Treatment Sheet](images/theatre/18-treatment-sheet.png)
+
+*The treatment sheet: regular, PRN and once-only drugs.*
+
+![Treatment Sheet print](images/theatre/20-treatment-sheet-print.png)
+
+*The printed Treatment Sheet with the administration grid and codes.*
 
 ## Printing the theatre forms
 

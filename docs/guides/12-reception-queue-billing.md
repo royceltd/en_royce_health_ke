@@ -34,6 +34,10 @@ The form marks these fields as required. Emergency patients registered as *unide
 
 **Residence list:** choose the patient's estate, town or village from the list; its county and sub-county fill in. With a county chosen first, the list shows that county's places. A place that isn't listed yet: type it and choose **Create a new Residence**, give its type (estate, town or village), and save. The list lives in Kenya Health › Residence, where an administrator can fix spellings and merge duplicates (rename one onto the other, ticking *Merge*). The report **Patients by Residence** shows, for any period, how many patients each place sent and how many were registered, busiest first, so you can see where to strengthen marketing. Importing patients? Import the Residence list first: a patient with a residence that isn't on the list is refused.
 
+![Residence on the patient](images/reception/08-residence.png)
+
+*Nationality, county, sub-county and the residence picked from the list.*
+
 **Who sees phone and ID numbers:** reception and administrators see them in full. Nurses, doctors, lab and pharmacy staff see `XXXXXXXX` in lists, forms and search, and can still save the patient without losing the real numbers. SMS and printed forms always use the real numbers.
 
 ## Step 2 — Check the patient in

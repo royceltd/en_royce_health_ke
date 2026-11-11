@@ -78,6 +78,10 @@ Demo record: consultation HLC-ENC-2026-00009 orders BS for MPS, Hb and WBC.
 
 *The consultation's Lab Prescription: three tests ordered.*
 
+![Presenting complaint and medical history](images/outpatient/10-consultation-clerking.png)
+
+*A new consultation: Presenting Complaint, then the patient's Medical History, which is saved back to the patient.*
+
 ## Step 5 — Pay for consultation and tests
 
 **Who:** cashier. **Where:** Outpatient › Sales Invoice › *+ Add*.
