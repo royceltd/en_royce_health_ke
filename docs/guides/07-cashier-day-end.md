@@ -8,11 +8,21 @@ The checks a cashier or accountant runs at the end of each day in RoyceERP Healt
 
 Run the checks in this order at the end of every day, once the last bills are in.
 
+## Cashier shifts
+
+With *Payments need an open cashier shift* on (Kenya Health Settings › Cashiers), each cashier works in their own shift:
+
+1. **Open:** Kenya Health › Cashier Shift › *+ Add*. Your name and the company fill in. Enter the **Opening Float** (change in the drawer). If you have your own cash drawer account, choose it as **Cash Account**: your cash payments go there. Save.
+2. **Take payments** as usual. Each payment (Payment Entry, or payment on the invoice) is recorded on your open shift. Without an open shift, a payment is refused with *Open your cashier shift first*.
+3. **Close:** open the shift and press **Refresh Takings**. The table shows, per mode of payment, how many payments and the amount expected (cash includes the float, refunds are taken off). Enter what you **Counted**: the cash in the drawer, and for M-Pesa and cards the statement's total. Any difference shows per line and in total; if there is one, explain it in **Notes**. Press **Close Shift**.
+
+One shift is open per cashier at a time. Managers (Accounts Manager) see every shift and can open one for a cashier; a cashier sees their own. M-Pesa payments confirmed automatically (Paybill/Till) are not on a shift: they are checked in Step 2.
+
 ## Step 1 — The day's receipts by payment method
 
 **Who:** cashier or accountant. **Where:** Accounts › Payment Entry, filtered on today's date.
 
-1. Filter **Posting Date** = today and **Mode of Payment** = M-Pesa (then Cash, Card).
+1. Filter **Posting Date** = today and **Mode of Payment** = M-Pesa (then Cash, Card). With shifts on, the closed **Cashier Shift** records give the same per cashier, with their counts.
 2. Check each receipt: patient, amount, and *Account Paid To* matching the method (M-Pesa receipts into the M-Pesa account, cash into the cash account).
 3. Compare the M-Pesa total with the Safaricom statement for the day, and the cash total with the cash in the drawer.
 4. Refunds show as *Pay*; each must match a credit note.

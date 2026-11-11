@@ -538,6 +538,13 @@
    "write": 1,
    "report": 1,
    "print": 1
+  },
+  {
+   "role": "Cashier",
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "print": 1
   }
  ]
 }

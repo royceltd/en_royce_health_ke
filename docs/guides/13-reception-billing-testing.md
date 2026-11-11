@@ -83,6 +83,18 @@ As **Nurse**, on the visit from test 8:
 | 28 | As **Reception**, open the same visit. | No *Allow Services Before Payment* option: only managers have it. |
 | 28a | As **Administrator**, make a price list *SHA-PHC (test)* (Selling) with General Consultation at 500, and set it as the **Price List** of the plan *Corporate Gold (Demo)*. Check in a new patient on that insurer and plan, consult and submit the consultation. Open the visit's **Bill**. | The consultation is 500, not the doctor's 1,500, and the insurer's share shows. The consultation carries the visit's policy, and its coverage is under Insurance › Coverage. Put the plan's price list back afterwards. |
 
+## F2. Cashiers and shifts
+
+As **Administrator**, in Kenya Health Settings › Cashiers tick both switches. Give a test user only the **Cashier** role.
+
+| # | Do this | The system should |
+| --- | --- | --- |
+| 28b | As **Lab**, open an unpaid patient invoice. | No **Create › Payment** and no *Include Payment*. |
+| 28c | As the **Cashier**, take a payment on it before opening a shift. | Refuse: *Open your cashier shift first*. |
+| 28d | Kenya Health › Cashier Shift › *+ Add*, float 1,000, save. Take the payment in cash. | The payment shows the shift. |
+| 28e | Open the shift, **Refresh Takings**. Enter Counted 50 less than Expected for cash. **Close Shift**. | Expected = float + the payment. The difference is −50 and closing asks for a note; with a note it closes as **Closed**. |
+| 28f | Switch both settings off again (or leave them on if the hospital wants them). | |
+
 ## G. Pharmacy
 
 | # | Do this | The system should |

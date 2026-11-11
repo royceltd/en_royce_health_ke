@@ -1,0 +1,64 @@
+{
+ "actions": [],
+ "creation": "2026-11-11 14:00:00.000000",
+ "modified": "2026-11-11 14:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "istable": 1,
+ "module": "Kenya Health",
+ "name": "Cashier Shift Total",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "ASC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "mode_of_payment",
+   "fieldtype": "Link",
+   "label": "Mode of Payment",
+   "options": "Mode of Payment",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "receipts",
+   "fieldtype": "Int",
+   "label": "Payments",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "expected",
+   "fieldtype": "Currency",
+   "label": "Expected",
+   "in_list_view": 1,
+   "read_only": 1,
+   "description": "Payments received less refunds; cash includes the opening float."
+  },
+  {
+   "fieldname": "counted",
+   "fieldtype": "Currency",
+   "label": "Counted",
+   "in_list_view": 1,
+   "description": "Cash in the drawer; for M-Pesa and cards, the statement's total."
+  },
+  {
+   "fieldname": "difference",
+   "fieldtype": "Currency",
+   "label": "Difference",
+   "in_list_view": 1,
+   "read_only": 1,
+   "description": "Counted less expected: negative is short."
+  }
+ ],
+ "field_order": [
+  "mode_of_payment",
+  "receipts",
+  "expected",
+  "counted",
+  "difference"
+ ]
+}

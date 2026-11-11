@@ -34,12 +34,14 @@ doc_events = {
 			"royce_health_ke.billing.apply_bed_charge_basis",
 			"royce_health_ke.kitchen.apply_meal_charges",
 			"royce_health_ke.packages.apply_maternity_package",
+			"royce_health_ke.cashier.invoice_before_validate",
 		],
 		"before_submit": "royce_health_ke.visit_bill.invoice_before_submit",
 		"on_submit": "royce_health_ke.visit_bill.invoice_changed",
 		"on_cancel": "royce_health_ke.visit_bill.invoice_changed",
 	},
 	"Payment Entry": {
+		"before_validate": "royce_health_ke.cashier.payment_entry_before_validate",
 		"on_submit": "royce_health_ke.visit_bill.payment_changed",
 		"on_cancel": "royce_health_ke.visit_bill.payment_changed",
 	},
@@ -106,6 +108,7 @@ doctype_js = {
 	"Observation": "public/js/observation.js",
 	"Vital Signs": "public/js/vital_signs.js",
 	"Patient Appointment": "public/js/patient_appointment.js",
+	"Sales Invoice": "public/js/sales_invoice.js",
 }
 
 doctype_list_js = {"Vital Signs": "public/js/vital_signs_list.js"}
@@ -149,6 +152,7 @@ extend_bootinfo = [
 	"royce_health_ke.sidebar.extend_bootinfo",
 	"royce_health_ke.sms.extend_bootinfo",
 	"royce_health_ke.identity.extend_bootinfo",
+	"royce_health_ke.cashier.extend_bootinfo",
 ]
 
 # include js, css files in header of desk.html

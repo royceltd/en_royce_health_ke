@@ -282,6 +282,20 @@ ENCOUNTER = [
 	],
 ]
 
+PAYMENT_ENTRY = [
+	{
+		"fieldname": "ke_cashier_shift",
+		"fieldtype": "Link",
+		"label": "Cashier Shift",
+		"options": "Cashier Shift",
+		"insert_after": "mode_of_payment",
+		"read_only": 1,
+		"no_copy": 1,
+		"depends_on": "ke_cashier_shift",
+		"description": "The cashier's shift this payment was taken on.",
+	},
+]
+
 INSURANCE_POLICY = [
 	{
 		"fieldname": "ke_relation",
@@ -308,6 +322,16 @@ INSURANCE_POLICY = [
 ]
 
 SALES_INVOICE = [
+	{
+		"fieldname": "ke_cashier_shift",
+		"fieldtype": "Link",
+		"label": "Cashier Shift",
+		"options": "Cashier Shift",
+		"insert_after": "is_pos",
+		"read_only": 1,
+		"no_copy": 1,
+		"depends_on": "ke_cashier_shift",
+	},
 	{
 		"fieldname": "ke_patient_visit",
 		"fieldtype": "Link",
@@ -741,6 +765,7 @@ def apply():
 		ENCOUNTER,
 		INSURANCE_POLICY,
 		SALES_INVOICE,
+		PAYMENT_ENTRY,
 		PRACTITIONER,
 		CLAIM_COVERAGE,
 		OPERATION_NOTE,
@@ -762,6 +787,7 @@ def apply():
 		"Item Group": ITEM_GROUP,
 		"Sales Invoice Item": INVOICE_ITEM,
 		"Sales Invoice": SALES_INVOICE,
+		"Payment Entry": PAYMENT_ENTRY,
 		"Healthcare Service Unit": SERVICE_UNIT,
 	}
 	# MOH has its own Patient Encounter fields: combine, don't replace.

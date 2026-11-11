@@ -31,7 +31,7 @@ The company, chart of accounts, VAT, KRA eTIMS and payroll are set up by Royce d
 | Nurse, midwife | Nursing User |
 | Lab technologist | Laboratory User; LabTest Approver to verify results |
 | Pharmacist | Stock User |
-| Cashier | Accounts User |
+| Cashier | Cashier (takes patients' payments, opens and closes their own shift; add Accounts User only if they also do accounts work) |
 | Manager who approves services before payment | Healthcare Administrator or Accounts Manager |
 | Kitchen, laundry | Kitchen User, Laundry User |
 | Hospital administrator | Healthcare Administrator |
@@ -40,6 +40,8 @@ The company, chart of accounts, VAT, KRA eTIMS and payroll are set up by Royce d
 4. When someone leaves, untick **Enabled**; never delete a user, so their records keep their name.
 
 Roles decide what each person sees: a nurse does not see revenue, only administrators read the patient record access log, and only Receptionist, Healthcare Administrator and System Manager see patients' phone and ID numbers (others see XXXXXXXX). Who sees them can be changed in Role Permissions Manager (the Mask column).
+
+Each cashier needs their own login: payments and shifts are recorded under the person who took them. In **Kenya Health Settings › Cashiers**, *Only cashiers take payments* stops other service points (lab, pharmacy, wards) from receiving money: they can bill, but only users with the Cashier, Accounts Manager or System Manager role can record a payment. *Payments need an open cashier shift* makes each cashier open a shift first (see the [Cashier Day-End guide](07-cashier-day-end.md)). Both are off until you switch them on.
 
 Demo users: *amina.achieng@kijanivalley.example* (Physician) and *nurse.wanjiru@kijanivalley.example* (Nursing User), both fictional.
 
