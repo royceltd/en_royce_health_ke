@@ -77,11 +77,11 @@ Demo record: Faith's normal delivery; her baby is registered as *Baby of Faith W
 
 ## Step 5 — Discharge bill with the maternity package
 
-**Who:** cashier. **Where:** Outpatient › Sales Invoice › *+ Add* (the mother's first bill on or after the delivery).
+**Who:** cashier. **Where:** Outpatient › Sales Invoice › *+ Add* (the mother's inpatient discharge bill: the one with her ward nights).
 
 1. **One-time setup:** in Kenya Health › Maternity Package, set each package: delivery type (vaginal or caesarean), price, insurer (blank for cash; SHA or another insurer for theirs), included ward nights and the items it covers. Enter your own tariffs; none are shipped.
 2. The Delivery Record picks the package for its delivery type and the mother's insurer, or the cash package.
-3. On the discharge bill, **Get Items From › Healthcare Services** brings in the package line. Charges it covers stay on the bill at zero, marked *Included in ...*, so the mother sees what the price covered. Ward nights beyond those included are billed as usual.
+3. On the discharge bill, **Get Items From › Healthcare Services** brings in her ward nights and other charges; when you save, the package line is added. Only a bill with ward nights from her delivery admission gets the package: her outpatient bills (a clinic visit after the delivery, say) never do. If she was not admitted, add the package item yourself with *Reference Type* Delivery Record and *Reference Name* her delivery; it is priced as the package on save. Charges it covers stay on the bill at zero, marked *Included in ...*, so the mother sees what the price covered. Ward nights beyond those included are billed as usual.
 4. Submit, take payment, and the bill is signed by KRA eTIMS.
 
 Demo record: ACC-SINV-2026-00004, *Normal Delivery (Cash)* package at KES 25,000 (a demo price, not an SHA tariff).

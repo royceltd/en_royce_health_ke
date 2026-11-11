@@ -380,7 +380,7 @@ def _services(patient, customer, company):
 	]
 
 
-def _bill(company, patient, customer, posting_date, remarks, lines, extra=(), warehouse=None):
+def _bill(company, patient, customer, posting_date, remarks, lines, extra=(), warehouse=None, rows=()):
 	si = frappe.new_doc("Sales Invoice")
 	si.update(
 		{
@@ -398,6 +398,8 @@ def _bill(company, patient, customer, posting_date, remarks, lines, extra=(), wa
 	si.set_healthcare_services(lines)
 	for code, qty in extra:
 		si.append("items", {"item_code": code, "qty": qty})
+	for row in rows:
+		si.append("items", row)
 	for row in si.items:
 		if row.item_code in DISPENSED:
 			row.qty = DISPENSED[row.item_code]

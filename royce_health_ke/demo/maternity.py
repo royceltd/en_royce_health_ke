@@ -271,7 +271,9 @@ def setup_packages(company):
 
 def discharge_bill(company, mother):
 	"""Faith's discharge bill: the normal delivery package, with her nursing
-	care and paracetamol included at zero."""
+	care and paracetamol included at zero. Her demo delivery has no
+	admission (no ward nights), so the bill names the delivery itself, as
+	staff do when they add the package line by hand."""
 	from royce_health_ke.packages import choose_package
 
 	delivery = frappe.get_doc("Delivery Record", {"patient": mother, "docstatus": 1})
@@ -299,6 +301,14 @@ def discharge_bill(company, mother):
 		"Discharge: normal delivery",
 		[],
 		extra=(("NURS-IP", 1), ("DRG-PCM500", 10)),
+		rows=(
+			{
+				"item_code": frappe.db.get_value("Maternity Package", delivery.maternity_package, "item"),
+				"qty": 1,
+				"reference_dt": "Delivery Record",
+				"reference_dn": delivery.name,
+			},
+		),
 	)
 	journey._pay(bill, "TKF7DEMO06")
 	if journey._etims_active(company):

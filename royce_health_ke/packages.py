@@ -8,8 +8,11 @@ package) instead of itemised charges.
 - Each Delivery Record gets a Maternity Package when it's saved: the one for
   its delivery type and the admission's insurer, else the cash one for that
   type. Staff can change it, also after submitting.
-- The discharge bill (the patient's first invoice dated on or after the
-  delivery, not a return) gets the package line, referenced to the Delivery
+- The discharge bill gets the package line: the mother's first invoice
+  dated on or after the delivery (not a return) that bills ward nights of
+  the admission she delivered in (any admission when the delivery isn't
+  linked to one). Her outpatient bills never get it. Staff can also add the
+  package line to a bill themselves. The line is referenced to the Delivery
   Record so Marley marks it invoiced and it can't be billed twice. Lines for
   what the package covers stay on the bill at zero ("Included in ...") so
   the services are still marked invoiced and the patient sees what the
@@ -75,7 +78,7 @@ def choose_package(delivery):
 
 def pending_delivery(invoice):
 	"""The patient's submitted, not yet invoiced delivery with a package that
-	this invoice is the discharge bill for."""
+	this invoice is the discharge bill for (see is_discharge_bill)."""
 	if not invoice.get("patient") or invoice.get("is_return"):
 		return None
 	for d in frappe.get_all(
@@ -90,9 +93,23 @@ def pending_delivery(invoice):
 		fields=["name", "delivery_datetime", "inpatient_record", "maternity_package", "package_coverage"],
 		order_by="delivery_datetime asc",
 	):
-		if getdate(invoice.posting_date) >= getdate(get_datetime(d.delivery_datetime)):
+		if getdate(invoice.posting_date) >= getdate(get_datetime(d.delivery_datetime)) and is_discharge_bill(
+			invoice, d
+		):
 			return d
 	return None
+
+
+def is_discharge_bill(invoice, delivery):
+	"""The invoice bills the delivery's ward stay, or already has its package
+	line (added by staff, or on an earlier save)."""
+	for row in invoice.get("items") or []:
+		dt, dn = row.get("reference_dt"), row.get("reference_dn")
+		if dt == "Delivery Record" and dn == delivery.name:
+			return True
+		if dt == "Inpatient Occupancy" and dn and _same_stay(dn, delivery):
+			return True
+	return False
 
 
 def apply_maternity_package(doc, method=None):
@@ -109,6 +126,16 @@ def apply_maternity_package(doc, method=None):
 	)
 	if not line:
 		line = _package_line(doc, delivery, package)
+	elif not (line.description or "").startswith(package.package_name):
+		# added by hand: priced and described as the package, once
+		line.update(
+			{
+				"qty": 1,
+				"price_list_rate": package.rate,
+				"rate": package.rate,
+				"description": _("{0} - {1}").format(package.package_name, delivery.name),
+			}
+		)
 	_include_covered(doc, delivery, package, line)
 	if package.insurance_payor:
 		_insure(doc, delivery, package, line)

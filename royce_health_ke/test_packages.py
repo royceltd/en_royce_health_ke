@@ -95,7 +95,9 @@ class IntegrationTestPackages(IntegrationTestCase):
 		doc.submit()
 		return doc
 
-	def bill(self, patient, lines):
+	def bill(self, patient, lines, ward=None):
+		"""A draft invoice; ward = an Inpatient Occupancy name billed as one
+		night (the stay that makes it a discharge bill)."""
 		customer = frappe.db.get_value("Patient", patient, "customer") or frappe.db.get_value(
 			"Customer", {}, "name"
 		)
@@ -110,6 +112,27 @@ class IntegrationTestPackages(IntegrationTestCase):
 				"items": [{"item_code": code, "qty": qty} for code, qty in lines],
 			}
 		)
+		if ward:
+			if not frappe.db.exists("Inpatient Occupancy", ward):
+				row = frappe.new_doc("Inpatient Occupancy")
+				row.update(
+					{
+						"name": ward,
+						"parent": "_TEST-IP",
+						"parenttype": "Inpatient Record",
+						"parentfield": "inpatient_occupancies",
+					}
+				)
+				row.db_insert()
+			si.append(
+				"items",
+				{
+					"item_code": item("_TEST-WARD-NIGHT", 1500),
+					"qty": 1,
+					"reference_dt": "Inpatient Occupancy",
+					"reference_dn": ward,
+				},
+			)
 		si.set_missing_values()
 		si.insert(ignore_permissions=True)
 		return si
@@ -134,11 +157,12 @@ class IntegrationTestPackages(IntegrationTestCase):
 		package("_Test Cash NVD", nights=2)
 		delivery = self.delivery()
 		extra = item("_TEST-NOT-COVERED", 300)
-		si = self.bill(delivery.patient, [("_TEST-COVERED", 2), (extra, 1)])
+		si = self.bill(delivery.patient, [("_TEST-COVERED", 2), (extra, 1)], ward="_TEST-OCC")
 		rows = {r.item_code: r for r in si.items}
 		self.assertEqual(rows["_TEST-PKG-ITEM"].amount, 20000)
 		self.assertEqual(rows["_TEST-PKG-ITEM"].reference_dn, delivery.name)
 		self.assertEqual(rows["_TEST-COVERED"].amount, 0)
+		self.assertEqual(rows["_TEST-WARD-NIGHT"].amount, 0)  # one of the 2 included nights
 		self.assertIn("Included in _Test Cash NVD", rows["_TEST-COVERED"].description)
 		self.assertEqual(rows[extra].amount, 300)
 		self.assertEqual(si.grand_total, 20300)
@@ -146,9 +170,61 @@ class IntegrationTestPackages(IntegrationTestCase):
 		self.assertEqual(sum(1 for r in si.items if r.item_code == "_TEST-PKG-ITEM"), 1)
 
 		frappe.db.set_value("Delivery Record", delivery.name, "invoiced", 1)
-		later = self.bill(delivery.patient, [("_TEST-COVERED", 1)])
+		later = self.bill(delivery.patient, [("_TEST-COVERED", 1)], ward="_TEST-OCC")
 		self.assertNotIn("_TEST-PKG-ITEM", [r.item_code for r in later.items])
-		self.assertEqual(later.grand_total, 500)
+		self.assertEqual(later.grand_total, 2000)
+
+	def test_outpatient_bill_never_gets_the_package(self):
+		package("_Test Cash NVD")
+		delivery = self.delivery()
+		opd = self.bill(delivery.patient, [("_TEST-COVERED", 1)])
+		self.assertNotIn("_TEST-PKG-ITEM", [r.item_code for r in opd.items])
+		self.assertEqual(opd.grand_total, 500)
+		self.assertEqual(frappe.db.get_value("Delivery Record", delivery.name, "invoiced"), 0)
+		# the discharge bill afterwards still gets it
+		discharge = self.bill(delivery.patient, [], ward="_TEST-OCC")
+		self.assertIn("_TEST-PKG-ITEM", [r.item_code for r in discharge.items])
+
+	def test_package_line_added_by_hand(self):
+		package("_Test Cash NVD")
+		delivery = self.delivery()
+		customer = frappe.db.get_value("Customer", {}, "name")
+		si = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": frappe.db.get_value("Patient", delivery.patient, "customer") or customer,
+				"patient": delivery.patient,
+				"company": self.company,
+				"posting_date": today(),
+				"due_date": today(),
+				"items": [
+					{"item_code": "_TEST-COVERED", "qty": 1},
+					{
+						"item_code": "_TEST-PKG-ITEM",
+						"qty": 1,
+						"rate": 99,
+						"reference_dt": "Delivery Record",
+						"reference_dn": delivery.name,
+					},
+				],
+			}
+		)
+		si.set_missing_values()
+		si.insert(ignore_permissions=True)
+		line = next(r for r in si.items if r.item_code == "_TEST-PKG-ITEM")
+		self.assertEqual(line.amount, 20000)
+		self.assertEqual(si.grand_total, 20000)  # the covered line is included
+
+	def test_ward_nights_of_another_stay_dont_count(self):
+		package("_Test Cash NVD")
+		delivery = self.delivery()
+		delivery.inpatient_record = "_TEST-IP-DELIVERY"  # her delivery admission
+		other_stay = frappe._dict(
+			items=[{"reference_dt": "Inpatient Occupancy", "reference_dn": "_TEST-OCC"}]
+		)
+		self.assertFalse(packages.is_discharge_bill(other_stay, delivery))
+		own_line = frappe._dict(items=[{"reference_dt": "Delivery Record", "reference_dn": delivery.name}])
+		self.assertTrue(packages.is_discharge_bill(own_line, delivery))
 
 	def test_nights_beyond_the_package_are_billed(self):
 		pkg = frappe._dict(package_name="P", included_nights=2, covered=[])
@@ -203,7 +279,7 @@ class IntegrationTestPackages(IntegrationTestCase):
 				"policy_expiry_date": add_days(today(), 300),
 			}
 		).insert(ignore_permissions=True).submit()
-		si = self.bill(delivery.patient, [("_TEST-COVERED", 1)])
+		si = self.bill(delivery.patient, [("_TEST-COVERED", 1)], ward="_TEST-OCC")
 		line = next(r for r in si.items if r.item_code == pkg.item)
 		self.assertTrue(line.insurance_coverage)
 		self.assertEqual(line.insurance_coverage_amount, 20000)
