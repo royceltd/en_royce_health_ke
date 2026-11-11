@@ -65,6 +65,16 @@ MEDICINES = (
 )
 
 
+# Where the demo patients live (all made up, around Nakuru).
+RESIDENCES = (
+	("Nakuru town (demo)", "Town", "Nakuru Town East"),
+	("Milimani (demo)", "Estate", "Nakuru Town West"),
+	("Lanet (demo)", "Town", "Nakuru Town East"),
+	("Kiamunyi (demo)", "Estate", "Nakuru North"),
+	("Bahati (demo)", "Village", "Bahati"),
+)
+
+
 def abbr(company):
 	return frappe.db.get_value("Company", company, "abbr")
 
@@ -240,6 +250,12 @@ def load(company):
 			frappe.db.set_value(
 				"Healthcare Service Unit Type", "General Ward Bed", "ke_moh717_ward", "Medical"
 			)
+	for place, kind, sub_county in RESIDENCES:
+		ensure(
+			"Residence",
+			place,
+			{"residence_name": place, "residence_type": kind, "county": "Nakuru", "sub_county": sub_county},
+		)
 	for complaint in ("Fever", "Headache", "Chills", "Joint pains", "Vomiting"):
 		ensure("Complaint", complaint, {"complaints": complaint})
 

@@ -23,7 +23,9 @@ Log in as **Reception**. Healthcare › Patient › *+ Add Patient*.
 | # | Do this | The system should |
 | --- | --- | --- |
 | 1 | Enter a first and last name, sex and date of birth (an adult) only. Save. | Refuse, listing what is missing: ID, mobile number, county and residence (nationality starts as Kenya). |
-| 2 | Add ID type *National ID* and a number, a mobile number, nationality **Kenya** and a residence, but no county. Save. | Refuse: the county is needed for a Kenyan. Choose a county and save. |
+| 2 | Add ID type *National ID* and a number, a mobile number and nationality **Kenya**. In Residence type a new place, choose **Create a new Residence**, leave its county blank and save it. Save the patient. | Refuse: the county is needed for a Kenyan. Choose a county and save. |
+| 2a | On another new patient choose county **Nakuru**, then open the Residence list. Pick a Nakuru place. | The list shows Nakuru's places (and places with no county); the sub-county fills in. |
+| 2b | Reports › **Patients by Residence**, this month. | Each place with the patients registered and seen, busiest first, and a chart. |
 | 3 | Register a child of 5 with ID type **None**, no mobile, and the next of kin's phone. | Save it. |
 | 4 | Register an adult with ID type **None**. | Refuse: *None* is only for children. |
 | 5 | Enter the ID number of the patient from test 2 on a new patient. | Refuse, naming the existing patient. |

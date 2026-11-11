@@ -1,0 +1,127 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:residence_name",
+ "naming_rule": "By fieldname",
+ "creation": "2026-11-11 12:00:00.000000",
+ "modified": "2026-11-11 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "module": "Kenya Health",
+ "name": "Residence",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "quick_entry": 1,
+ "search_fields": "residence_type,county",
+ "show_title_field_in_link": 0,
+ "sort_field": "residence_name",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1,
+ "description": "Where patients live (estate, town or village), so reports show where patients come from.",
+ "fields": [
+  {
+   "fieldname": "residence_name",
+   "fieldtype": "Data",
+   "label": "Residence",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "The estate, town or village as patients name it. Add the town when two places share a name (e.g. Township, Kitale)."
+  },
+  {
+   "fieldname": "residence_type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "\nEstate\nTown\nVillage",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "reqd": 0
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled",
+   "description": "Hidden from the patient form (a duplicate, say). Patients already linked keep it."
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "county",
+   "fieldtype": "Select",
+   "label": "County",
+   "options": "\nMombasa\nKwale\nKilifi\nTana River\nLamu\nTaita Taveta\nGarissa\nWajir\nMandera\nMarsabit\nIsiolo\nMeru\nTharaka Nithi\nEmbu\nKitui\nMachakos\nMakueni\nNyandarua\nNyeri\nKirinyaga\nMurang'a\nKiambu\nTurkana\nWest Pokot\nSamburu\nTrans Nzoia\nUasin Gishu\nElgeyo Marakwet\nNandi\nBaringo\nLaikipia\nNakuru\nNarok\nKajiado\nKericho\nBomet\nKakamega\nVihiga\nBungoma\nBusia\nSiaya\nKisumu\nHoma Bay\nMigori\nKisii\nNyamira\nNairobi",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "reqd": 0
+  },
+  {
+   "fieldname": "sub_county",
+   "fieldtype": "Data",
+   "label": "Sub-County",
+   "in_standard_filter": 1
+  }
+ ],
+ "field_order": [
+  "residence_name",
+  "residence_type",
+  "disabled",
+  "cb1",
+  "county",
+  "sub_county"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1
+  },
+  {
+   "role": "Receptionist",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "create": 1,
+   "report": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1
+  },
+  {
+   "role": "Accounts User",
+   "read": 1,
+   "report": 1
+  }
+ ]
+}

@@ -7,6 +7,19 @@
 const KE_REQUIRED = ["dob", "ke_id_type", "ke_nationality", "ke_residence"];
 
 frappe.ui.form.on("Patient", {
+	setup(frm) {
+		// residences of the chosen county first; a new one starts in it
+		frm.set_query("ke_residence", () => ({
+			filters: Object.assign(
+				{ disabled: 0 },
+				frm.doc.ke_county ? { county: ["in", [frm.doc.ke_county, ""]] } : {}
+			),
+		}));
+		frm.fields_dict.ke_residence.get_route_options_for_new_doc = () => ({
+			county: frm.doc.ke_county || "",
+			sub_county: frm.doc.ke_sub_county || "",
+		});
+	},
 	refresh(frm) {
 		if (frappe.boot.ke_require_registration && frm.is_new()) {
 			for (const f of KE_REQUIRED) frm.toggle_reqd(f, true);
