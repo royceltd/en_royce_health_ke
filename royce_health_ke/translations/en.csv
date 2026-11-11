@@ -1,0 +1,19 @@
+Patient Encounter,Consultation
+Encounter,Consultation
+Encounters,Consultations
+Patient Encounters,Consultations
+New Patient Encounter,New Consultation
+Admission Encounter,Admission Consultation
+Encounter Date,Consultation Date
+Encounter Time,Consultation Time
+Encounter Details,Consultation Details
+Encounter Status,Consultation Status
+Encounter Impression,Consultation Impression
+Order Group (Encounter),Order Group (Consultation)
+Apply Free Follow-ups on Encounters,Apply Free Follow-ups on Consultations
+Do Not Bill Patient Encounters for Inpatients,Do Not Bill Consultations for Inpatients
+Number of Patient Encounters in Valid Days,Number of Consultations in Valid Days
+Get from Patient Encounter,Get from Consultation
+Get From Encounter,Get From Consultation
+Getting From Encounter,Getting From Consultation
+Please select a Patient Encounter to get from,Please select a Consultation to get from
