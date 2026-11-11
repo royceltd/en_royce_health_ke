@@ -52,7 +52,10 @@ doc_events = {
 		"before_insert": "royce_health_ke.visit_bill.lab_test_before_insert",
 		"after_insert": "royce_health_ke.visit_bill.orders_changed",
 		"before_submit": "royce_health_ke.visit_bill.lab_test_before_submit",
-		"on_submit": "royce_health_ke.sms.lab_test_submitted",
+		"on_submit": [
+			"royce_health_ke.tat.lab_test_submitted",
+			"royce_health_ke.sms.lab_test_submitted",
+		],
 	},
 	"Vital Signs": {
 		"validate": [

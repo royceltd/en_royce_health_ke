@@ -282,6 +282,28 @@ ENCOUNTER = [
 	],
 ]
 
+LAB_TEST = [
+	{
+		"fieldname": "ke_result_at",
+		"fieldtype": "Datetime",
+		"label": "Result Time",
+		"insert_after": "submitted_date",
+		"read_only": 1,
+		"no_copy": 1,
+		"description": "When the result was submitted (for turnaround time).",
+	},
+]
+
+LAB_TEST_TEMPLATE = [
+	{
+		"fieldname": "ke_target_tat_minutes",
+		"fieldtype": "Int",
+		"label": "Target Turnaround (minutes)",
+		"insert_after": "lab_test_group",
+		"description": "From order to result, for the Turnaround Time report. Blank = no target.",
+	},
+]
+
 PAYMENT_ENTRY = [
 	{
 		"fieldname": "ke_cashier_shift",
@@ -558,6 +580,13 @@ for _field in OPERATION_NOTE:
 
 IMAGING_TEMPLATE = [
 	{
+		"fieldname": "ke_target_tat_minutes",
+		"fieldtype": "Int",
+		"label": "Target Turnaround (minutes)",
+		"insert_after": "observation_category",
+		"description": "From order to report, for the Turnaround Time report. Blank = no target.",
+	},
+	{
 		"fieldname": "ke_modality",
 		"fieldtype": "Select",
 		"label": "Modality",
@@ -766,6 +795,8 @@ def apply():
 		INSURANCE_POLICY,
 		SALES_INVOICE,
 		PAYMENT_ENTRY,
+		LAB_TEST,
+		LAB_TEST_TEMPLATE,
 		PRACTITIONER,
 		CLAIM_COVERAGE,
 		OPERATION_NOTE,
@@ -788,6 +819,8 @@ def apply():
 		"Sales Invoice Item": INVOICE_ITEM,
 		"Sales Invoice": SALES_INVOICE,
 		"Payment Entry": PAYMENT_ENTRY,
+		"Lab Test": LAB_TEST,
+		"Lab Test Template": LAB_TEST_TEMPLATE,
 		"Healthcare Service Unit": SERVICE_UNIT,
 	}
 	# MOH has its own Patient Encounter fields: combine, don't replace.
