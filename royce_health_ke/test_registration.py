@@ -25,6 +25,8 @@ def checks_on():
 
 
 def patient_doc(**values):
+	if not frappe.db.exists("Residence", "_Test Reg Lanet"):
+		frappe.get_doc({"doctype": "Residence", "residence_name": "_Test Reg Lanet"}).insert()
 	base = {"doctype": "Patient", "first_name": "Reg", "last_name": f"Test {frappe.generate_hash(length=6)}"}
 	return frappe.get_doc({**base, **values})
 
@@ -36,7 +38,7 @@ ADULT = {
 	"ke_id_number": "AK123456",
 	"mobile": "+254712000555",
 	"ke_nationality": "Uganda",
-	"ke_residence": "Lanet",
+	"ke_residence": "_Test Reg Lanet",
 }
 
 
