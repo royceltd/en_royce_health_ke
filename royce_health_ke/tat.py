@@ -179,7 +179,7 @@ def summarise(rows):
 				"department": department,
 				"test": test,
 				"count": len(times),
-				"median_minutes": statistics.median(times),
+				"median_minutes": round(statistics.median(times)),
 				"average_minutes": round(sum(times) / len(times)),
 				"p90_minutes": times[min(len(times) - 1, round(0.9 * (len(times) - 1)))],
 				"target": group[0].get("target"),
