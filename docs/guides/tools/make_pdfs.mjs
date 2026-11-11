@@ -35,8 +35,9 @@ const guides = [
   ["09-patient-sms.md", "09 RoyceERP Health - Patient SMS", "8 November 2026"],
   ["10-theatre.md", "10 RoyceERP Health - Theatre Workflow", "10 November 2026"],
   ["11-theatre-testing.md", "11 RoyceERP Health - Theatre Testing Guide", "10 November 2026"],
-  ["12-reception-queue-billing.md", "12 RoyceERP Health - Reception, Queue and Billing", "10 November 2026"],
-  ["13-reception-billing-testing.md", "13 RoyceERP Health - Reception and Billing Testing Guide", "10 November 2026"],
+  ["12-reception-queue-billing.md", "12 RoyceERP Health - Reception, Queue and Billing", "11 November 2026"],
+  ["13-reception-billing-testing.md", "13 RoyceERP Health - Reception and Billing Testing Guide", "11 November 2026"],
+  ["14-v0.22-testing.md", "14 RoyceERP Health - Version 0.22 Testing Guide", "11 November 2026"],
 ];
 const css = `
 @page { size: A4; margin: 18mm 16mm 20mm 16mm; }
