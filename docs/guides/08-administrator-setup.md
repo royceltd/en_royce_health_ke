@@ -70,7 +70,7 @@ Demo record: Dr Amina Achieng, Medical Officer, KMPDC, licence expiring 26 May 2
 
 1. Each service the hospital charges for is an **Item**: consultations, lab tests, imaging, procedures, bed per night, nursing, meals. Services are non-stock items; medicines and consumables are stock items.
 2. Give each item its **Item Tax Template**: medical services are VAT exempt; taxable goods carry 16%. The KRA eTIMS tab fills in from it.
-3. Set the price in **Item Price** on the *Standard Selling* price list. Add a separate price list for an insurer whose agreed rates differ.
+3. Set the price in **Item Price** on the *Standard Selling* price list (the cash price). Each insurance scheme with its own tariff gets its own price list, which several schemes can share: see *Pricebooks* in the [Insurance guide](04-insurance.md), Step 1.
 4. Register new items with KRA eTIMS before they are first sold (the item's KRA eTIMS tab, or the Compliance Status report).
 
 Demo prices: general consultation KES 1,500, haemoglobin KES 400, general ward bed KES 4,500 per night.

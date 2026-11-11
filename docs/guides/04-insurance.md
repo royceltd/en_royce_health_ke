@@ -19,6 +19,23 @@ The insurer covers 90% on this plan, so Peter paid KES 240 at the cashier. One c
 
 Demo records: insurer *Mlima Health Assurance (Demo)*, plan *Corporate Gold (Demo)*, contract PAYOR-CONT-2026-00001.
 
+### Pricebooks: a price for each payment category
+
+A **Price List** is a pricebook. Cash patients pay the *Standard Selling* prices (the default in Selling Settings). Each scheme can have its own:
+
+1. Stock › Price List › *+ Add*: one per tariff, ticked *Selling*. Several schemes can share one. For example:
+
+   | Price List | Used by | Consultation |
+   | --- | --- | --- |
+   | Standard Selling | Cash | the doctor's fee, e.g. KES 200 |
+   | SHA-PHC | SHA Primary Health Care | KES 500 |
+   | SHA Schemes 1000 | SHA-Mwalimu, UASALAMA, POMSF | KES 1,000 |
+
+2. Stock › Item Price: the price of each service in each list (or open the list and use *Import* for a whole tariff at once). Report **Item Prices** shows them side by side.
+3. On each **Eligibility Plan** (scheme), set **Price List**. The insurer's contract can set a **Default Price List** for schemes that don't have one.
+
+An insured patient's covered services are then priced from the scheme's list, and from the contract's when the scheme's list doesn't price the service. The consultation fee uses the scheme's price for the consultation item when the list has one; otherwise the doctor's fee. A service with no scheme price is charged at the cash price.
+
 ![Insurance Payor record](images/insurance/01-insurer.png)
 
 *The insurer, with its own customer and claims account.*
@@ -49,7 +66,7 @@ Demo record: policy INS-PLCY-2026-00001 for *Peter Otieno Kamau* on Corporate Go
 
 **Who:** automatic, or the insurance desk for pre-authorisation. **Where:** Insurance › Coverage.
 
-1. When the doctor orders a service for an insured patient (consultation, test, drug, bed), the system creates a **Patient Insurance Coverage** for it with the plan's share.
+1. When the doctor orders a service for an insured patient (consultation, test, drug, bed), the system creates a **Patient Insurance Coverage** for it with the plan's share, at the scheme's price. A patient checked in on an insured visit is covered without anything else to do: the consultation takes the visit's policy, so its orders are covered, and so is the consultation fee once the consultation is submitted.
 2. Items on automatic approval are approved straight away.
 3. Items the insurer must pre-authorise wait for approval: enter the insurer's approval and set the coverage to *Approved*. If the insurer declines, the patient pays in full.
 

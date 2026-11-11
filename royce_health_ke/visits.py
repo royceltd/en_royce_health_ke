@@ -273,13 +273,18 @@ def link_encounter(doc, method=None):
 		visit = frappe.db.get_value(
 			"Patient Visit",
 			doc.ke_patient_visit,
-			["appointment_type", "practitioner", "department"],
+			["appointment_type", "practitioner", "department", "payment_method", "insurance_policy"],
 			as_dict=True,
 		)
+		# An insured visit's orders are covered: Marley gives the consultation's
+		# service requests insurance cover (and the scheme's prices) from its
+		# policy.
+		policy = visit.insurance_policy if visit.payment_method == "Insurance" else None
 		for field, value in (
 			("appointment_type", visit.appointment_type),
 			("practitioner", visit.practitioner),
 			("medical_department", visit.department),
+			("insurance_policy", policy),
 		):
 			if value and not doc.get(field):
 				doc.set(field, value)

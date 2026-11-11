@@ -81,6 +81,7 @@ As **Nurse**, on the visit from test 8:
 | 26 | On Peter's insured visit (test 12), have the doctor order a malaria slide, then start the lab test without billing. | Let it start: insured patients are served first. |
 | 27 | Check in a new cash patient, order a test, then as **Manager** use **Bill › Allow Services Before Payment** with the reason *Staff, pays at month end*. Start the lab test. | The reason shows at the top of the visit. The lab test starts unpaid. |
 | 28 | As **Reception**, open the same visit. | No *Allow Services Before Payment* option: only managers have it. |
+| 28a | As **Administrator**, make a price list *SHA-PHC (test)* (Selling) with General Consultation at 500, and set it as the **Price List** of the plan *Corporate Gold (Demo)*. Check in a new patient on that insurer and plan, consult and submit the consultation. Open the visit's **Bill**. | The consultation is 500, not the doctor's 1,500, and the insurer's share shows. The consultation carries the visit's policy, and its coverage is under Insurance › Coverage. Put the plan's price list back afterwards. |
 
 ## G. Pharmacy
 

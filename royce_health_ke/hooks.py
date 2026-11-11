@@ -60,6 +60,9 @@ doc_events = {
 		"on_update": "royce_health_ke.visits.vital_signs_saved",
 		"on_submit": "royce_health_ke.visits.vital_signs_saved",
 	},
+	"Patient Insurance Coverage": {
+		"before_validate": "royce_health_ke.schemes.price_consultation_cover",
+	},
 	"Patient Encounter": {
 		"validate": "royce_health_ke.visits.link_encounter",
 		"on_update": [
@@ -69,6 +72,7 @@ doc_events = {
 		"on_submit": [
 			"royce_health_ke.visits.encounter_saved",
 			"royce_health_ke.history.save_history_to_patient",
+			"royce_health_ke.schemes.cover_consultation",
 			"royce_health_ke.visit_bill.orders_changed",
 		],
 	},
