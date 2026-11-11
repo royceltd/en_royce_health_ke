@@ -12,6 +12,9 @@
   .print-format .hx-doc td, .print-format .hx-doc th, .hx-doc td, .hx-doc th { padding: 0 !important; vertical-align: top; }
   .hx-doc { font-family: "Inter", "Helvetica Neue", Helvetica, Arial, "DejaVu Sans", sans-serif; color: #1f2937; font-size: 9pt; line-height: 1.4; }
   .hx-doc table { width: 100%; border-collapse: collapse; margin: 0; }
+  /* ERPNext's stock letter heads print the document type and number ("Clinical
+     Procedure", HLC-CPR-...): our header already gives the form's own title. */
+  .hx-letterhead .invoice-title, .hx-letterhead .invoice-number { display: none; }
   .hx-doc .hx-muted { color: #6b7280; }
   .hx-doc .hx-small { font-size: 8pt; }
   .hx-doc .hx-right { text-align: right; }
