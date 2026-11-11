@@ -24,8 +24,6 @@ Log in as **Reception**. Healthcare › Patient › *+ Add Patient*.
 | --- | --- | --- |
 | 1 | Enter a first and last name, sex and date of birth (an adult) only. Save. | Refuse, listing what is missing: ID, mobile number, county and residence (nationality starts as Kenya). |
 | 2 | Add ID type *National ID* and a number, a mobile number and nationality **Kenya**. In Residence type a new place, choose **Create a new Residence**, leave its county blank and save it. Save the patient. | Refuse: the county is needed for a Kenyan. Choose a county and save. |
-| 2a | On another new patient choose county **Nakuru**, then open the Residence list. Pick a Nakuru place. | The list shows Nakuru's places (and places with no county); the sub-county fills in. |
-| 2b | Reports › **Patients by Residence**, this month. | Each place with the patients registered and seen, busiest first, and a chart. |
 | 3 | Register a child of 5 with ID type **None**, no mobile, and the next of kin's phone. | Save it. |
 | 4 | Register an adult with ID type **None**. | Refuse: *None* is only for children. |
 | 5 | Enter the ID number of the patient from test 2 on a new patient. | Refuse, naming the existing patient. |
@@ -81,23 +79,9 @@ As **Nurse**, on the visit from test 8:
 | 26 | On Peter's insured visit (test 12), have the doctor order a malaria slide, then start the lab test without billing. | Let it start: insured patients are served first. |
 | 27 | Check in a new cash patient, order a test, then as **Manager** use **Bill › Allow Services Before Payment** with the reason *Staff, pays at month end*. Start the lab test. | The reason shows at the top of the visit. The lab test starts unpaid. |
 | 28 | As **Reception**, open the same visit. | No *Allow Services Before Payment* option: only managers have it. |
-| 28a | As **Administrator**, make a price list *SHA-PHC (test)* (Selling) with General Consultation at 500, and set it as the **Price List** of the plan *Corporate Gold (Demo)*. Check in a new patient on that insurer and plan, consult and submit the consultation. Open the visit's **Bill**. | The consultation is 500, not the doctor's 1,500, and the insurer's share shows. The consultation carries the visit's policy, and its coverage is under Insurance › Coverage. Put the plan's price list back afterwards. |
 
-| 28g | Check in a new patient on the demo insurer (plan Corporate Gold), consult and order a malaria slide, submit. Open the visit's **Bill**. | Without pressing Create Bill, the visit has a draft invoice with the consultation and the test, each with the insurer's share. |
-| 28h | Order another test in a review consultation. | The same draft invoice gains the new lines; there is still one invoice. |
-| 28i | **Close** the visit. | The invoice is submitted (signed by KRA), the insurer's share is on it and the copay is what the patient owes. |
 
-## F2. Cashiers and shifts
-
-As **Administrator**, in Kenya Health Settings › Cashiers tick both switches. Give a test user only the **Cashier** role.
-
-| # | Do this | The system should |
-| --- | --- | --- |
-| 28b | As **Lab**, open an unpaid patient invoice. | No **Create › Payment** and no *Include Payment*. |
-| 28c | As the **Cashier**, take a payment on it before opening a shift. | Refuse: *Open your cashier shift first*. |
-| 28d | Kenya Health › Cashier Shift › *+ Add*, float 1,000, save. Take the payment in cash. | The payment shows the shift. |
-| 28e | Open the shift, **Refresh Takings**. Enter Counted 50 less than Expected for cash. **Close Shift**. | Expected = float + the payment. The difference is −50 and closing asks for a note; with a note it closes as **Closed**. |
-| 28f | Switch both settings off again (or leave them on if the hospital wants them). | |
+For pricebooks, insured patients billed automatically, cashiers and shifts, see the [version 0.22 testing guide](14-v0.22-testing.md).
 
 ## G. Pharmacy
 
