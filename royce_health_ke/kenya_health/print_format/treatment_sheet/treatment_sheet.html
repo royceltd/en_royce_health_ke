@@ -1,0 +1,87 @@
+{#- Treatment Sheet: the post-operative drug orders, laid out like the
+    hospital's paper treatment sheet: regular and PRN drugs with an
+    administration grid (initial and code per dose), then once-only drugs. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, signatures, footer as page_footer -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set t = health_treatment_sheet(doc) -%}
+{{ styles(ctx) }}
+<style>
+  .hx-doc .ts-grid td, .hx-doc .ts-grid th { text-align: center; padding: 3px 2px !important; font-size: 7pt; border: 1px solid #9ca3af; }
+  .ts-grid td.ts-drug, .ts-grid th.ts-drug { text-align: left; font-size: 10px; width: 30%; }
+  .ts-codes { font-size: 9px; letter-spacing: 0.02em; }
+</style>
+<div class="hx-doc">
+  {{ header(ctx, "Treatment Sheet", letter_head, no_letterhead, [
+      ("Sheet No.", doc.name),
+      ("Theatre booking", doc.theatre_booking),
+      ("Written", t.written),
+  ]) }}
+
+  {{ patient_band(ctx.patient, [("Weight", t.weight)]) }}
+
+  <div class="hx-section">
+    <table><tr><td class="hx-band"><span class="hx-caption">{{ _("Allergies") }}</span>
+      <b>{{ doc.allergies or _("Not recorded") }}</b></td></tr></table>
+  </div>
+
+  {% if t.drugs %}
+  <div class="hx-section">
+    {{ section_title("Regular and PRN drugs") }}
+    <table class="hx-table">
+      <thead><tr>
+        <th>{{ _("Drug (generic name)") }}</th><th>{{ _("Dose") }}</th><th>{{ _("Route") }}</th><th>{{ _("Frequency") }}</th><th>{{ _("Days") }}</th><th>{{ _("First dose") }}</th>
+      </tr></thead>
+      <tbody>
+      {% for d in t.drugs %}
+      <tr class="hx-keep">
+        <td><b>{{ d.name }}</b>{% if d.instructions %}<div class="hx-sub">{{ d.instructions }}</div>{% endif %}</td>
+        <td>{{ d.dose }}</td><td>{{ d.route }}</td><td>{{ d.frequency }}</td><td>{{ d.days }}</td><td>{{ d.first }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="hx-section">
+    {{ section_title("Administration") }}
+    <table class="hx-table ts-grid">
+      <thead>
+        <tr><th class="ts-drug">{{ _("Drug") }}</th>{% for i in range(8) %}<th colspan="2">{{ _("Date / time") }}</th>{% endfor %}</tr>
+        <tr><th class="ts-drug"></th>{% for i in range(8) %}<th>{{ _("Init.") }}</th><th>{{ _("Code") }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+      {% for d in t.drugs %}
+      <tr class="hx-keep"><td class="ts-drug"><b>{{ d.name }}</b> {{ d.dose }} {{ d.route }} · {{ d.frequency }}</td>{% for i in range(16) %}<td style="height: 26px;"></td>{% endfor %}</tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <div class="ts-codes hx-muted">{{ _("Code: X Taken · D Patient declined · V Vomited · S Spat · R Repeated · OS Out of stock") }}</div>
+  </div>
+  {% endif %}
+
+  {% if t.once %}
+  <div class="hx-section">
+    {{ section_title("Once only") }}
+    <table class="hx-table">
+      <thead><tr>
+        <th>{{ _("Drug") }}</th><th>{{ _("Dose") }}</th><th>{{ _("Route") }}</th><th>{{ _("Time") }}</th><th>{{ _("Ordered by") }}</th><th>{{ _("Time given") }}</th><th>{{ _("Given by") }}</th>
+      </tr></thead>
+      <tbody>
+      {% for o in t.once %}
+      <tr class="hx-keep">
+        <td><b>{{ o.name }}</b>{% if o.instructions %}<div class="hx-sub">{{ o.instructions }}</div>{% endif %}</td>
+        <td>{{ o.dose }}</td><td>{{ o.route }}</td><td>{{ o.time }}</td><td>{{ t.prescriber.name }}</td><td>{{ o.given }}</td><td></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if doc.notes %}
+  <div class="hx-section">{{ section_title("Other orders") }}<div class="hx-pre">{{ doc.notes }}</div></div>
+  {% endif %}
+
+  {{ signatures([("Prescriber", t.prescriber.name, t.written)]) }}
+  {{ page_footer(_("Ward medication order: {0}").format(doc.medication_order) if doc.medication_order else "", footer, no_letterhead, ctx) }}
+</div>

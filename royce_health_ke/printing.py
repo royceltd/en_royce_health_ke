@@ -899,3 +899,96 @@ def health_checklist_details(doc):
 
 def health_anaesthesia_details(doc):
 	return anaesthesia_details(doc)
+
+
+def continuation_details(booking) -> frappe._dict:
+	"""Theatre Booking: the operation header of the continuation sheet (from
+	the operation note and anaesthesia record) and its progress notes."""
+	procedure = (
+		frappe.get_doc("Clinical Procedure", booking.clinical_procedure)
+		if booking.get("clinical_procedure")
+		else None
+	)
+	if procedure:
+		op = operation_details(procedure)
+	else:
+		op = frappe._dict(
+			surgeon=clinician(booking.surgeon) if booking.get("surgeon") else frappe._dict(name=""),
+			assistant=clinician(booking.assistant).name if booking.get("assistant") else "",
+			anaesthetist=clinician(booking.anaesthetist).name if booking.get("anaesthetist") else "",
+			agent="",
+			started="",
+		)
+	return frappe._dict(
+		op=op,
+		diagnosis=(procedure.get("ke_indication") if procedure else "") or "",
+		incision=(procedure.get("ke_incision") if procedure else "") or "",
+		findings=(procedure.get("ke_findings") if procedure else "") or "",
+		procedure_html=(procedure.get("ke_procedure_details") if procedure else "") or "",
+		notes=[
+			frappe._dict(
+				time=format_datetime(n.noted_at, "d MMM HH:mm") if n.noted_at else "",
+				stage=n.stage,
+				note=n.note,
+				by=n.recorded_by_name or n.recorded_by or "",
+			)
+			for n in booking.get("progress_notes") or []
+		],
+	)
+
+
+def treatment_sheet_details(doc) -> frappe._dict:
+	from royce_health_ke import postop
+
+	details = postop.sheet_details(doc)
+	weight = f"{flt(doc.weight_kg):g} kg" if flt(doc.get("weight_kg")) else ""
+
+	def when(value):
+		return format_datetime(value, "d MMM HH:mm") if value else ""
+
+	def given(row):
+		"""The once-only dose's scheduled entry, when the ward has given it."""
+		at = get_datetime(row.give_at).replace(second=0, microsecond=0) if row.get("give_at") else None
+		return [
+			e
+			for e in details.given.get(row.drug, [])
+			if (e.status == "Completed" or e.is_completed) and at and get_datetime(f"{e.date} {e.time}") == at
+		]
+
+	return frappe._dict(
+		weight=weight,
+		prescriber=clinician(doc.practitioner) if doc.get("practitioner") else frappe._dict(name=""),
+		written=when(doc.get("written_at")),
+		drugs=[
+			frappe._dict(
+				name=(d.row.drug_name or d.row.drug or "").upper(),
+				dose=d.row.dose,
+				route=d.row.route,
+				frequency=d.frequency,
+				days=d.row.duration_days if not d.row.prn else "",
+				first=when(d.row.first_dose_at),
+				instructions=d.row.instructions or "",
+				doses=d.doses,
+			)
+			for d in details.drugs
+		],
+		once=[
+			frappe._dict(
+				name=(r.drug_name or r.drug or "").upper(),
+				dose=r.dose,
+				route=r.route,
+				time=when(r.give_at),
+				instructions=r.instructions or "",
+				given=_("Given") if given(r) else "",
+			)
+			for r in doc.once_only
+		],
+	)
+
+
+def health_continuation_details(doc):
+	return continuation_details(doc)
+
+
+def health_treatment_sheet(doc):
+	return treatment_sheet_details(doc)

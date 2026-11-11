@@ -1,0 +1,242 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "naming_rule": "By \"Naming Series\" field",
+ "creation": "2026-11-11 16:00:00.000000",
+ "modified": "2026-11-11 16:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "is_submittable": 1,
+ "module": "Kenya Health",
+ "name": "Treatment Sheet",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "title_field": "patient_name",
+ "default_print_format": "Treatment Sheet",
+ "description": "Post-operative drug orders written in theatre: regular, PRN and once-only drugs. Submitting it schedules the doses for the ward (Inpatient Medication Order).",
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "TRS-.YYYY.-",
+   "default": "TRS-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "theatre_booking",
+   "fieldtype": "Link",
+   "label": "Theatre Booking",
+   "options": "Theatre Booking",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "fetch_from": "theatre_booking.patient",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "patient.patient_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "inpatient_record",
+   "fieldtype": "Link",
+   "label": "Inpatient Record",
+   "options": "Inpatient Record",
+   "fetch_from": "theatre_booking.inpatient_record",
+   "fetch_if_empty": 1,
+   "description": "The admission the ward gives the drugs under. Without one the sheet is a record only."
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "fetch_from": "theatre_booking.company",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "practitioner",
+   "fieldtype": "Link",
+   "label": "Prescriber",
+   "options": "Healthcare Practitioner",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "The surgeon or anaesthetist who signs the orders."
+  },
+  {
+   "fieldname": "practitioner_name",
+   "fieldtype": "Data",
+   "label": "Prescriber Name",
+   "fetch_from": "practitioner.practitioner_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "written_at",
+   "fieldtype": "Datetime",
+   "label": "Written At",
+   "default": "now",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "weight_kg",
+   "fieldtype": "Float",
+   "label": "Weight (kg)"
+  },
+  {
+   "fieldname": "allergies",
+   "fieldtype": "Small Text",
+   "label": "Allergies",
+   "fetch_from": "patient.allergies",
+   "fetch_if_empty": 1,
+   "description": "From the patient's record. Write None if none are known."
+  },
+  {
+   "fieldname": "regular_section",
+   "fieldtype": "Section Break",
+   "label": "Regular and PRN Drugs"
+  },
+  {
+   "fieldname": "drugs",
+   "fieldtype": "Table",
+   "label": "Drugs",
+   "options": "Treatment Sheet Drug"
+  },
+  {
+   "fieldname": "once_section",
+   "fieldtype": "Section Break",
+   "label": "Once Only"
+  },
+  {
+   "fieldname": "once_only",
+   "fieldtype": "Table",
+   "label": "Once Only",
+   "options": "Treatment Sheet Once Dose"
+  },
+  {
+   "fieldname": "ward_section",
+   "fieldtype": "Section Break",
+   "label": "Ward"
+  },
+  {
+   "fieldname": "medication_order",
+   "fieldtype": "Link",
+   "label": "Inpatient Medication Order",
+   "options": "Inpatient Medication Order",
+   "read_only": 1,
+   "description": "Made when the sheet is submitted: every scheduled dose, for the ward to give."
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Other Orders",
+   "description": "Fluids, oxygen, observations, diet."
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Treatment Sheet",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1
+  }
+ ],
+ "field_order": [
+  "naming_series",
+  "theatre_booking",
+  "patient",
+  "patient_name",
+  "inpatient_record",
+  "company",
+  "cb1",
+  "practitioner",
+  "practitioner_name",
+  "written_at",
+  "weight_kg",
+  "allergies",
+  "regular_section",
+  "drugs",
+  "once_section",
+  "once_only",
+  "ward_section",
+  "medication_order",
+  "cb2",
+  "notes",
+  "amended_from"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1,
+   "delete": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1,
+   "print": 1,
+   "report": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "print": 1,
+   "report": 1
+  }
+ ]
+}

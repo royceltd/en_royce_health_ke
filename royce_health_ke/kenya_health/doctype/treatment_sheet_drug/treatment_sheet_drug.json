@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "creation": "2026-11-11 16:00:00.000000",
+ "modified": "2026-11-11 17:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "istable": 1,
+ "module": "Kenya Health",
+ "name": "Treatment Sheet Drug",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "ASC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "drug",
+   "fieldtype": "Link",
+   "label": "Drug",
+   "options": "Item",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "drug_name",
+   "fieldtype": "Data",
+   "label": "Drug Name",
+   "fetch_from": "drug.item_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dose",
+   "fieldtype": "Data",
+   "label": "Dose",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 1,
+   "description": "As written, e.g. 1 g, 500 mg, 10 ml."
+  },
+  {
+   "fieldname": "qty_per_dose",
+   "fieldtype": "Float",
+   "label": "Quantity per Dose",
+   "default": "1",
+   "description": "In the drug's stock unit (vials, tablets): what the ward issues and bills per dose."
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Select",
+   "label": "Route",
+   "options": "\nPO\nIV\nIM\nSC\nPR\nSL\nTopical\nInhaled\nNebulised\nEpidural\nOther",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "every_hours",
+   "fieldtype": "Int",
+   "label": "Every (hours)",
+   "in_list_view": 1,
+   "columns": 1,
+   "description": "8 = every 8 hours (TDS). Blank for PRN."
+  },
+  {
+   "fieldname": "prn",
+   "fieldtype": "Check",
+   "label": "PRN",
+   "in_list_view": 1,
+   "columns": 1,
+   "description": "When required: not scheduled; the ward gives it as needed."
+  },
+  {
+   "fieldname": "duration_days",
+   "fieldtype": "Int",
+   "label": "For (days)",
+   "default": "1",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "first_dose_at",
+   "fieldtype": "Datetime",
+   "label": "First Dose",
+   "in_list_view": 1,
+   "columns": 1,
+   "description": "Blank = when the sheet is signed."
+  },
+  {
+   "fieldname": "instructions",
+   "fieldtype": "Small Text",
+   "label": "Instructions"
+  },
+  {
+   "fieldname": "dosage_form",
+   "fieldtype": "Link",
+   "label": "Dosage Form",
+   "options": "Dosage Form",
+   "description": "Filled from the drug's Medication record when there is one."
+  }
+ ],
+ "field_order": [
+  "drug",
+  "drug_name",
+  "dose",
+  "qty_per_dose",
+  "dosage_form",
+  "route",
+  "every_hours",
+  "prn",
+  "duration_days",
+  "first_dose_at",
+  "instructions"
+ ]
+}

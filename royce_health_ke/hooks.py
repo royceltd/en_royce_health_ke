@@ -102,6 +102,8 @@ jinja = {
 		"royce_health_ke.printing.health_consent_details",
 		"royce_health_ke.printing.health_checklist_details",
 		"royce_health_ke.printing.health_anaesthesia_details",
+		"royce_health_ke.printing.health_continuation_details",
+		"royce_health_ke.printing.health_treatment_sheet",
 	]
 }
 

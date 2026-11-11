@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "creation": "2026-11-11 16:00:00.000000",
+ "modified": "2026-11-11 16:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "istable": 1,
+ "module": "Kenya Health",
+ "name": "Theatre Progress Note",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "ASC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "noted_at",
+   "fieldtype": "Datetime",
+   "label": "Time",
+   "in_list_view": 1,
+   "columns": 2,
+   "default": "now"
+  },
+  {
+   "fieldname": "stage",
+   "fieldtype": "Select",
+   "label": "Stage",
+   "options": "In theatre\nRecovery\nBack to ward",
+   "default": "In theatre",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 5
+  },
+  {
+   "fieldname": "recorded_by",
+   "fieldtype": "Link",
+   "label": "Recorded By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "recorded_by_name",
+   "fieldtype": "Data",
+   "label": "By",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2
+  }
+ ],
+ "field_order": [
+  "noted_at",
+  "stage",
+  "note",
+  "recorded_by",
+  "recorded_by_name"
+ ]
+}

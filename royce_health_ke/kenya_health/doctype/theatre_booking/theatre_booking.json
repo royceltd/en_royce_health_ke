@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-08 09:00:00.000000",
+ "modified": "2026-11-11 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Theatre Booking",
@@ -233,6 +233,25 @@
    "fieldtype": "Small Text",
    "label": "Postponed / Cancelled Reason",
    "depends_on": "eval:['Postponed','Cancelled'].includes(doc.status)"
+  },
+  {
+   "fieldname": "treatment_sheet",
+   "fieldtype": "Link",
+   "label": "Treatment Sheet",
+   "options": "Treatment Sheet",
+   "read_only": 1
+  },
+  {
+   "fieldname": "continuation_section",
+   "fieldtype": "Section Break",
+   "label": "Continuation Notes",
+   "description": "Progress notes during the theatre stay and recovery (the continuation sheet). A note can't be changed once saved: add another to correct it."
+  },
+  {
+   "fieldname": "progress_notes",
+   "fieldtype": "Table",
+   "label": "Progress Notes",
+   "options": "Theatre Progress Note"
   }
  ],
  "field_order": [
@@ -268,6 +287,9 @@
   "cb5",
   "anaesthesia_record",
   "clinical_procedure",
+  "treatment_sheet",
+  "continuation_section",
+  "progress_notes",
   "notes_section",
   "notes",
   "status_reason"

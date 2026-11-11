@@ -110,6 +110,51 @@ def validate_booking(doc):
 	doc.scheduled_end = add_to_date(get_datetime(doc.scheduled_start), minutes=doc.duration_minutes)
 	if doc.status in OPEN:
 		check_clashes(doc)
+	lock_progress_notes(doc)
+
+
+# Continuation notes (the paper continuation sheet): added, never changed.
+
+NOTE_FIELDS = ("noted_at", "stage", "note")
+
+
+def lock_progress_notes(doc):
+	"""A saved progress note can't be edited or removed (a correction is a new
+	note). New notes are stamped with who wrote them, and when if not given."""
+	before = doc.get_doc_before_save()
+	saved = {r.name: r for r in (before.get("progress_notes") if before else [])}
+	kept = set()
+	for row in doc.get("progress_notes"):
+		old = saved.get(row.name)
+		if old:
+			kept.add(row.name)
+			if any(str(row.get(f) or "") != str(old.get(f) or "") for f in NOTE_FIELDS):
+				frappe.throw(
+					_(
+						"Row {0}: a saved progress note can't be changed. Add a new note to correct it."
+					).format(row.idx)
+				)
+			continue
+		row.noted_at = row.noted_at or now_datetime()
+		if get_datetime(row.noted_at) > add_to_date(now_datetime(), minutes=5):
+			frappe.throw(_("Row {0}: a progress note can't be timed in the future.").format(row.idx))
+		row.recorded_by = frappe.session.user
+		row.recorded_by_name = frappe.utils.get_fullname(frappe.session.user)
+	if set(saved) - kept:
+		frappe.throw(_("A saved progress note can't be removed."))
+
+
+@frappe.whitelist()
+def add_note(booking: str, note: str, stage: str = "In theatre", noted_at: str | None = None):
+	doc = frappe.get_doc("Theatre Booking", booking)
+	doc.check_permission("write")
+	if not (note or "").strip():
+		frappe.throw(_("Write the note."))
+	doc.append(
+		"progress_notes", {"note": note.strip(), "stage": stage, "noted_at": noted_at or now_datetime()}
+	)
+	doc.save()
+	return len(doc.progress_notes)
 
 
 def check_clashes(doc):

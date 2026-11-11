@@ -302,6 +302,88 @@ def fill_paper_forms(booking_name, start):
 		)
 
 
+NOTES = (
+	(25, "In theatre", "Appendix inflamed, not perforated. Base ligated. Haemostasis secured."),
+	(75, "Recovery", "Extubated, awake. SpO2 98% on air, pulse 88, BP 124/78. Pain 3/10."),
+	(110, "Recovery", "Stable, wound dressing dry. Fit for the ward."),
+	(125, "Back to ward", "Handed over to the ward nurse with the treatment sheet."),
+)
+
+
+def post_op(booking_name, start):
+	"""The continuation notes and the post-operative treatment sheet (v0.23)."""
+	booking = frappe.get_doc("Theatre Booking", booking_name)
+	if not booking.get("progress_notes"):
+		surgeon = frappe.db.get_value("Healthcare Practitioner", booking.surgeon, "practitioner_name")
+		for minutes, stage, note in NOTES:
+			row = booking.append(
+				"progress_notes",
+				{
+					"noted_at": add_to_date(start, minutes=minutes),
+					"stage": stage,
+					"note": note,
+					"recorded_by": "Administrator",
+					"recorded_by_name": surgeon if stage == "In theatre" else "Theatre nurse (demo)",
+				},
+			)
+			row.db_insert()
+	if booking.get("treatment_sheet") or not booking.inpatient_record:
+		return
+	if frappe.db.get_value("Inpatient Record", booking.inpatient_record, "status") != "Admitted":
+		return
+	sheet = frappe.get_doc(
+		{
+			"doctype": "Treatment Sheet",
+			"theatre_booking": booking.name,
+			"practitioner": booking.surgeon,
+			"written_at": add_to_date(start, minutes=65),
+			"weight_kg": 68,
+			"drugs": [
+				{
+					"drug": "DRG-AMX500",
+					"dose": "500 mg",
+					"route": "PO",
+					"every_hours": 8,
+					"duration_days": 5,
+					"first_dose_at": add_to_date(start, hours=6),
+					"instructions": "Start when tolerating oral fluids.",
+				},
+				{
+					"drug": "DRG-PCM500",
+					"dose": "1 g",
+					"qty_per_dose": 2,
+					"route": "PO",
+					"every_hours": 6,
+					"duration_days": 2,
+					"first_dose_at": add_to_date(start, hours=4),
+				},
+				{
+					"drug": "DRG-PCM500",
+					"dose": "1 g",
+					"qty_per_dose": 2,
+					"route": "PO",
+					"prn": 1,
+					"every_hours": 6,
+					"instructions": "For pain after day 2.",
+				},
+			],
+			"once_only": [
+				{
+					"drug": "DRG-PCM500",
+					"dose": "1 g",
+					"qty_per_dose": 2,
+					"route": "PO",
+					"give_at": add_to_date(start, minutes=130),
+					"instructions": "On arrival in the ward.",
+				},
+			],
+			"notes": "IV Ringer's lactate 1 L 8-hourly until drinking. Observations 4-hourly. Sips of water at 6 hours.",
+		}
+	)
+	sheet.insert(ignore_permissions=True)
+	sheet.submit()
+
+
 def run(company):
 	existing = frappe.db.get_value("Patient", {"first_name": "Daniel", "last_name": "Kioko"})
 	if existing:
@@ -310,6 +392,7 @@ def run(company):
 		)
 		if booking:
 			fill_paper_forms(booking[0], get_datetime(booking[1]))
+			post_op(booking[0], get_datetime(booking[1]))
 		return {"patient": existing, "created": False}
 	from royce_health_ke import theatre
 	from royce_health_ke.theatre import SYSTEMS_REVIEW
@@ -518,6 +601,7 @@ def run(company):
 	checklist.save(ignore_permissions=True)
 	if journey._etims_active(company):
 		journey._push_stock(company)
+	post_op(booking.name, start)
 	booking.reload()
 	checklist.reload()
 	return {

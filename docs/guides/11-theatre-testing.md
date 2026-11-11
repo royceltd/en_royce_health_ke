@@ -55,6 +55,17 @@ Use your booking from test 1. Press **Into Theatre** at each step, then fix the 
 | 20 | Make a second booking, answer the **Post-operative** tab before its Sign Out, and save. | Refuse: *The post-operative checklist can't be completed before Sign Out.* |
 | 21 | Back on your first checklist, answer the **Post-operative** tab: pulse, BP, level of consciousness, handed over by, received by. Save. | Post-op turns **Done** with the time back in the ward stamped. |
 
+## D2. Progress notes and the treatment sheet
+
+| # | Do this | The system should |
+| --- | --- | --- |
+| 21a | On your completed booking, **Add Progress Note**: stage *Recovery*, a note. Save. | The note is under **Continuation Notes** with the time and your name. |
+| 21b | Change the text of that note in the table and save the booking. | Refuse: a saved note can't be changed. Reload the booking. |
+| 21c | Delete the note's row and save. | Refuse: a saved note can't be removed. Reload the booking. |
+| 21d | *Records › Write Treatment Sheet*. Add amoxicillin 500 mg PO every 8 hours for 2 days, paracetamol 1 g PO **PRN**, and once only paracetamol 1 g PO. Submit. | The sheet is submitted with a link **Ward Medication Order**. The order has 7 doses: 6 of amoxicillin and 1 of paracetamol. The PRN paracetamol isn't scheduled. |
+| 21e | On the sheet, a regular drug with no **Every (hours)** and no PRN. Save. | Refuse: give how often, or tick PRN. |
+| 21f | As a ward nurse, give the first amoxicillin dose from the Inpatient Record. Then try to cancel the sheet. | Refuse: the ward has already given a dose; stop the remaining doses on the order instead. |
+
 ## E. Emergencies
 
 | # | Do this | The system should |
@@ -71,6 +82,8 @@ Print each record from your test (the printer icon, top right). The forms are th
 | 24 | Anaesthesia Record | The pre-operative assessment with the systems review, airway, labs and ASA, then the monitoring chart, drugs and recovery. |
 | 25 | Operation Note | Team, anaesthesia type and agents, findings, incision, procedure and instructions. |
 | 26 | Consent for Operation | As in test 5. |
+| 27 | Continuation Sheet (from the booking) | The operation header, procedure and findings, and your notes with times and names. |
+| 28 | Treatment Sheet | Drugs in capitals with dose, route, frequency and days; the administration grid with the codes; the once-only drug. |
 
 ## Tell us
 
@@ -78,3 +91,4 @@ Print each record from your test (the printer icon, top right). The forms are th
 2. Any item on your paper forms that is missing, or worded differently.
 3. Do you fill in both the pre/post-operative checklist and the Surgical Safety Checklist today? We merged them into one record.
 4. Does your KSA Anaesthesia Record have a third (intra-operative) page? We received two.
+5. Who writes the post-operative treatment sheet: the surgeon, the anaesthetist, or either?

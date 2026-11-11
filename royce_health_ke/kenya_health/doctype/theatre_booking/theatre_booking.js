@@ -33,6 +33,48 @@ frappe.ui.form.on("Theatre Booking", {
 		if (frm.doc.clinical_procedure) {
 			open("Clinical Procedure", frm.doc.clinical_procedure, __("Operation Note"));
 		}
+		if (frm.doc.treatment_sheet) {
+			open("Treatment Sheet", frm.doc.treatment_sheet, __("Treatment Sheet"));
+		} else if (["In Theatre", "Completed"].includes(frm.doc.status)) {
+			frm.add_custom_button(
+				__("Write Treatment Sheet"),
+				() =>
+					frappe.new_doc("Treatment Sheet", {
+						theatre_booking: frm.doc.name,
+						patient: frm.doc.patient,
+						inpatient_record: frm.doc.inpatient_record,
+						company: frm.doc.company,
+						practitioner: frm.doc.surgeon,
+					}),
+				__("Records"),
+			);
+		}
+		if (["In Theatre", "Completed"].includes(frm.doc.status)) {
+			frm.add_custom_button(__("Add Progress Note"), () => {
+				const d = new frappe.ui.Dialog({
+					title: __("Progress Note"),
+					fields: [
+						{
+							fieldname: "stage",
+							fieldtype: "Select",
+							label: __("Stage"),
+							options: ["In theatre", "Recovery", "Back to ward"],
+							default: frm.doc.status === "Completed" ? "Recovery" : "In theatre",
+						},
+						{ fieldname: "noted_at", fieldtype: "Datetime", label: __("Time"), default: frappe.datetime.now_datetime() },
+						{ fieldname: "note", fieldtype: "Small Text", label: __("Note"), reqd: 1 },
+					],
+					primary_action_label: __("Save Note"),
+					primary_action(v) {
+						d.hide();
+						frappe
+							.call({ method: "royce_health_ke.theatre.add_note", args: { booking: frm.doc.name, ...v }, freeze: true })
+							.then(() => frm.reload_doc());
+					},
+				});
+				d.show();
+			});
+		}
 
 		const call = (method, args, message) =>
 			frappe.call({ method, args, freeze: true }).then(() => {

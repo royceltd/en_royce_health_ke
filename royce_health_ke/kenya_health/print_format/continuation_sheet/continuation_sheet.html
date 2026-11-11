@@ -1,0 +1,59 @@
+{#- Theatre Booking: the inpatient continuation sheet. The operation header
+    (diagnosis, operation, agent, team, incision), procedure and findings from
+    the operation note, then the timed progress notes in theatre and recovery. -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, signatures, footer as page_footer -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set c = health_continuation_details(doc) -%}
+{{ styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Continuation Sheet", letter_head, no_letterhead, [
+      ("Theatre booking", doc.name),
+      ("Operation note", doc.clinical_procedure),
+      ("Date", c.op.started or frappe.utils.formatdate(doc.scheduled_start)),
+  ]) }}
+
+  {{ patient_band(ctx.patient) }}
+
+  <div class="hx-section">
+    {{ chips([
+        ("Diagnosis", c.diagnosis),
+        ("Operation", doc.procedure_template),
+    ]) }}
+    {% if c.op.agent %}<div style="height: 6px;"></div>{{ chips([("Anaesthetic agent", c.op.agent)]) }}{% endif %}
+    <div style="height: 6px;"></div>
+    {{ chips([
+        ("Surgeon", c.op.surgeon.name),
+        ("Assistants", c.op.assistant),
+        ("Anaesthetist", c.op.anaesthetist),
+        ("Incision", c.incision),
+    ]) }}
+  </div>
+
+  {% if c.findings or health_has_text(c.procedure_html) %}
+  <div class="hx-section">
+    {{ section_title("Procedure and findings") }}
+    {% if c.findings %}<div class="hx-pre">{{ c.findings }}</div>{% endif %}
+    {% if health_has_text(c.procedure_html) %}<div class="hx-text">{{ c.procedure_html }}</div>{% endif %}
+  </div>
+  {% endif %}
+
+  <div class="hx-section">
+    {{ section_title("Progress notes") }}
+    <table class="hx-table">
+      <thead><tr>
+        <th style="width: 14%;">{{ _("Time") }}</th><th style="width: 12%;">{{ _("Stage") }}</th><th>{{ _("Note") }}</th><th style="width: 18%;">{{ _("By") }}</th>
+      </tr></thead>
+      <tbody>
+      {% for n in c.notes %}
+      <tr class="hx-keep"><td>{{ n.time }}</td><td>{{ _(n.stage) }}</td><td><div class="hx-pre">{{ n.note }}</div></td><td>{{ n.by }}</td></tr>
+      {% endfor %}
+      {% for i in range(4 if c.notes else 10) %}
+      <tr><td style="height: 28px;"></td><td></td><td></td><td></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {{ signatures([("Surgeon", c.op.surgeon.name, ""), ("Nurse", "", "")]) }}
+  {{ page_footer(_("Notes can't be changed once saved; corrections are later notes."), footer, no_letterhead, ctx) }}
+</div>

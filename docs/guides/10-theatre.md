@@ -7,7 +7,8 @@ How RoyceERP Health takes a patient through theatre, from the booking to the ret
 - WHO Surgical Safety Checklist
 - Swab and instrument count
 - GOK/KSA Anaesthesia Record and monitoring chart
-- Operation notes
+- Operation notes and the inpatient continuation sheet
+- Treatment sheet (post-operative drug orders)
 
 Shown on the demo hospital at hospital.royceltd.com.
 
@@ -24,6 +25,8 @@ Shown on the demo hospital at hospital.royceltd.com.
 | 7 Counts and Sign Out | Scrub and circulating nurses | Checklist › Counts, Sign Out | Complete |
 | 8 Operation note, Complete | Surgeon | Operation Note (Clinical Procedure) | Complete |
 | 9 Recovery and return to the ward | Recovery nurse, ward nurse | Checklist › Post-operative, Anaesthesia Record › Recovery | — |
+| 10 Progress notes (continuation sheet) | Surgeon, theatre and recovery nurses | Theatre Booking › Continuation Notes | — |
+| 11 Post-operative treatment sheet | Surgeon or anaesthetist | Treatment Sheet | — |
 
 In the demo, follow *Daniel Mutua Kioko* (fictional): an emergency open appendicectomy on 7 November 2026, booking THB-2026-00001.
 
@@ -248,6 +251,38 @@ Demo record: HLC-CPR-2026-00001.
 
 *The post-operative checklist back to the ward.*
 
+## Step 10 — Progress notes (the continuation sheet)
+
+**Who:** the surgeon, the theatre and recovery nurses. **Where:** on the booking, **Add Progress Note** (once the patient is in theatre).
+
+1. Choose the stage: *In theatre*, *Recovery* or *Back to ward*. The time starts as now; change it if you are writing a little later.
+2. Write the note and press **Save Note**. It is added to **Continuation Notes** on the booking with your name.
+3. A saved note can't be changed or removed. To correct one, add a new note that says what was wrong.
+
+Print **Continuation Sheet** from the booking: the operation header (diagnosis, operation, anaesthetic agent, surgeon, assistants, anaesthetist, incision), the procedure and findings from the operation note, then every note with its time, stage and writer, and blank lines to continue by hand.
+
+Demo record: THB-2026-00001 has four notes, from the closure to the handover in the ward.
+
+## Step 11 — Post-operative treatment sheet
+
+**Who:** the surgeon or anaesthetist, in theatre or recovery. **Where:** on the booking, *Records › Write Treatment Sheet* (or Kenya Health › Theatre › Treatment Sheet).
+
+1. The patient, admission and company fill in from the booking, and the allergies from the patient's record (check them; write *None* if there are none). Choose yourself as **Prescriber** and enter the weight.
+2. Under **Regular and PRN Drugs**, one row per drug:
+   - **Drug**, the **Dose** as you would write it (*500 mg*, *1 g*), and the **Route** (PO, IV, IM…).
+   - **Every (hours)**: 8 for three times a day, 6 for four times. **For (days)**. **First Dose**: blank means now.
+   - Tick **PRN** for a drug given when required: it is on the sheet for the ward but has no fixed times.
+   - **Quantity per Dose** is what the ward issues and bills each time, in the drug's stock unit (2 for two 500 mg tablets).
+3. Under **Once Only**, drugs given once, with the time to give them (blank means now).
+4. **Other Orders**: fluids, oxygen, observations, diet.
+5. **Submit** to sign the sheet. The ward gets an **Inpatient Medication Order** with every scheduled dose (every 8 hours for 5 days is 15 doses). The ward nurses give them from the Inpatient Record as for any ward order: the drug is issued from the ward store and billed.
+
+To change the orders, cancel the sheet and amend it, as long as the ward has not given any dose. Once a dose has been given, stop the remaining doses on the medication order and write a new sheet. A patient without an admission (a day case) can have a sheet, kept as a record, but no ward order is made.
+
+Print **Treatment Sheet**: laid out like the paper sheet, with the drugs in capitals, an administration grid for the initials and codes (X taken, D declined, V vomited, S spat, R repeated, OS out of stock), and the once-only drugs.
+
+Demo record: TRS-2026-00001: amoxicillin 500 mg every 8 hours for 5 days, paracetamol 1 g every 6 hours for 2 days and when required after that, and a first dose of paracetamol on arrival in the ward.
+
 ## Printing the theatre forms
 
 Each record prints as the hospital's paper form, with the hospital header and the patient band (name, age, sex, ID, SHA number, ward and bed). Unanswered items print as empty boxes and lines. If the system is down, print a blank form and fill it by hand.
@@ -258,6 +293,8 @@ Each record prints as the hospital's paper form, with the hospital header and th
 | Theatre Checklist | Surgical Safety Checklist | 1 ward preparation, 2 WHO checklist, 3 gauze and instruments, 4 post-operative |
 | Anaesthesia Record | Anaesthesia Record | Pre-operative assessment, then the anaesthetic monitoring chart and recovery |
 | Operation Note | Clinical Procedure | Team, anaesthesia, findings, incision, procedure, specimens, instructions |
+| Continuation Sheet | Theatre Booking | Operation header, procedure and findings, progress notes |
+| Treatment Sheet | Treatment Sheet | Drugs, administration grid, once-only drugs |
 
 ![Theatre Checklist print](images/theatre/15-checklist-print.png)
 
@@ -269,5 +306,5 @@ Each record prints as the hospital's paper form, with the hospital header and th
 
 ## Not built yet
 
-- The **Inpatient Treatment Sheet** (cardex) from the same set of forms will come with the inpatient charts.
+- Recording each dose on screen with the X/D/V/S/R/OS codes (the ward cardex) comes with the inpatient charts. Until then the ward gives the scheduled doses through the Inpatient Record, and the printed treatment sheet has the grid for the codes.
 - Page 3 of the KSA Anaesthesia Record (intra-operative) was not in the scan we received. The monitoring chart covers it until we see the page.

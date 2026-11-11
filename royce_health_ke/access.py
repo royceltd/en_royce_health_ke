@@ -51,6 +51,7 @@ TRACKED = (
 	"Surgical Consent",
 	"Surgical Safety Checklist",
 	"Anaesthesia Record",
+	"Treatment Sheet",
 	"Diet Order",
 	"Insurance Claim",
 )
