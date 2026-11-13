@@ -364,6 +364,30 @@ SALES_INVOICE = [
 		"search_index": 1,
 		"depends_on": "patient",
 	},
+	{
+		"fieldname": "ke_bill_for",
+		"fieldtype": "Select",
+		"label": "Bill For",
+		"options": "\nInsurer\nPatient",
+		"insert_after": "ke_patient_visit",
+		"read_only": 1,
+		"no_copy": 1,
+		"depends_on": "ke_bill_for",
+		"description": "An insured visit's two bills: the insurer's (what the scheme covers) and the patient's (what it doesn't, paid first).",
+	},
+]
+
+MEDICATION_REQUEST = [
+	{
+		"fieldname": "ke_insurance_coverage",
+		"fieldtype": "Link",
+		"label": "Insurance Coverage",
+		"options": "Patient Insurance Coverage",
+		"insert_after": "billing_status",
+		"read_only": 1,
+		"no_copy": 1,
+		"description": "The scheme's cover for this drug, from an insured consultation.",
+	},
 ]
 
 PRACTITIONER = [
@@ -794,6 +818,7 @@ def apply():
 		ENCOUNTER,
 		INSURANCE_POLICY,
 		SALES_INVOICE,
+		MEDICATION_REQUEST,
 		PAYMENT_ENTRY,
 		LAB_TEST,
 		LAB_TEST_TEMPLATE,
@@ -818,6 +843,7 @@ def apply():
 		"Item Group": ITEM_GROUP,
 		"Sales Invoice Item": INVOICE_ITEM,
 		"Sales Invoice": SALES_INVOICE,
+		"Medication Request": MEDICATION_REQUEST,
 		"Payment Entry": PAYMENT_ENTRY,
 		"Lab Test": LAB_TEST,
 		"Lab Test Template": LAB_TEST_TEMPLATE,

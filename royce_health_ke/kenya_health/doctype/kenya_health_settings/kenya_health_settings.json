@@ -41,6 +41,7 @@
   "payment_cb",
   "pay_before_pharmacy",
   "auto_bill_insured",
+  "insured_pay_uncovered",
   "cashier_section",
   "only_cashiers_take_payment",
   "cashier_cb",
@@ -242,7 +243,7 @@
    "fieldname": "payment_section",
    "fieldtype": "Section Break",
    "label": "Payment Before Service",
-   "description": "For cash patients. Insured patients, inpatients and casualty are served first and pay later; a manager can also approve services before payment on a visit."
+   "description": "For cash patients, and for what an insured patient's scheme doesn't cover. Insured patients (for covered items), inpatients and casualty are served first and pay later; a manager can also approve services before payment on a visit."
   },
   {
    "fieldname": "pay_before_lab",
@@ -297,11 +298,18 @@
    "fieldtype": "Check",
    "label": "Bill insured visits automatically",
    "description": "An insured visit's charges go on its draft invoice as they are ordered, and the invoice is submitted (insurer's share to the claim, signed by KRA) when the visit is closed. A copay stays on the invoice for the cashier."
+  },
+  {
+   "fieldname": "insured_pay_uncovered",
+   "fieldtype": "Check",
+   "label": "Insured: uncovered items paid first",
+   "default": "1",
+   "description": "An insured patient is served first only for what the scheme covers (its Item Insurance Eligibility list, approved). Anything else, or anything still waiting for the insurer's approval, is billed to the patient on a bill of its own and paid before the lab, radiology or pharmacy serve it. Load each scheme's list before switching this on."
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-10 23:30:00.000000",
+ "modified": "2026-11-13 11:45:03.323022",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

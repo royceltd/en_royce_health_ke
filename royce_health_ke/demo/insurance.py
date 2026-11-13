@@ -115,6 +115,11 @@ def setup(company):
 				"is_active": 1,
 			}
 		).insert(ignore_permissions=True)
+	# the demo scheme has a cover list, so insured patients pay first for what it leaves out
+	if not frappe.db.exists(
+		"Singles", {"doctype": "Kenya Health Settings", "field": "insured_pay_uncovered"}
+	):
+		frappe.db.set_single_value("Kenya Health Settings", "insured_pay_uncovered", 1)
 
 
 def _account(company, name, parent, account_type):

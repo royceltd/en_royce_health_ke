@@ -21,6 +21,11 @@ after_migrate = "royce_health_ke.setup.install.after_migrate"
 # Patient Record Access: an audit trail outlives the records it points at
 ignore_links_on_delete = ["Patient Record Access"]
 
+# Marley's coverage picks the wrong scheme eligibility for a drug (coverage.py)
+extend_doctype_class = {
+	"Patient Insurance Coverage": "royce_health_ke.coverage.CoverageEligibility",
+}
+
 doc_events = {
 	"*": {
 		"onload": "royce_health_ke.access.log_view",
@@ -78,9 +83,11 @@ doc_events = {
 			"royce_health_ke.visits.encounter_saved",
 			"royce_health_ke.history.save_history_to_patient",
 			"royce_health_ke.schemes.cover_consultation",
+			"royce_health_ke.coverage.warn_uncovered",
 			"royce_health_ke.visit_bill.orders_changed",
 		],
 	},
+	"Medication Request": {"on_submit": "royce_health_ke.coverage.cover_drug"},
 }
 
 jinja = {

@@ -129,7 +129,13 @@ function send_to_dialog(frm, call) {
 				label: __("Station"),
 				options: STATIONS.filter((s) => s !== frm.doc.current_station || frm.doc.queue_status !== "Waiting"),
 				reqd: 1,
-				default: frm.doc.current_station === "Triage" ? "Consultation" : undefined,
+				// Triage sends on to the doctor; uncovered orders of an insured patient go to the cashier first.
+				default:
+					frm.doc.current_station === "Triage"
+						? "Consultation"
+						: frm.__ke_patient_now > 0
+							? "Cashier"
+							: undefined,
 			},
 			{
 				fieldname: "practitioner",
@@ -166,6 +172,7 @@ function render_bill(frm) {
 		}
 		const c = b.currency;
 		const esc = frappe.utils.escape_html;
+		frm.__ke_patient_now = b.patient_now;
 		let html = "";
 		if (b.charges.length) {
 			html += `<p class="text-muted small mb-1">${__("Not billed yet")}</p>
@@ -176,7 +183,13 @@ function render_bill(frm) {
 				</tr></thead><tbody>
 				${b.charges
 					.map(
-						(r) => `<tr><td>${esc(r.item)}<div class="text-muted small">${esc(__(r.reference_dt || ""))}</div></td>
+						(r) => `<tr><td>${esc(r.item)}<div class="text-muted small">${esc(__(r.reference_dt || ""))}${
+							b.split
+								? r.covered
+									? ` · ${__("Insurer's bill")}`
+									: ` · <span class="text-danger">${__("Not covered: patient pays first")}</span>`
+								: ""
+						}</div></td>
 						<td class="text-right">${r.qty}</td><td class="text-right">${money(r.rate, c)}</td>
 						<td class="text-right">${money(r.amount, c)}</td>
 						${b.charges.some((x) => x.insurance) ? `<td class="text-right">${money(r.insurance, c)}</td>` : ""}</tr>`,
@@ -211,6 +224,7 @@ function render_bill(frm) {
 				${b.insurance ? `<div>${__("Insurance")}: <b>${money(b.insurance, c)}</b></div>` : ""}
 				<div>${__("Paid")}: <b>${money(b.paid, c)}</b></div>
 				<div>${__("To pay")}: <b class="${b.to_pay > 0 ? "text-danger" : ""}">${money(b.to_pay, c)}</b></div>
+				${b.patient_now ? `<div>${__("Patient pays now")}: <b class="text-danger">${money(b.patient_now, c)}</b></div>` : ""}
 			</div>`;
 		}
 		wrapper.html(html);
@@ -220,7 +234,7 @@ function render_bill(frm) {
 		}
 
 		if (frm.doc.status !== "Open") return;
-		if (b.can_bill && b.charges.length) {
+		if (b.can_bill && b.charges.length && (!b.split || b.patient_now > 0)) {
 			frm.add_custom_button(__("Create Bill"), () => make_bill(frm), __("Bill"));
 		}
 		if (b.can_approve_credit && !frm.doc.allow_credit) {
@@ -250,7 +264,7 @@ function make_bill(frm) {
 		({ message }) => {
 			if (!message) return;
 			if (message.existing) {
-				frappe.show_alert({ message: __("This visit already has a draft bill."), indicator: "blue" });
+				frappe.show_alert({ message: __("This visit already has a draft bill for the patient."), indicator: "blue" });
 				frappe.set_route("Form", "Sales Invoice", message.existing);
 				return;
 			}

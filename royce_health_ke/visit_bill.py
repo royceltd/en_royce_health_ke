@@ -13,7 +13,10 @@ Payment before service, for cash patients (Kenya Health Settings, one switch
 each): the lab starts a test, and radiology performs an exam, only once its
 request is on a paid invoice; drugs leave the store only on a paid invoice.
 Insured patients, inpatients and casualty are served first and settle
-later, and a manager can approve services before payment on a visit."""
+later, and a manager can approve services before payment on a visit. With
+"Insured: uncovered items paid first" on, an insured patient is served first
+only for what the scheme covers (coverage.py): the rest is billed to the
+patient on an invoice of its own and paid before it is done."""
 
 from contextlib import contextmanager
 
@@ -21,6 +24,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt, get_datetime, nowdate
 
+from royce_health_ke import coverage
 from royce_health_ke.visits import open_visit_for
 
 LAB, RADIOLOGY, PHARMACY = "lab", "radiology", "pharmacy"
@@ -105,21 +109,23 @@ def unbilled_lines(visit):
 			for d in get_drugs_to_invoice(encounter, customer) or []:
 				if flt(d.get("quantity")) <= 0:
 					continue
-				lines.append(
-					{
-						"dt": d["reference_type"],
-						"dn": d["reference_name"],
-						"item": d["drug_code"],
-						"qty": d.get("quantity"),
-						"rate": False,
-						"income_account": False,
-						"description": d.get("description") or False,
-					}
+				line = {
+					"dt": d["reference_type"],
+					"dn": d["reference_name"],
+					"item": d["drug_code"],
+					"qty": d.get("quantity"),
+					"rate": False,
+					"income_account": False,
+					"description": d.get("description") or False,
+				}
+				cover = frappe.db.get_value(
+					"Medication Request", d["reference_name"], "ke_insurance_coverage"
 				)
+				lines.extend(coverage.drug_lines(line, cover))
 	return lines
 
 
-def _invoice(visit, lines):
+def _invoice(visit, lines, bill_for=None):
 	si = frappe.new_doc("Sales Invoice")
 	si.update(
 		{
@@ -128,6 +134,7 @@ def _invoice(visit, lines):
 			"patient_name": visit.patient_name,
 			"company": visit.company,
 			"ke_patient_visit": visit.name,
+			"ke_bill_for": bill_for,
 			"posting_date": nowdate(),
 			"due_date": nowdate(),
 		}
@@ -206,9 +213,12 @@ def visit_bill(visit: str) -> dict:
 				"rate": row.rate,
 				"amount": row.amount,
 				"insurance": flt(row.get("insurance_coverage_amount")),
+				"covered": bool(row.get("insurance_coverage")),
 			}
 			for row in si.items
 		]
+	split = splits(doc)
+	patient_now = sum(c["amount"] for c in charges if not c["covered"]) if split else 0
 	raised = invoices(doc.name)
 	submitted = [i for i in raised if i.docstatus == 1]
 	billed = sum(flt(i.grand_total) for i in submitted)
@@ -228,6 +238,8 @@ def visit_bill(visit: str) -> dict:
 		"balance": balance,
 		"to_pay": balance + unbilled_total,
 		"status": status,
+		"split": split,
+		"patient_now": patient_now,
 		"can_bill": bool(frappe.has_permission("Sales Invoice", "create")),
 		"can_approve_credit": bool(set(CREDIT_ROLES) & set(frappe.get_roles())),
 	}
@@ -259,6 +271,32 @@ def _insured(visit):
 	return visit.payment_method == "Insurance" and visit.insurance_policy
 
 
+def splits(visit):
+	"""An insured visit billed on two invoices: the insurer's (covered
+	charges, made and submitted automatically) and the patient's (what the
+	scheme doesn't cover, made by the cashier and paid first)."""
+	return bool(_insured(visit)) and coverage.pays_uncovered() and auto_bills_insured()
+
+
+def _covered(line):
+	return bool(line.get("insurance_coverage"))
+
+
+def _draft(visit_name, bill_for=None):
+	"""The visit's draft invoice; 'Insurer' or 'Patient' picks one of an
+	insured visit's two (an untagged draft is the insurer's)."""
+	for d in frappe.get_all(
+		"Sales Invoice",
+		filters={"ke_patient_visit": visit_name, "docstatus": 0},
+		fields=["name", "ke_bill_for"],
+		order_by="creation asc",
+	):
+		patients = d.ke_bill_for == "Patient"
+		if not bill_for or (bill_for == "Patient") == patients:
+			return d.name
+	return None
+
+
 def auto_bill(visit, closing=False):
 	"""Keep an insured visit's draft invoice current: whatever was ordered or
 	given and is not billed yet is added to it (the draft is made with the
@@ -274,9 +312,10 @@ def auto_bill(visit, closing=False):
 	try:
 		with _as_administrator():
 			lines = unbilled_lines(visit)
-			draft = frappe.db.get_value(
-				"Sales Invoice", {"ke_patient_visit": visit.name, "docstatus": 0}, "name"
-			)
+			if coverage.pays_uncovered():
+				# what the scheme doesn't cover is the patient's own bill
+				lines = [line for line in lines if _covered(line)]
+			draft = _draft(visit.name, "Insurer")
 			if draft:
 				si = frappe.get_doc("Sales Invoice", draft)
 				on_bill = {(r.reference_dt, r.reference_dn) for r in si.items}
@@ -286,7 +325,7 @@ def auto_bill(visit, closing=False):
 					si.flags.ignore_permissions = True
 					si.save()
 			elif lines:
-				si = _invoice(visit, lines)
+				si = _invoice(visit, lines, "Insurer")
 				si.flags.ignore_permissions = True
 				si.insert()
 			else:
@@ -308,7 +347,7 @@ def finalize_insured_bill(visit):
 	if not auto_bills_insured() or not _insured(visit):
 		return
 	auto_bill(visit, closing=True)
-	draft = frappe.db.get_value("Sales Invoice", {"ke_patient_visit": visit.name, "docstatus": 0}, "name")
+	draft = _draft(visit.name, "Insurer")
 	if not draft:
 		return
 	frappe.db.savepoint("ke_insured_submit")
@@ -341,15 +380,26 @@ def make_bill(visit: str):
 	frappe.has_permission("Sales Invoice", "create", throw=True)
 	doc = frappe.get_doc("Patient Visit", visit)
 	doc.check_permission("read")
-	draft = frappe.db.get_value("Sales Invoice", {"ke_patient_visit": visit, "docstatus": 0}, "name")
+	split = splits(doc)
+	draft = _draft(visit, "Patient" if split else None)
 	if draft:
 		return {"existing": draft}
 	if not frappe.db.get_value("Patient", doc.patient, "customer"):
 		frappe.throw(_("Link a customer to patient {0} first.").format(doc.patient_name))
 	lines = unbilled_lines(doc)
+	if split:
+		# the covered charges are on the insurer's bill, submitted when the visit closes
+		lines = [line for line in lines if not _covered(line)]
+		if not lines:
+			frappe.throw(
+				_(
+					"Everything left to bill on this visit is covered by insurance. It is on the insurer's "
+					"bill, which is submitted when the visit is closed."
+				)
+			)
 	if not lines:
 		frappe.throw(_("Nothing on this visit is waiting to be billed."))
-	bill = _invoice(doc, lines).as_dict()
+	bill = _invoice(doc, lines, "Patient" if split else None).as_dict()
 	bill["__islocal"] = 1  # the form names it and opens it unsaved
 	return bill
 
@@ -432,7 +482,9 @@ def visit_of_request(service_request):
 
 
 def exemption(patient, visit=None, inpatient_record=None, insured=False):
-	"""Why this patient is served before paying, or None."""
+	"""Why this patient is served before paying, or None. `insured`: the
+	item itself is covered by the patient's insurance. An insured visit
+	covers everything on it only while uncovered items aren't paid first."""
 	if insured:
 		return "insured"
 	if inpatient_record or frappe.db.get_value("Patient", patient, "inpatient_status") in INPATIENT_STATUSES:
@@ -442,7 +494,7 @@ def exemption(patient, visit=None, inpatient_record=None, insured=False):
 		v = frappe.db.get_value(
 			"Patient Visit", visit, ["payment_method", "visit_type", "allow_credit"], as_dict=True
 		)
-		if v and v.payment_method == "Insurance":
+		if v and v.payment_method == "Insurance" and not coverage.pays_uncovered():
 			return "insured"
 		if v and v.visit_type == "Casualty":
 			return "casualty"
@@ -451,23 +503,46 @@ def exemption(patient, visit=None, inpatient_record=None, insured=False):
 	return None
 
 
-def require_payment(kind, patient, dt, dn, what, visit=None, inpatient_record=None, insured=False):
+def require_payment(
+	kind, patient, dt, dn, what, visit=None, inpatient_record=None, insured=False, uncovered=None
+):
+	"""`uncovered`: why the patient's insurance doesn't pay for it, if insured."""
 	if not enforced(kind) or exemption(patient, visit, inpatient_record, insured) or is_paid(dt, dn):
 		return
-	frappe.throw(
-		_(
+	name = frappe.db.get_value("Patient", patient, "patient_name") or patient
+	if uncovered:
+		message = _(
+			"{0} for {1} is {2}, so it is paid first. Send the patient to the "
+			"Cashier, or ask a manager to approve services before payment on the visit."
+		).format(what, name, uncovered)
+	else:
+		message = _(
 			"{0} for {1} is not paid yet. Send the patient to the Cashier, or ask a manager to approve "
 			"services before payment on the visit."
-		).format(what, frappe.db.get_value("Patient", patient, "patient_name") or patient),
-		title=_("Payment required"),
-	)
+		).format(what, name)
+	frappe.throw(message, title=_("Payment required"))
+
+
+def _cover(policy, cover):
+	"""(insured, uncovered reason) of an item ordered with this policy and cover."""
+	if not policy:
+		return False, None
+	if not coverage.pays_uncovered():
+		return True, None
+	if coverage.is_covered(cover):
+		return True, None
+	return False, coverage.reason_for(cover)
 
 
 def _request_gate(kind, request, what):
 	r = frappe.db.get_value(
-		"Service Request", request, ["patient", "inpatient_record", "insurance_policy"], as_dict=True
+		"Service Request",
+		request,
+		["patient", "inpatient_record", "insurance_policy", "insurance_coverage"],
+		as_dict=True,
 	)
 	if r:
+		insured, uncovered = _cover(r.insurance_policy, r.insurance_coverage)
 		require_payment(
 			kind,
 			r.patient,
@@ -476,7 +551,8 @@ def _request_gate(kind, request, what):
 			what,
 			visit=visit_of_request(request),
 			inpatient_record=r.inpatient_record,
-			insured=bool(r.insurance_policy),
+			insured=insured,
+			uncovered=uncovered,
 		)
 
 
@@ -491,6 +567,7 @@ def lab_test_before_insert(doc, method=None):
 def lab_test_before_submit(doc, method=None):
 	"""A test done without a request: its results are released once it is paid."""
 	if not doc.get("service_request"):
+		insured = coverage.pays_uncovered() and coverage.is_covered(doc.get("insurance_coverage"))
 		require_payment(
 			LAB,
 			doc.patient,
@@ -498,6 +575,7 @@ def lab_test_before_submit(doc, method=None):
 			doc.name,
 			_("Lab test {0}").format(doc.get("lab_test_name") or doc.template),
 			inpatient_record=doc.get("inpatient_record"),
+			insured=insured,
 		)
 
 
@@ -526,6 +604,15 @@ def _stock_lines(items):
 	)
 
 
+def _drugs_insured(items):
+	"""The invoice's drugs are the insurer's to pay: every one covered (any
+	one, while uncovered items aren't paid first)."""
+	if not coverage.pays_uncovered():
+		return any(row.get("insurance_coverage") for row in items)
+	stock = set(_stock_lines(items) or [])
+	return all(row.get("insurance_coverage") for row in items if row.item_code in stock)
+
+
 def invoice_before_submit(doc, method=None):
 	"""An invoice that issues drugs from the store (Update Stock) is paid on the spot."""
 	if (
@@ -537,8 +624,7 @@ def invoice_before_submit(doc, method=None):
 		or not _stock_lines(doc.items)
 	):
 		return
-	insured = any(row.get("insurance_coverage") for row in doc.items)
-	if exemption(doc.patient, doc.get("ke_patient_visit"), insured=insured):
+	if exemption(doc.patient, doc.get("ke_patient_visit"), insured=_drugs_insured(doc.items)):
 		return
 	frappe.throw(
 		_(
@@ -559,7 +645,10 @@ def delivery_before_submit(doc, method=None):
 		)
 		if not si or not si.patient or flt(si.outstanding_amount) <= 0.005:
 			continue
-		if exemption(si.patient, si.ke_patient_visit):
+		rows = frappe.get_all(
+			"Sales Invoice Item", filters={"parent": invoice}, fields=["item_code", "insurance_coverage"]
+		)
+		if exemption(si.patient, si.ke_patient_visit, insured=_drugs_insured(rows)):
 			continue
 		frappe.throw(
 			_("Invoice {0} has {1} unpaid. Drugs leave the store only when paid.").format(

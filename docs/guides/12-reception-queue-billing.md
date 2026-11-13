@@ -156,7 +156,11 @@ A billed but unpaid invoice is not enough: the balance must be zero.
 
 Look at the **Bill** column of your waiting list before calling the patient: *Paid* means you can go ahead.
 
-**Served first, settled later:** insured patients, inpatients, casualty visits, and visits a manager has approved (Step 9).
+**Served first, settled later:** insured patients (for what their scheme covers), inpatients, casualty visits, and visits a manager has approved (Step 9).
+
+**Insured patients pay first for what the scheme doesn't cover** (Kenya Health Settings › *Insured: uncovered items paid first*). A test, exam or drug is covered when it is on the scheme's cover list and the cover is approved. When the doctor submits the consultation, a *Patient pays first* message lists the orders that aren't covered, or are still waiting for the insurer's approval. On the visit's Bill section those lines read *Not covered: patient pays first* and the total shows as **Patient pays now**; covered lines read *Insurer's bill*. The patient goes to the cashier, who uses **Create Bill**: on an insured visit it makes the patient's own bill with only the uncovered items. Once it is paid the lab, radiology or pharmacy can go ahead. The covered items stay on the insurer's bill, which is submitted when the visit closes.
+
+Switch this on only after each scheme's cover list (Item Insurance Eligibility) is loaded: an item missing from the list counts as not covered.
 
 ## Step 8 — Pharmacy: paid first
 
@@ -167,7 +171,7 @@ Drugs leave the store only on a paid invoice. Either:
 - the cashier ticks **Include Payment** on the pharmacy bill, with **Update Stock**, and takes the money before submitting. An unpaid bill with Update Stock is refused; or
 - the cashier bills without Update Stock, the patient pays, and the pharmacy issues the drugs with a **Delivery Note** made from the invoice (**Create › Delivery Note**). A Delivery Note against an unpaid invoice is refused.
 
-The same exemptions apply as for the lab.
+The same exemptions apply as for the lab. Drugs for an insured patient are covered when the scheme's cover list includes them; others are paid first.
 
 ## Step 9 — Services before payment
 

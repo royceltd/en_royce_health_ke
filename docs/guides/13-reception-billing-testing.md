@@ -76,7 +76,10 @@ As **Nurse**, on the visit from test 8:
 
 | # | Do this | The system should |
 | --- | --- | --- |
-| 26 | On Peter's insured visit (test 12), have the doctor order a malaria slide, then start the lab test without billing. | Let it start: insured patients are served first. |
+| 26 | On Peter's insured visit (test 12), have the doctor order a malaria slide, then start the lab test without billing. | Let it start: the scheme covers it, so the patient is served first. |
+| 26a | On the same visit, have the doctor also order a **Chest X-ray (PA)** (not on the demo scheme's cover list) and submit. | A *Patient pays first* message lists the X-ray. The visit's Bill section marks it *Not covered: patient pays first* and shows **Patient pays now** 1,500. |
+| 26b | As radiology, try to perform the X-ray. | Refused: *… is not covered by the patient's insurance, so it is paid first.* |
+| 26c | As the cashier, **Bill › Create Bill** on the visit, submit and take payment. Perform the X-ray again. | The bill holds only the X-ray, marked *Bill For: Patient*. After payment the X-ray goes ahead. The insurer's draft bill never shows the X-ray. |
 | 27 | Check in a new cash patient, order a test, then as **Manager** use **Bill › Allow Services Before Payment** with the reason *Staff, pays at month end*. Start the lab test. | The reason shows at the top of the visit. The lab test starts unpaid. |
 | 28 | As **Reception**, open the same visit. | No *Allow Services Before Payment* option: only managers have it. |
 
