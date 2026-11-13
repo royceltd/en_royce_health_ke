@@ -58,6 +58,11 @@ As **Nurse**, on the visit from test 8:
 | 15 | **Record › Vital Signs**: temperature 38.9, pulse 110, SpO2 91, BP 120/80. Save. | Flag it **Abnormal**, with the temperature, pulse and SpO2 in red and listed at the top. The visit shows Vitals **Abnormal**, and so does the waiting list. |
 | 16 | Record vital signs for another adult: temperature 36.8, pulse 80, SpO2 98, BP 118/76. | Flag them **Normal**. |
 | 17 | On the visit, **Send To** Consultation, Dr Amina. | The visit moves to **Consultation: waiting**, with a second movement line. |
+| 17a | Check in a new patient with no practitioner (General Consultation, Cash). After triage, **Send To** Consultation with *Practitioner* blank. | A message names the doctor and room, e.g. *Sent to Amina Achieng, OPD Room 1*. The visit shows *Consultation: Amina Achieng · OPD Room 1 · General Consultation*, and the Room field is filled. |
+| 17b | Do the same for a second new patient. | The other doctor on duty is picked (on the demo, Brian Kiprotich in OPD Room 2): the patients are shared out. |
+| 17c | On the visit from 17b, **View › Queue Slip**. | A slip with the room, doctor, service and *Patients ahead of you*. |
+| 17d | On the visit from 17b, **Status › Reassign Doctor** and confirm. | The patient goes to another doctor on duty. The Movements line notes *Reassigned from Brian Kiprotich*. The waiting time is unchanged. |
+| 17e | Log in as a doctor whose Healthcare Practitioner has your user, open the Patient Visit list, press **My Patients**. | Only the open visits sent to you at Consultation. |
 | 18 | As **Manager** (or a doctor), **Record › Consultation**. Order a **Malaria Blood Slide**. Save and submit. | The consultation opens with Dr Amina and General Consultation filled in. The visit turns **Consultation: seen**. |
 
 ## E. The bill

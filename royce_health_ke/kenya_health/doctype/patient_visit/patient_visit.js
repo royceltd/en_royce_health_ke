@@ -70,6 +70,28 @@ frappe.ui.form.on("Patient Visit", {
 			),
 		__("Status"));
 
+		if (frm.doc.current_station === "Consultation" && frm.doc.practitioner) {
+			const where = [frm.doc.practitioner_name || frm.doc.practitioner, frm.doc.consultation_room, frm.doc.appointment_type]
+				.filter(Boolean)
+				.join(" · ");
+			frm.dashboard.add_comment(__("Consultation: {0}", [where]), "blue", true);
+			if (frm.doc.queue_status === "Waiting") {
+				frm.add_custom_button(
+					__("Reassign Doctor"),
+					() =>
+						frappe.confirm(__("Give this patient to the next doctor on duty? They keep their place in the queue."), () =>
+							frappe
+								.call({ method: "royce_health_ke.visits.reassign", args: { visit: frm.doc.name }, freeze: true })
+								.then(({ message: r }) => {
+									if (r) frappe.show_alert({ message: sent_message(r), indicator: "green" }, 8);
+									frm.reload_doc();
+								}),
+						),
+					__("Status"),
+				);
+			}
+		}
+		frm.add_custom_button(__("Queue Slip"), () => frm.print_doc(), __("View"));
 		if (frm.doc.allow_credit) {
 			frm.dashboard.add_comment(__("Services before payment approved: {0}", [frm.doc.credit_reason || ""]), "blue", true);
 		}
@@ -144,16 +166,32 @@ function send_to_dialog(frm, call) {
 				label: __("Practitioner"),
 				default: frm.doc.practitioner,
 				depends_on: "eval:doc.station == 'Consultation'",
+				description: __("Leave blank to assign the next doctor on duty."),
 			},
 			{ fieldname: "note", fieldtype: "Data", label: __("Note") },
 		],
 		primary_action_label: __("Send"),
 		primary_action(v) {
 			d.hide();
-			call("send_to", { visit: frm.doc.name, ...v }, __("Sent to {0}", [__(v.station)]));
+			frappe
+				.call({ method: "royce_health_ke.visits.send_to", args: { visit: frm.doc.name, ...v }, freeze: true })
+				.then(({ message: r }) => {
+					frappe.show_alert({ message: sent_message(r || { station: v.station }), indicator: "green" }, 8);
+					frm.reload_doc();
+				});
 		},
 	});
 	d.show();
+}
+
+// "Sent to Dr Amina Otieno, OPD Room 1"
+function sent_message(r) {
+	if (r.station === "Consultation" && r.practitioner) {
+		return r.room
+			? __("Sent to {0}, {1}", [r.practitioner_name || r.practitioner, r.room])
+			: __("Sent to {0}", [r.practitioner_name || r.practitioner]);
+	}
+	return __("Sent to {0}", [__(r.station)]);
 }
 
 const money = (value, currency) => format_currency(value || 0, currency);

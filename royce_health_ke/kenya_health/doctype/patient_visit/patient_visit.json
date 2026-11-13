@@ -11,6 +11,7 @@
   "sex",
   "age",
   "company",
+  "facility",
   "visit_cb",
   "visit_date",
   "arrival",
@@ -19,6 +20,7 @@
   "visit_cb2",
   "practitioner",
   "practitioner_name",
+  "consultation_room",
   "department",
   "is_referral",
   "referred_from",
@@ -118,6 +120,14 @@
    "remember_last_selected_value": 1
   },
   {
+   "fieldname": "facility",
+   "fieldtype": "Link",
+   "label": "Facility",
+   "options": "Health Facility",
+   "in_standard_filter": 1,
+   "description": "Where the patient checked in: the user's default facility, or the company's only one. Doctors are assigned from this facility's rooms."
+  },
+  {
    "fieldname": "visit_cb",
    "fieldtype": "Column Break"
   },
@@ -162,7 +172,8 @@
    "fieldtype": "Link",
    "label": "Practitioner",
    "options": "Healthcare Practitioner",
-   "in_standard_filter": 1
+   "in_standard_filter": 1,
+   "description": "Leave blank: sending the patient to Consultation assigns the next doctor on duty."
   },
   {
    "fieldname": "practitioner_name",
@@ -170,6 +181,14 @@
    "label": "Practitioner Name",
    "fetch_from": "practitioner.practitioner_name",
    "read_only": 1
+  },
+  {
+   "fieldname": "consultation_room",
+   "fieldtype": "Link",
+   "label": "Room",
+   "options": "Healthcare Service Unit",
+   "read_only": 1,
+   "description": "The doctor's room from their Practitioner Schedule, set when the patient is sent to Consultation."
   },
   {
    "fieldname": "department",
@@ -458,7 +477,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-10 23:30:00.000000",
+ "modified": "2026-11-13 11:58:42.878842",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Patient Visit",
@@ -546,5 +565,6 @@
    "report": 1,
    "print": 1
   }
- ]
+ ],
+ "default_print_format": "Queue Slip"
 }

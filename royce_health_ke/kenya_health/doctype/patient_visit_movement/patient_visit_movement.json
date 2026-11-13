@@ -9,6 +9,7 @@
   "sent_at",
   "sent_by",
   "practitioner",
+  "service_unit",
   "note",
   "acknowledged_at",
   "acknowledged_by"
@@ -50,6 +51,14 @@
    "options": "Healthcare Practitioner"
   },
   {
+   "fieldname": "service_unit",
+   "fieldtype": "Link",
+   "label": "Room",
+   "options": "Healthcare Service Unit",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
    "fieldname": "note",
    "fieldtype": "Data",
    "label": "Note",
@@ -69,7 +78,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-10 23:30:00.000000",
+ "modified": "2026-11-13 11:58:42.878842",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Patient Visit Movement",

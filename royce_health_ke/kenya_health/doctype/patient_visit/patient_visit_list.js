@@ -6,8 +6,26 @@
 // vitals show as a red pill; the bill pill tells the lab and pharmacy whether
 // a cash patient has paid.
 frappe.listview_settings["Patient Visit"] = {
-	add_fields: ["status", "queue_status", "current_station", "sent_at", "vitals_status", "bill_status", "payment_method", "allow_credit"],
+	add_fields: ["practitioner_name", "consultation_room", "status", "queue_status", "current_station", "sent_at", "vitals_status", "bill_status", "payment_method", "allow_credit"],
 	filters: [["status", "=", "Open"]],
+	// A doctor's own queue: patients assigned to the practitioner linked to this user.
+	onload(listview) {
+		listview.page.add_inner_button(__("My Patients"), () =>
+			frappe.db.get_value("Healthcare Practitioner", { user_id: frappe.session.user }, "name").then(({ message }) => {
+				if (!message || !message.name) {
+					frappe.msgprint(__("Your user is not linked to a Healthcare Practitioner (its User field)."));
+					return;
+				}
+				listview.filter_area.clear(false).then(() =>
+					listview.filter_area.add([
+						["Patient Visit", "status", "=", "Open"],
+						["Patient Visit", "current_station", "=", "Consultation"],
+						["Patient Visit", "practitioner", "=", message.name],
+					]),
+				);
+			}),
+		);
+	},
 	get_indicator(doc) {
 		if (doc.status === "Completed") return [__("Completed"), "green", "status,=,Completed"];
 		if (doc.status === "Cancelled") return [__("Cancelled"), "red", "status,=,Cancelled"];

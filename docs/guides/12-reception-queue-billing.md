@@ -68,9 +68,18 @@ Demo record: **VIS-2026-00003**, *Peter Otieno Kamau*, insured with Mlima Health
 1. Set the **Station** filter to your station (Triage, Consultation, Laboratory, Pharmacy, Cashier…). The list shows open visits only.
 2. Each row shows the station and whether the patient is *waiting* or *seen*, how long they have waited (orange after 30 minutes, red after an hour), cash or insurance, the **Bill** status and the triage **Vitals** flag. No phone or ID numbers.
 3. Open the patient and press **Seen** when you call them in.
-4. When you are done, press **Send To**, choose the next station (and the doctor, when sending to Consultation), add a note if useful, and send.
+4. When you are done, press **Send To**, choose the next station, add a note if useful, and send.
 
 Every move is kept under **Movements**, with who sent the patient, when, and when they were seen.
+
+**The next doctor is assigned for you.** When you send a patient to **Consultation** and leave *Practitioner* blank, the system picks a doctor on duty now and their room, sharing patients evenly: the doctor with the fewest patients waiting or in the room goes first. The message says who and where, for example *Sent to Brian Kiprotich, OPD Room 2*, and the top of the visit shows the doctor, room and service.
+
+- Print the **Queue Slip** (**View › Queue Slip**) for the patient: the room, the doctor, the service and how many patients are ahead of them.
+- A doctor you choose yourself is kept, and so is the doctor of a booked appointment.
+- **On duty** means the doctor's Practitioner Schedule has today's time slot covering now, in a room of your facility (see the [Administrator Setup guide](08-administrator-setup.md)). If nobody is on duty, you are asked to choose the doctor.
+- Doctors of the visit's department are picked first. If none of them is on duty, another doctor on duty is picked and you are told.
+- If a doctor has to leave, open a patient waiting for them and use **Status › Reassign Doctor**: the patient goes to the next doctor on duty and keeps their place in the queue.
+- Doctors: on the Patient Visit list, **My Patients** shows only the patients sent to you.
 
 ![The waiting lists](images/reception/02-queue.png)
 

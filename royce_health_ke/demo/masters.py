@@ -245,6 +245,7 @@ def load(company):
 				set_coding(diagnosis, ICD10, icd10)
 				diagnosis.save(ignore_permissions=True)
 	_facility(company, a)
+	second_room(company, a)
 	if frappe.get_meta("Healthcare Service Unit Type").has_field("ke_moh717_ward"):
 		if not frappe.db.get_value("Healthcare Service Unit Type", "General Ward Bed", "ke_moh717_ward"):
 			frappe.db.set_value(
@@ -403,6 +404,31 @@ def _practitioners(a):
 				**reg,
 			}
 		).insert(ignore_permissions=True)
+
+
+def second_room(company, a):
+	"""OPD Room 2 for Dr Brian, so the next-consultant assignment shows two
+	rooms. Tops up an existing demo: his schedule moves from Room 1."""
+	room = f"OPD Room 2 - {a}"
+	if not frappe.db.exists("Healthcare Service Unit", room):
+		frappe.get_doc(
+			{
+				"doctype": "Healthcare Service Unit",
+				"healthcare_service_unit_name": "OPD Room 2",
+				"parent_healthcare_service_unit": f"Kijani Valley Hospital - {a}",
+				"service_unit_type": "Consultation Room",
+				"allow_appointments": 1,
+				"company": company,
+			}
+		).insert(ignore_permissions=True)
+	brian = frappe.db.get_value("Healthcare Practitioner", {"first_name": "Brian"})
+	if brian:
+		frappe.db.set_value(
+			"Practitioner Service Unit Schedule",
+			{"parent": brian, "service_unit": f"OPD Room 1 - {a}"},
+			"service_unit",
+			room,
+		)
 
 
 def _facility(company, a):

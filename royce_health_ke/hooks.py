@@ -111,6 +111,7 @@ jinja = {
 		"royce_health_ke.printing.health_anaesthesia_details",
 		"royce_health_ke.printing.health_continuation_details",
 		"royce_health_ke.printing.health_treatment_sheet",
+		"royce_health_ke.assign.health_queue_slip",
 	]
 }
 

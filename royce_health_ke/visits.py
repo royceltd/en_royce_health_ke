@@ -10,6 +10,9 @@ station. Each station sees its waiting list (the Patient Visit list filtered
 by station), marks the patient Seen, and sends them on with Send To. Every
 move is kept in the visit's Movements table.
 
+Sent to Consultation without a doctor, the visit goes to the next doctor on
+duty and their room (assign.py); the patient's queue slip shows both.
+
 Vital signs and consultations recorded the same day link to the open visit,
 so the triage list shows each patient's vitals flag and opening the
 consultation marks the patient seen."""
@@ -110,6 +113,10 @@ def validate_insurance(doc):
 
 
 def before_insert_visit(doc):
+	if not doc.get("facility"):
+		from royce_health_ke.assign import default_facility
+
+		doc.facility = default_facility(doc.company)
 	if doc.payment_method == "Insurance" and not doc.insurance_policy:
 		doc.insurance_policy = find_or_create_policy(doc)
 	station = FIRST_STATION.get(doc.visit_type, "Triage")
@@ -163,7 +170,7 @@ def find_or_create_policy(doc):
 	return policy.name
 
 
-def _move(doc, from_station, to_station, practitioner=None, note=None):
+def _move(doc, from_station, to_station, practitioner=None, note=None, room=None):
 	now, user = now_datetime(), frappe.session.user
 	doc.append(
 		"movements",
@@ -173,6 +180,7 @@ def _move(doc, from_station, to_station, practitioner=None, note=None):
 			"sent_at": now,
 			"sent_by": user,
 			"practitioner": practitioner,
+			"service_unit": room,
 			"note": note,
 		},
 	)
@@ -198,11 +206,72 @@ def send_to(visit: str, station: str, practitioner: str | None = None, note: str
 		frappe.throw(_("Unknown station {0}.").format(station))
 	if station == doc.current_station and doc.queue_status == "Waiting":
 		frappe.throw(_("{0} is already waiting at {1}.").format(doc.patient_name, _(station)))
+	if station == "Consultation":
+		return _send_to_consultation(doc, practitioner, note)
 	if practitioner:
 		doc.practitioner = practitioner
 	_move(doc, doc.current_station, station, practitioner, note)
 	doc.save()
-	return doc.current_station
+	return {"station": doc.current_station}
+
+
+def _consultation_result(doc):
+	return {
+		"station": doc.current_station,
+		"practitioner": doc.practitioner,
+		"practitioner_name": doc.practitioner_name,
+		"room": doc.consultation_room,
+	}
+
+
+def _send_to_consultation(doc, practitioner, note):
+	"""The doctor named, else the appointment's, else the next doctor on duty."""
+	from frappe.utils.synchronization import filelock
+
+	from royce_health_ke import assign
+
+	if not practitioner and doc.appointment:
+		practitioner = frappe.db.get_value("Patient Appointment", doc.appointment, "practitioner")
+	if practitioner:
+		if practitioner != doc.practitioner or not doc.consultation_room:
+			doc.consultation_room = assign.room_of(practitioner, doc.company, doc.get("facility"))
+		doc.practitioner = practitioner
+		_move(doc, doc.current_station, "Consultation", practitioner, note, doc.consultation_room)
+		doc.save()
+		return _consultation_result(doc)
+	# One assignment at a time, committed before the next is worked out, so
+	# two nurses sending at once don't both pick the same doctor.
+	with filelock("ke_next_consultant", timeout=20):
+		assign.assign(doc)
+		_move(doc, doc.current_station, "Consultation", doc.practitioner, note, doc.consultation_room)
+		doc.save()
+		if not frappe.flags.in_test:
+			frappe.db.commit()
+	return _consultation_result(doc)
+
+
+@frappe.whitelist()
+def reassign(visit: str):
+	"""Give a patient waiting at Consultation to the next doctor on duty
+	(their doctor left, or is held up). Their place in the queue is kept."""
+	from frappe.utils.synchronization import filelock
+
+	from royce_health_ke import assign
+
+	doc = _open_visit(visit)
+	if doc.current_station != "Consultation" or doc.queue_status != "Waiting":
+		frappe.throw(_("Only a patient waiting at Consultation can be reassigned."))
+	before = doc.practitioner_name or doc.practitioner
+	with filelock("ke_next_consultant", timeout=20):
+		assign.assign(doc, exclude=(doc.practitioner,) if doc.practitioner else ())
+		if doc.movements:
+			last = doc.movements[-1]
+			last.practitioner, last.service_unit = doc.practitioner, doc.consultation_room
+			last.note = _("Reassigned from {0}").format(before) if before else last.note
+		doc.save()
+		if not frappe.flags.in_test:
+			frappe.db.commit()
+	return _consultation_result(doc)
 
 
 @frappe.whitelist()

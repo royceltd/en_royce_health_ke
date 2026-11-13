@@ -1,0 +1,45 @@
+{#- Patient Visit. The patient's queue slip, sized for an 80 mm receipt
+    printer: where to go (room), who they will see, the service and how many
+    patients are ahead of them. -#}
+{%- set slip = health_queue_slip(doc) -%}
+<style>
+  .qs { width: 72mm; margin: 0 auto; font-family: Inter, Arial, sans-serif; color: #111827; text-align: center; }
+  .qs-hospital { font-size: 10pt; font-weight: 700; }
+  .qs-date { font-size: 8pt; color: #4b5563; margin-bottom: 6px; }
+  .qs-label { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.06em; color: #4b5563; margin-top: 8px; }
+  .qs-room { font-size: 22pt; font-weight: 800; line-height: 1.15; }
+  .qs-doctor { font-size: 13pt; font-weight: 700; }
+  .qs-value { font-size: 10.5pt; font-weight: 600; }
+  .qs-rule { border-top: 1px dashed #6b7280; margin: 8px 0; }
+  .qs-small { font-size: 8pt; color: #374151; }
+</style>
+<div class="qs">
+  <div class="qs-hospital">{{ slip.hospital or "" }}</div>
+  <div class="qs-date">{{ frappe.utils.format_datetime(doc.sent_at or doc.arrival or doc.creation, "dd MMM yyyy HH:mm") }}</div>
+  <div class="qs-rule"></div>
+  <div class="qs-value">{{ doc.patient_name }}</div>
+  <div class="qs-small">{% if doc.patient != doc.patient_name %}{{ doc.patient }} · {% endif %}{{ doc.name }}</div>
+  {%- if doc.current_station == "Consultation" and (slip.room or slip.doctor) %}
+    <div class="qs-label">{{ _("Go to") }}</div>
+    <div class="qs-room">{{ slip.room or _("Consultation") }}</div>
+    {%- if slip.doctor %}
+      <div class="qs-label">{{ _("Doctor") }}</div>
+      <div class="qs-doctor">{{ slip.doctor }}</div>
+    {%- endif %}
+    {%- if slip.service %}
+      <div class="qs-label">{{ _("Service") }}</div>
+      <div class="qs-value">{{ _(slip.service) }}</div>
+    {%- endif %}
+    <div class="qs-label">{{ _("Patients ahead of you") }}</div>
+    <div class="qs-value">{{ slip.ahead }}</div>
+  {%- else %}
+    <div class="qs-label">{{ _("Go to") }}</div>
+    <div class="qs-room">{{ _(doc.current_station or "") }}</div>
+    {%- if doc.appointment_type %}
+      <div class="qs-label">{{ _("Service") }}</div>
+      <div class="qs-value">{{ _(doc.appointment_type) }}</div>
+    {%- endif %}
+  {%- endif %}
+  <div class="qs-rule"></div>
+  <div class="qs-small">{{ _("Keep this slip until you leave the hospital.") }}</div>
+</div>

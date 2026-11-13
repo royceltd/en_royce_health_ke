@@ -56,7 +56,8 @@ Demo users: *amina.achieng@kijanivalley.example* (Physician) and *nurse.wanjiru@
 1. Enter the name, department and **User** (the login from Step 1), so encounters and orders carry the right doctor.
 2. In the registration section, enter the **cadre**, **regulator** (KMPDC, NCK, COC, PPB, KMLTTB), registration number, practising licence number and **licence expiry**.
 3. Under **Charges**, set the **OP consulting charge item** and fee for every doctor who sees outpatients. Without it the consultation can't be priced, and the visit's bill says so.
-4. Add a **Practitioner Schedule** for the days and times they see patients, so reception can book them.
+4. Add a **Practitioner Schedule** for the days and times they see patients, with their **room** (service unit) on each schedule row. This books appointments, and it decides who is **on duty**: patients sent to Consultation without a doctor are shared out among the doctors whose schedule covers that moment, and sent to the room on the schedule. Keep schedules current; a doctor on leave should have the schedule row removed or the schedule disabled for that time.
+5. With more than one facility in a company (Bethesda Main and Kobujoi), give each **Health Facility** its service unit group, and give each reception and triage user a default facility: **User Permission** on *Health Facility* with **Is Default** ticked. Each visit then takes that facility, and only doctors with rooms in it are assigned.
 
 Healthcare Administrators are notified 30, 14, 7 and 1 day before a licence expires, then weekly once it has expired.
 
