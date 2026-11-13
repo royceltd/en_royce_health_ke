@@ -39,6 +39,14 @@ const guides = [
   ["13-reception-billing-testing.md", "13 RoyceERP Health - Reception and Billing Testing Guide", "11 November 2026"],
   ["14-v0.22-testing.md", "14 RoyceERP Health - Version 0.22 Testing Guide", "11 November 2026"],
 ];
+// Temporary guides (../temporary): setup checklists and release testing
+// scripts, built with TEMPORARY=1 into their own folder.
+const temporaryGuides = [
+  ["bethesda-setup-v0.25.md", "Bethesda Setup for Versions 0.24 and 0.25", "13 November 2026",
+    "Written 13 November 2026 for Bethesda Healthcare Services (bethesda.royceltd.com), version 0.25."],
+  ["v0.25-testing.md", "Version 0.24 and 0.25 Testing Guide", "13 November 2026"],
+];
+const selected = process.env.TEMPORARY ? temporaryGuides : guides;
 const css = `
 @page { size: A4; margin: 18mm 16mm 20mm 16mm; }
 body { font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 10.5pt; line-height: 1.5; color: #1f2328; }
@@ -62,12 +70,12 @@ code { font-size: 9pt; background: #f6f8fa; padding: 0 3px; border-radius: 3px; 
 `;
 const browser = await chromium.launch({ executablePath: chrome });
 const page = await browser.newPage();
-for (const [file, title, checked = "7 November 2026"] of guides) {
+for (const [file, title, checked = "7 November 2026", note] of selected) {
   if (process.env.ONLY && !file.startsWith(process.env.ONLY)) continue;
   let md = fs.readFileSync(path.join(guidesDir, file), "utf8");
-  md = md.replace(/\]\((\d{2}-[a-z-]+)\.md\)/g, "]($1.pdf)");
+  md = md.replace(/\]\((?:\.\.\/)?(\d{2}-[a-z-]+)\.md\)/g, "]($1.pdf)");
   let body = micromark(md, { extensions: [gfm()], htmlExtensions: [gfmHtml()] });
-  const cover = `<div class="cover"><div class="brand">RoyceERP Health · Royce Technologies Ltd</div><div class="meta">Guide checked ${checked} on the demo hospital (Kijani Valley Hospital Ltd). All patients, staff and records shown are fictional.</div></div>`;
+  const cover = `<div class="cover"><div class="brand">RoyceERP Health · Royce Technologies Ltd</div><div class="meta">${note || `Guide checked ${checked} on the demo hospital (Kijani Valley Hospital Ltd). All patients, staff and records shown are fictional.`}</div></div>`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><base href="file://${guidesDir}/"><title>${title}</title><style>${css}</style></head><body>${cover}${body}</body></html>`;
   const htmlPath = path.join(workDir, file.replace(".md", ".html"));
   fs.writeFileSync(htmlPath, html);
@@ -77,7 +85,7 @@ for (const [file, title, checked = "7 November 2026"] of guides) {
   const out = path.join(outDir, title + ".pdf");
   await page.pdf({ path: out, format: "A4", printBackground: true, displayHeaderFooter: true,
     headerTemplate: "<span></span>",
-    footerTemplate: `<div style="font-size:8px;color:#59636e;width:100%;padding:0 16mm;display:flex;justify-content:space-between;"><span>${title.slice(3)}</span><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>`,
+    footerTemplate: `<div style="font-size:8px;color:#59636e;width:100%;padding:0 16mm;display:flex;justify-content:space-between;"><span>${process.env.TEMPORARY ? title : title.slice(3)}</span><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>`,
     margin: { top: "16mm", bottom: "18mm", left: "16mm", right: "16mm" } });
   const missing = await page.evaluate(() => [...document.images].filter(i => !i.naturalWidth).map(i => i.getAttribute("src")));
   console.log("PDF", path.basename(out), (fs.statSync(out).size / 1048576).toFixed(1) + " MB", missing.length ? "MISSING " + missing.join(",") : "images ok");

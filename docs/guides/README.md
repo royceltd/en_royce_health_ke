@@ -21,6 +21,8 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 
 Planned next: radiology, emergency, kitchen and laundry, MOH reporting for the HRIO.
 
+**Temporary guides** (setup checklists for one hospital, testing scripts for one release) live in [temporary/](temporary/README.md). They are deleted, or folded into the guides above, once their job is done. Their PDFs go to a *Temporary* folder next to the client PDFs (`TEMPORARY=1` for `make_pdfs.mjs`).
+
 ## Writing a guide
 
 - One step per `##` heading: **Who**, **Where** (menu path), numbered actions, then the demo record to open and its screenshot.
