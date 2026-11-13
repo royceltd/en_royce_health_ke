@@ -9,7 +9,7 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 | [03 Inpatient](03-inpatient.md) | Doctors, ward nurses, pharmacy, cashier | 2026-11-11, v0.23.1 |
 | [04 Insurance](04-insurance.md) | Reception, cashier, claims officer, finance | 2026-11-11, v0.23.1 |
 | [05 Maternity](05-maternity.md) | ANC nurses, midwives, MCH, cashier | 2026-11-11, v0.23.1 |
-| [06 Pharmacy and stock](06-pharmacy-and-stock.md) | Pharmacist, stores | 2026-11-11, v0.23.1 |
+| [06 Pharmacy and stock](06-pharmacy-and-stock.md) | Pharmacist, stores | 2026-11-13, v0.26.0 (batch shots from a local demo) |
 | [07 Cashier day-end](07-cashier-day-end.md) | Cashier, accountant | 2026-11-11, v0.23.1 |
 | [08 Administrator setup](08-administrator-setup.md) | System administrator | 2026-11-11, v0.23.1 |
 | [09 Patient SMS](09-patient-sms.md) | Reception, clinical staff, administrator | 2026-11-08, v0.15.1 |
@@ -18,6 +18,7 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 | [12 Reception, queue and billing](12-reception-queue-billing.md) | Reception, triage, cashier, lab, pharmacy, managers | 2026-11-11, v0.23.1 |
 | [13 Reception and billing testing](13-reception-billing-testing.md) | The hospital's testers, before go-live | 2026-11-11, v0.23.1 |
 | [14 Version 0.22 testing](14-v0.22-testing.md) | The hospital's testers: residence, consultation, pricebooks, insured billing, cashiers, TAT | 2026-11-11, v0.23.1 |
+| [15 Pharmacy and stock setup and data upload](15-pharmacy-setup-and-upload.md) | ICT manager, pharmacist-in-charge, accountant | 2026-11-13, v0.26.0 (local demo) |
 
 Planned next: radiology, emergency, kitchen and laundry, MOH reporting for the HRIO.
 
@@ -63,3 +64,13 @@ Add new guides to its list and update its "Guide checked" date when the guides a
 ## Demo records behind the guides
 
 Insurance, maternity and theatre follow the demo loader's patients (Peter Otieno Kamau, Faith Njeri Wambui, Daniel Mutua Kioko). The outpatient, inpatient, pharmacy, cashier and administrator guides also use records created on the demo site on 2026-11-07 after the loader ran: Lucy Wairimu Ndung'u (outpatient), Mary Atieno Odhiambo (inpatient, with ward medication), a supplier delivery, a stock count, the M-Pesa settlement and two staff users. They are not created by `royce_health_ke.demo.load`; a fresh demo site will have different record numbers, so update the guide text with the shots.
+
+The batch records in guide 06 (Metformin DRG-MET500, batches MF24117 and MF25032, the OPD Pharmacy store, its requisition and transfer, and a 2-strip sale to Grace Wanjiku Mwangi) come from `royce_health_ke.demo.stock`, run by the loader; on an existing demo, run `stock.setup(company)` then `stock.run(company)` once. Shot 10's URL is the transfer line's Serial and Batch Bundle, whose name differs per site.
+
+## Upload templates (guide 15)
+
+`royce_health_ke.migration.pharmacy_templates.build(out_dir)` writes the five Data Import workbooks and the opening stock CSV. Build them on the client's own site, so the Lists sheets and examples show its stores, price lists and tax templates:
+
+```bash
+bench --site <site> execute royce_health_ke.migration.pharmacy_templates.build --kwargs "{'out_dir': '/tmp/pharmacy-templates'}"
+```

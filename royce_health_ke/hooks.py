@@ -24,6 +24,7 @@ ignore_links_on_delete = ["Patient Record Access"]
 # Marley's coverage picks the wrong scheme eligibility for a drug (coverage.py)
 extend_doctype_class = {
 	"Patient Insurance Coverage": "royce_health_ke.coverage.CoverageEligibility",
+	"Medication": "royce_health_ke.formulary.MedicationLinking",
 }
 
 doc_events = {

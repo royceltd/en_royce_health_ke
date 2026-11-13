@@ -35,6 +35,7 @@ def load(company: str = DEMO_COMPANY):
 		masters,
 		maternity,
 		radiology,
+		stock,
 		theatre,
 	)
 
@@ -44,6 +45,7 @@ def load(company: str = DEMO_COMPANY):
 	insurance.setup(company)
 	theatre.setup(company)
 	radiology.setup(company)
+	stock.setup(company)
 	frappe.db.commit()
 	result = {"cash_patient": journey.run(company)}
 	frappe.db.commit()
@@ -56,5 +58,7 @@ def load(company: str = DEMO_COMPANY):
 	result["radiology_patient"] = radiology.run(company)
 	frappe.db.commit()
 	result["kitchen_laundry"] = kitchen_laundry.run(company)
+	frappe.db.commit()
+	result["batches"] = stock.run(company)
 	frappe.db.commit()
 	return result

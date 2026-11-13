@@ -1,8 +1,54 @@
 [
- {"file": "01-stock-status.png", "url": "/desk/query-report/Pharmacy Stock Status"},
- {"file": "02-purchase-receipt.png", "url": "/desk/purchase-receipt/MAT-PRE-2026-00001"},
- {"file": "03-ward-return.png", "url": "/desk/stock-entry/MAT-STE-2026-00012"},
- {"file": "04-stock-count.png", "url": "/desk/stock-reconciliation/MAT-RECO-2026-00001"},
- {"file": "05-stock-ledger.png", "url": "/desk/query-report/Stock Ledger?company=Kijani Valley Hospital Ltd&item_code=DRG-AMX500&from_date=2026-11-01&to_date=2026-11-07"},
- {"file": "06-etims-movements.png", "url": "/desk/etims-stock-movement"}
+ {
+  "file": "01-stock-status.png",
+  "url": "/desk/query-report/Pharmacy Stock Status"
+ },
+ {
+  "file": "02-purchase-receipt.png",
+  "url": "/desk/purchase-receipt/MAT-PRE-2026-00001"
+ },
+ {
+  "file": "03-ward-return.png",
+  "url": "/desk/stock-entry/MAT-STE-2026-00012"
+ },
+ {
+  "file": "04-stock-count.png",
+  "url": "/desk/stock-reconciliation/MAT-RECO-2026-00001"
+ },
+ {
+  "file": "05-stock-ledger.png",
+  "url": "/desk/query-report/Stock Ledger?company=Kijani Valley Hospital Ltd&item_code=DRG-AMX500&from_date=2026-11-01&to_date=2026-11-07"
+ },
+ {
+  "file": "06-etims-movements.png",
+  "url": "/desk/etims-stock-movement"
+ },
+ {
+  "file": "07-batch-settings.png",
+  "url": "/desk/stock-settings",
+  "tab": "Serial & Batch Item"
+ },
+ {
+  "file": "08-item-batches.png",
+  "url": "/desk/item/DRG-MET500",
+  "tab": "Inventory",
+  "scroll": "[data-fieldname=\"has_batch_no\"]"
+ },
+ {
+  "file": "09-requisition.png",
+  "url": "/desk/material-request/MAT-MR-2026-00002"
+ },
+ {
+  "file": "10-transfer-batches.png",
+  "url": "/desk/serial-and-batch-bundle/f3f497ac2dbb0f3fb0d1",
+  "note": "the transfer line's bundle: open the Stock Entry from the Material Request's Connections and copy its Serial and Batch Bundle name (it differs per site)"
+ },
+ {
+  "file": "11-available-batches.png",
+  "url": "/desk/query-report/Available Batch Report?company=Kijani Valley Hospital Ltd&item_code=DRG-MET500"
+ },
+ {
+  "file": "12-batch-trace.png",
+  "url": "/desk/query-report/Serial No and Batch Traceability?item_code=DRG-MET500&batches=%5B%22MF24117%22%5D&traceability_direction=Forward"
+ }
 ]
