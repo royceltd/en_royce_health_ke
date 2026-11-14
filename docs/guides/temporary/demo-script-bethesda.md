@@ -60,10 +60,17 @@ A 20-minute walk through Bethesda's own outpatient flow on the demo hospital, in
 - The visit's running bill, **Create Bill**, M-Pesa or cash, signed by KRA eTIMS.
 - Cashier shifts: open, take payments, close and count (point 16).
 
-## 7. Close: what else is ready
+## 7. Petty cash (point 17)
+
+**Login:** reception, then accounts. **Where:** Kenya Accounting › Petty Cash › **Petty Cash Request**.
+
+- Today's three requests: the receptionist's toner (*Pending Approval*), the night nurses' tea and sugar (*Approved*), the pharmacy's courier (*Paid*).
+- As accounts: the float's balance on the list. Approve the toner (the accounts office approves, no limit, never your own request), **Pay**, and print the **Petty Cash Voucher** for signing. **Top Up Petty Cash** from M-Pesa.
+
+## 8. Close: what else is ready
 
 - Radiology worklist and reports (point 15), theatre forms, maternity, inpatient wards, MOH 705/706/711/717, management dashboards, SMS.
-- On the roadmap, from their document: petty cash (accounts office approval), TB screening, claims and SHA, PACS for the Carestream X-ray and the Mindray ultrasound.
+- On the roadmap, from their document: TB screening, claims and SHA, PACS for the Carestream X-ray and the Mindray ultrasound.
 
 ## If something goes wrong
 

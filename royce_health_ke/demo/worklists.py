@@ -21,6 +21,9 @@ dispense), Agnes (paid, 10 of 15 capsules given, the rest waiting), Kevin
 (one drug sent back to the doctor, one bought outside), two walk-in counter
 sales (one paid and waiting, one dispensed).
 
+Petty cash (`petty_cash()`, also run by `run()`): three requests by staff,
+one waiting for the accounts office, one approved, one paid.
+
 `users(password)` makes the demo logins (one per role) with that password."""
 
 import frappe
@@ -55,6 +58,34 @@ USERS = (
 	("lab@kijanivalley.example", "Lab", "Technologist", ("Laboratory User",), None),
 	("pharmacy@kijanivalley.example", "Pharmacy", "Technologist", ("Pharmacist", "Stock User"), None),
 	("cashier@kijanivalley.example", "Main", "Cashier", ("Cashier",), None),
+	("accounts@kijanivalley.example", "Accounts", "Office", ("Accounts User",), None),
+)
+# Petty cash (kenyan_accountant): requester, purpose, on behalf of, [(what, qty, price, account name)], how far
+PETTY_CASH = (
+	(
+		"reception@kijanivalley.example",
+		"Printer toner for reception",
+		None,
+		[("Toner cartridge", 1, 4500, "Print and Stationery")],
+		"pending",
+	),
+	(
+		"nurse.wanjiru@kijanivalley.example",
+		"Tea and sugar for the night shift",
+		"Ward 3 night nurses",
+		[
+			("Tea leaves 500 g", 2, 350, "Miscellaneous Expenses"),
+			("Sugar 2 kg", 2, 400, "Miscellaneous Expenses"),
+		],
+		"approved",
+	),
+	(
+		"pharmacy@kijanivalley.example",
+		"Courier: urgent drugs from the Nakuru supplier",
+		None,
+		[("Boda boda courier", 1, 1500, "Postal Expenses")],
+		"paid",
+	),
 )
 
 
@@ -133,7 +164,67 @@ def run(company: str = DEMO_COMPANY):
 	item = frappe.db.get_value("Sales Invoice Item", {"parent": sold["invoice"]}, "name")
 	pharmacy.dispense([{"kind": "sale", "ref": item, "qty": 15}], store)
 	frappe.db.commit()
-	return {"patients": list(p.values()), "store": store}
+	return {"patients": list(p.values()), "store": store, "petty_cash": petty_cash(ctx.company)}
+
+
+def petty_cash(company: str = DEMO_COMPANY):
+	"""Today's petty cash requests: one waiting for the accounts office, one
+	approved, one paid; the float topped up from M-Pesa first. Needs
+	kenyan_accountant with petty cash (v16.8)."""
+	_guard()
+	if not frappe.db.exists("DocType", "Petty Cash Request"):
+		return "kenyan_accountant has no petty cash yet"
+	if frappe.db.exists(
+		"Petty Cash Request", {"company": company, "posting_date": today(), "purpose": PETTY_CASH[0][1]}
+	):
+		return "today's petty cash requests are already in"
+	from kenyan_accountant import petty_cash as pc
+
+	approver = (
+		"accounts@kijanivalley.example"
+		if frappe.db.exists("User", "accounts@kijanivalley.example")
+		else "Administrator"
+	)
+	account = pc.petty_cash_account(company)
+	if pc.balance(account, company) < 20000:
+		source = frappe.db.get_value(
+			"Account", {"company": company, "account_name": "M-Pesa", "is_group": 0}
+		) or frappe.db.get_value("Account", {"company": company, "account_type": "Bank", "is_group": 0})
+		pc.top_up(company, source, 20000 - pc.balance(account, company), "DEMO-TOPUP")
+	made = []
+	for user, purpose, behalf, lines, stage in PETTY_CASH:
+		frappe.set_user(user if frappe.db.exists("User", user) else "Administrator")
+		doc = frappe.get_doc(
+			{
+				"doctype": "Petty Cash Request",
+				"company": company,
+				"purpose": purpose,
+				"on_behalf": 1 if behalf else 0,
+				"requested_for": behalf,
+				"items": [
+					{
+						"description": what,
+						"qty": qty,
+						"rate": rate,
+						"expense_account": frappe.db.get_value(
+							"Account", {"company": company, "account_name": name, "is_group": 0}
+						),
+					}
+					for what, qty, rate, name in lines
+				],
+			}
+		)
+		doc.insert()
+		doc.submit()
+		frappe.set_user(approver)
+		if stage in ("approved", "paid"):
+			pc.approve(doc.name, "OK (demo)")
+		if stage == "paid":
+			pc.pay(doc.name, frappe.db.get_value("User", user, "full_name") or user)
+		made.append(doc.name)
+	frappe.set_user("Administrator")
+	frappe.db.commit()
+	return made
 
 
 # Building blocks
