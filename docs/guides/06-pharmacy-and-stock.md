@@ -124,11 +124,11 @@ A drug already on a bill can't be bought outside or sent back: the Cashier takes
 
 ![Pharmacy Worklist](images/pharmacy/10-pharmacy-worklist.png)
 
-*The Pharmacy Worklist: two patients' prescriptions waiting, not yet paid.*
+*The Pharmacy Worklist for today: prescriptions waiting (paid or not), one drug sent back and one bought outside, and two counter sales.*
 
 ![Dispensing](images/pharmacy/11-dispense.png)
 
-*Joseph's drugs are paid: both ticked for Dispense, with the store's stock.*
+*David's drugs are paid: both ticked for Dispense, with the store's stock.*
 
 ![Medicine labels](images/pharmacy/12-medicine-labels.png)
 

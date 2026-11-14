@@ -48,6 +48,8 @@ const temporaryGuides = [
   ["v0.25-testing.md", "Version 0.24 and 0.25 Testing Guide", "13 November 2026"],
   ["v0.27-testing.md", "Version 0.27 Lab Worklist and Results Inbox Testing Guide", "14 November 2026"],
   ["v0.28-testing.md", "Version 0.28 Pharmacy Worklist Testing Guide", "15 November 2026"],
+  ["demo-script-bethesda.md", "Demo Script for Bethesda", "15 November 2026",
+    "Written 15 November 2026 for the demo of RoyceERP Health to Bethesda Healthcare Services, on hospital.royceltd.com (v0.28.1). All patients, staff and records shown are fictional."],
 ];
 const selected = process.env.TEMPORARY ? temporaryGuides : guides;
 const css = `

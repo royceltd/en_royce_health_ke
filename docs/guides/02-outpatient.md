@@ -132,15 +132,15 @@ The list refreshes every minute. Change the dates at the top to look further bac
 
 ![Lab Worklist](images/outpatient/11-lab-worklist.png)
 
-*The Lab Worklist: one row per order. Lucy's two tests have their samples taken; Joseph's white cell count is waiting.*
+*The Lab Worklist for today: one row per order, from Faith's urgent walk-in request to David's validated results.*
 
 ![An order opened](images/outpatient/12-lab-order.png)
 
-*Joseph's order: the test is paid, so it is ticked for Collect Samples.*
+*Mercy's order: her three tests aren't paid yet, so they can't be ticked until the Cashier takes the payment.*
 
 ![Results entry](images/outpatient/13-lab-results-entry.png)
 
-*Enter Results: both of Lucy's tests on one screen, with their normal ranges.*
+*Esther's three results on one screen: Hb 9.1 flagged L, white cells 13.4 flagged H.*
 
 By default the person who entered the results validates them. To require a second person, an administrator ticks *A second person validates results* in Kenya Health Settings › Laboratory.
 
@@ -165,7 +165,7 @@ Demo records: HLC-LAB-2026-00006 (malaria slide, positive), HLC-LAB-2026-00005 (
 
    ![Results Inbox](images/outpatient/14-results-inbox.png)
 
-   *The Results Inbox: a new result waiting to be read.*
+   *Dr Amina's Results Inbox: David's new results, his Hb marked Abnormal.*
 3. In **Drug Prescription**, add each drug with dosage, period and interval. The quantity to dispense is worked out from them: *4-0-4* for 3 days is 24 tablets, *1-1-1* for 3 days is 9.
 4. Submit. Each drug becomes a medication request for the cashier and pharmacy.
 
