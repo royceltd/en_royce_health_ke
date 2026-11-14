@@ -43,15 +43,25 @@ doc_events = {
 			"royce_health_ke.cashier.invoice_before_validate",
 		],
 		"before_submit": "royce_health_ke.visit_bill.invoice_before_submit",
-		"on_submit": "royce_health_ke.visit_bill.invoice_changed",
-		"on_cancel": "royce_health_ke.visit_bill.invoice_changed",
+		"on_submit": [
+			"royce_health_ke.visit_bill.invoice_changed",
+			"royce_health_ke.pharmacy.invoice_changed",
+		],
+		"on_cancel": [
+			"royce_health_ke.visit_bill.invoice_changed",
+			"royce_health_ke.pharmacy.invoice_changed",
+		],
 	},
 	"Payment Entry": {
 		"before_validate": "royce_health_ke.cashier.payment_entry_before_validate",
 		"on_submit": "royce_health_ke.visit_bill.payment_changed",
 		"on_cancel": "royce_health_ke.visit_bill.payment_changed",
 	},
-	"Delivery Note": {"before_submit": "royce_health_ke.visit_bill.delivery_before_submit"},
+	"Delivery Note": {
+		"before_submit": "royce_health_ke.visit_bill.delivery_before_submit",
+		"on_submit": "royce_health_ke.pharmacy.delivery_changed",
+		"on_cancel": "royce_health_ke.pharmacy.delivery_changed",
+	},
 	"Journal Entry": {"on_cancel": "royce_health_ke.claims.on_settlement_cancel"},
 	"Observation": {"before_insert": "royce_health_ke.radiology.before_insert_observation"},
 	"Lab Test": {
@@ -121,6 +131,7 @@ jinja = {
 		"royce_health_ke.printing.health_continuation_details",
 		"royce_health_ke.printing.health_treatment_sheet",
 		"royce_health_ke.assign.health_queue_slip",
+		"royce_health_ke.pharmacy.health_medicine_labels",
 	]
 }
 

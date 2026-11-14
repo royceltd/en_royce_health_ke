@@ -483,7 +483,7 @@ def results_sheet(lab_tests: str | list):
 				"value": r.result_value or "",
 				"uom": r.lab_test_uom or "",
 				"range": r.normal_range or "",
-				"flag": flag(r.result_value, r.normal_range),
+				"flag": flag(r.result_value, r.normal_range, doc.patient_sex),
 				"required": bool(r.require_result_value and not r.allow_blank),
 			}
 			for r in doc.normal_test_items
@@ -513,6 +513,7 @@ def results_sheet(lab_tests: str | list):
 				)
 				or not (normal or descriptive),
 				"results_by": doc.get("ke_results_by"),
+				"sex": doc.patient_sex,
 			}
 		)
 	return out
@@ -648,27 +649,21 @@ def results_inbox(
 	to_date = getdate(to_date or nowdate())
 	from_date = getdate(from_date or add_days(to_date, -13))
 	period = ["between", [f"{from_date} 00:00:00", f"{to_date} 23:59:59"]]
-	lab_filters = {"docstatus": 1, "ke_result_at": period}
+	# Results from before v0.22 have no result time: their last change stands in.
+	conditions = ["docstatus = 1", "coalesce(ke_result_at, modified) between %(from)s and %(to)s"]
+	values = {"from": period[1][0], "to": period[1][1], "practitioner": practitioner}
 	if practitioner:
-		lab_filters["practitioner"] = practitioner
+		conditions.append("practitioner = %(practitioner)s")
 	if cint(unread_only):
-		lab_filters["ke_seen_at"] = ["is", "not set"]
-	labs = frappe.get_all(
-		"Lab Test",
-		filters=lab_filters,
-		fields=[
-			"name",
-			"patient",
-			"patient_name",
-			"lab_test_name as test",
-			"practitioner_name",
-			"ke_result_at as result_at",
-			"ke_seen_at as seen_at",
-			"ke_seen_by as seen_by",
-			"ke_patient_visit as visit",
-		],
-		order_by="ke_result_at desc",
-		limit=500,
+		conditions.append("ke_seen_at is null")
+	labs = frappe.db.sql(
+		f"""select name, patient, patient_name, lab_test_name as test, practitioner_name,
+			coalesce(ke_result_at, modified) as result_at, ke_seen_at as seen_at,
+			ke_seen_by as seen_by, ke_patient_visit as visit
+		from `tabLab Test` where {" and ".join(conditions)}
+		order by result_at desc limit 500""",
+		values,
+		as_dict=True,
 	)
 	flagged = _flagged([r.name for r in labs])
 	for r in labs:
@@ -722,7 +717,12 @@ def _flagged(lab_tests):
 		filters={"parent": ["in", lab_tests], "parenttype": "Lab Test"},
 		fields=["parent", "result_value", "normal_range"],
 	)
-	return {r.parent for r in rows if flag(r.result_value, r.normal_range)}
+	sexes = dict(
+		frappe.get_all(
+			"Lab Test", filters={"name": ["in", lab_tests]}, fields=["name", "patient_sex"], as_list=True
+		)
+	)
+	return {r.parent for r in rows if flag(r.result_value, r.normal_range, sexes.get(r.parent))}
 
 
 @frappe.whitelist()

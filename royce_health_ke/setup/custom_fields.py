@@ -460,6 +460,116 @@ MEDICATION_REQUEST = [
 		"no_copy": 1,
 		"description": "The scheme's cover for this drug, from an insured consultation.",
 	},
+	{
+		"fieldname": "ke_pharmacy_section",
+		"fieldtype": "Section Break",
+		"label": "Pharmacy",
+		"insert_after": "ke_insurance_coverage",
+		"collapsible": 1,
+	},
+	{
+		"fieldname": "ke_pharmacy_status",
+		"fieldtype": "Select",
+		"label": "Pharmacy Status",
+		"options": "\nPartly Dispensed\nDispensed\nBuy Outside\nSent Back",
+		"insert_after": "ke_pharmacy_section",
+		"read_only": 1,
+		"no_copy": 1,
+		"allow_on_submit": 1,
+		"in_standard_filter": 1,
+	},
+	{
+		"fieldname": "ke_dispensed_qty",
+		"fieldtype": "Float",
+		"label": "Dispensed Quantity",
+		"insert_after": "ke_pharmacy_status",
+		"read_only": 1,
+		"no_copy": 1,
+		"allow_on_submit": 1,
+	},
+	{
+		"fieldname": "ke_pharmacy_note",
+		"fieldtype": "Small Text",
+		"label": "Pharmacy Note",
+		"insert_after": "ke_dispensed_qty",
+		"read_only": 1,
+		"no_copy": 1,
+		"allow_on_submit": 1,
+		"description": "Why the drug is bought outside, or what the doctor is asked to change.",
+	},
+]
+
+DELIVERY_NOTE = [
+	{
+		"fieldname": "ke_patient",
+		"fieldtype": "Link",
+		"label": "Patient",
+		"options": "Patient",
+		"insert_after": "customer_name",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+	{
+		"fieldname": "ke_patient_visit",
+		"fieldtype": "Link",
+		"label": "Patient Visit",
+		"options": "Patient Visit",
+		"insert_after": "ke_patient",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+	{
+		"fieldname": "ke_walk_in_name",
+		"fieldtype": "Data",
+		"label": "Walk-in Name",
+		"insert_after": "ke_patient_visit",
+		"read_only": 1,
+		"depends_on": "ke_walk_in_name",
+	},
+]
+
+DELIVERY_NOTE_ITEM = [
+	{
+		"fieldname": "ke_medication_request",
+		"fieldtype": "Link",
+		"label": "Medication Request",
+		"options": "Medication Request",
+		"insert_after": "against_sales_invoice",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "ke_instructions",
+		"fieldtype": "Small Text",
+		"label": "Instructions (label)",
+		"insert_after": "description",
+	},
+]
+
+PHARMACY_SALE = [
+	{
+		"fieldname": "ke_pharmacy_sale",
+		"fieldtype": "Check",
+		"label": "Pharmacy Counter Sale",
+		"insert_after": "ke_patient_visit",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+	{
+		"fieldname": "ke_walk_in_name",
+		"fieldtype": "Data",
+		"label": "Walk-in Name",
+		"insert_after": "ke_pharmacy_sale",
+		"depends_on": "ke_pharmacy_sale",
+	},
+]
+
+PHARMACY_SALE_ITEM = [
+	{
+		"fieldname": "ke_instructions",
+		"fieldtype": "Small Text",
+		"label": "Instructions (label)",
+		"insert_after": "description",
+	},
 ]
 
 PRACTITIONER = [
@@ -911,6 +1021,10 @@ def apply():
 		PAYMENT_ENTRY,
 		LAB_TEST,
 		SERVICE_REQUEST,
+		DELIVERY_NOTE,
+		DELIVERY_NOTE_ITEM,
+		PHARMACY_SALE,
+		PHARMACY_SALE_ITEM,
 		LAB_TEST_TEMPLATE,
 		PRACTITIONER,
 		CLAIM_COVERAGE,
@@ -937,6 +1051,8 @@ def apply():
 		"Payment Entry": PAYMENT_ENTRY,
 		"Lab Test": LAB_TEST,
 		"Service Request": SERVICE_REQUEST,
+		"Delivery Note": DELIVERY_NOTE,
+		"Delivery Note Item": DELIVERY_NOTE_ITEM,
 		"Lab Test Template": LAB_TEST_TEMPLATE,
 		"Healthcare Service Unit": SERVICE_UNIT,
 	}
@@ -944,4 +1060,6 @@ def apply():
 	for doctype, extra in MOH.items():
 		fields[doctype] = [*fields.get(doctype, []), *extra]
 	fields["Patient Encounter"] = [*fields.get("Patient Encounter", []), *ENCOUNTER]
+	fields["Sales Invoice"] = [*fields["Sales Invoice"], *PHARMACY_SALE]
+	fields["Sales Invoice Item"] = [*fields["Sales Invoice Item"], *PHARMACY_SALE_ITEM]
 	create_custom_fields(fields, update=True)

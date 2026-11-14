@@ -95,7 +95,7 @@ Medicines leave the pharmacy three ways:
 
 | Where to | How | Guide |
 | --- | --- | --- |
-| Outpatient | The pharmacy bill with **Update Stock** ticked and the payment taken on it; stock leaves when the bill is submitted. Or a **Delivery Note** from the bill once it is paid | [Outpatient](02-outpatient.md), Step 8 |
+| Outpatient and walk-in | The **Pharmacy Worklist** (below): a Delivery Note once the bill is paid, with medicine labels. (A bill with **Update Stock** ticked and paid on the spot still works.) | [Outpatient](02-outpatient.md), Step 8 |
 | Inpatient | **Medication Entry** moves the due doses to the patient's bed; each dose leaves when the nurse records it as *Given* | [Inpatient](03-inpatient.md), Steps 5–6 |
 | Theatre | Consumables leave the theatre store when the procedure is completed | [Overview](01-overview.md), Theatre |
 
@@ -104,6 +104,41 @@ Medicines leave the pharmacy three ways:
 **Loose tablets and strips:** a medicine is counted in its smallest unit (tablet, capsule) and can also be sold by the strip or box. On the bill line, choose the **UOM** (*Tablet* or *Strip*). The price is the one set for that unit, and stock goes down by the right number of tablets. In the demo, 2 strips of metformin take 20 tablets from batch MF24117.
 
 **Paid first:** for a cash patient, a bill that issues stock must be paid on the spot (Include Payment), and a Delivery Note against an unpaid bill is refused. Insured patients, inpatients, casualty and visits a manager has approved are served first. The switch is in Kenya Health Settings › Payment Before Service.
+
+### The Pharmacy Worklist
+
+**Who:** pharmacist (roles *Pharmacist* and *Stock User*). **Where:** Kenya Health › Pharmacy › **Pharmacy Worklist**.
+
+The worklist shows one row per patient: the doctor's prescriptions from the outpatient consultation, and the pharmacy's own counter sales. Choose the **pharmacy store** at the top (the default is Kenya Health Settings › Pharmacy Warehouse): the stock shown, and the stock dispensed, are that store's. Tabs: *Waiting*, *Dispensed*, *Buy Outside / Sent Back* and *All*, for the dates chosen (the last three days by default).
+
+Open a row to see each drug with the doctor's instructions, the quantity prescribed and already dispensed, the stock in the store (red when there isn't enough), and the payment: *Not billed*, *Billed, not paid*, *Paid*, *Insured*, *Credit approved*. Tick the drugs, check the quantity, then:
+
+- **Bill Drugs** puts the unbilled drugs on the patient's bill for the Cashier (added to the visit's draft bill if there is one). An insured patient's covered drugs are already on the insurer's bill.
+- **Dispense** issues the ticked drugs from the store, all or part of the quantity (the rest stays *Waiting*, for when stock arrives). A cash patient's drugs are dispensed only once paid. Batches are taken first-expiry-first. The **medicine labels** open for printing: patient, drug, quantity, instructions, batch and expiry. Edit the instructions in the list first if the label should say more ("after food").
+- **Buy Outside**: the patient buys the drug elsewhere. It comes off the bill. **Print Prescription** gives them the doctor's prescription to take along.
+- **Send Back to Doctor**: for a substitute (out of stock, allergy). Say what should change. The drug comes off the bill, and the patient goes back to the doctor's waiting list with your note. The doctor prescribes the substitute in a new consultation, and it arrives on the worklist.
+- **Back to Waiting** undoes Buy Outside or Send Back.
+- **Return**: drugs brought back go back into the store (tick, enter the quantity). Any refund is a credit note at the Cashier.
+
+A drug already on a bill can't be bought outside or sent back: the Cashier takes it off the bill first.
+
+![Pharmacy Worklist](images/pharmacy/10-pharmacy-worklist.png)
+
+*The Pharmacy Worklist: two patients' prescriptions waiting, not yet paid.*
+
+![Dispensing](images/pharmacy/11-dispense.png)
+
+*Joseph's drugs are paid: both ticked for Dispense, with the store's stock.*
+
+![Medicine labels](images/pharmacy/12-medicine-labels.png)
+
+*The labels printed on dispensing.*
+
+**Counter sales (walk-ins, over the counter).** Press **Counter Sale**. Choose the patient, or leave it blank and type the walk-in's name. Add the drugs (by item), quantities and instructions, and any discount. **Send Bill to Cashier** makes the bill. The patient pays at the Cashier, then the sale is on the worklist to dispense like a prescription. A registered patient's sale goes on their visit for the day.
+
+![Counter sale](images/pharmacy/13-counter-sale.png)
+
+*A counter sale for a walk-in: 10 paracetamol tablets, with the label instructions.*
 
 **Returning unused ward stock:** doses left at a bed after discharge go back to the pharmacy with a **Stock Entry** of type *Material Transfer* (Stock › Stock Entry › *+ Add*): from the bed's store to the pharmacy store. A transfer inside the hospital is not reported to KRA.
 

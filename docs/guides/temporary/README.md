@@ -9,5 +9,6 @@ Once a temporary guide's job is done (the hospital is set up, the release is tes
 | [Bethesda setup for versions 0.24 and 0.25](bethesda-setup-v0.25.md) | Bethesda's system administrator | v0.25.0 | 2026-11-13 |
 | [Version 0.24 and 0.25 testing](v0.25-testing.md) | The hospital's testers, on the demo | v0.25.0 | 2026-11-13 |
 | [Lab Worklist and Results Inbox testing](v0.27-testing.md) | The hospital's testers, on the demo | v0.27.0 | 2026-11-14 |
+| [Pharmacy Worklist testing](v0.28-testing.md) | The hospital's testers, on the demo | v0.28.0 | 2026-11-15 |
 
 PDFs: `TEMPORARY=1 node make_pdfs.mjs ../temporary "<output folder>/Temporary"` from `docs/guides/tools` (same environment variables as the numbered guides).

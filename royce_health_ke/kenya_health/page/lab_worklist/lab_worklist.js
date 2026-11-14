@@ -414,16 +414,34 @@ class ResultsDialog {
 		this.d.fields_dict.sheet.$wrapper.on("input", "input[data-range]", (e) => {
 			// Show H / L as the value is typed, like the printed report.
 			const $i = $(e.currentTarget);
-			const f = this.flag($i.val(), $i.data("range"));
+			const f = this.flag($i.val(), $i.data("range"), this.sheet[$i.data("test")].sex);
 			$i.closest("tr").find(".ke-flag").html(f ? pill(f, "red") : "");
 		});
 		this.d.show();
 	}
 
-	flag(value, range) {
+	range_for_sex(text, sex) {
+		// "F 12.0 - 15.5 / M 13.5 - 17.5": the patient's part (same rule as the printed report)
+		const key = String(sex || "").trim().charAt(0).toUpperCase();
+		if (key !== "M" && key !== "F") return text;
+		const re = /(?:^|(?<=[\s/;,|(]))(male|female|men|women|m|f)\b\s*:?/gi;
+		const labels = [...text.matchAll(re)];
+		if (labels.length < 2) return text;
+		for (let i = 0; i < labels.length; i++) {
+			const word = labels[i][1].toLowerCase();
+			const label = ["f", "female", "women"].includes(word) ? "F" : "M";
+			if (label === key) {
+				const end = i + 1 < labels.length ? labels[i + 1].index : text.length;
+				return text.slice(labels[i].index + labels[i][0].length, end);
+			}
+		}
+		return text;
+	}
+
+	flag(value, range, sex) {
 		const v = parseFloat(String(value).replace(/,/g, ""));
 		if (isNaN(v) || String(value).trim() === "" || !/^[-\d.,\s]+$/.test(String(value))) return "";
-		const text = String(range || "").replace(/<[^>]+>/g, " ");
+		const text = this.range_for_sex(String(range || "").replace(/<[^>]+>/g, " "), sex);
 		let m = text.match(/(-?\d+(?:\.\d+)?)\s*(?:-|–|to)\s*(-?\d+(?:\.\d+)?)/);
 		if (m) return v < parseFloat(m[1]) ? "L" : v > parseFloat(m[2]) ? "H" : "";
 		m = text.match(/(<=|>=|<|>|≤|≥)\s*(-?\d+(?:\.\d+)?)/);

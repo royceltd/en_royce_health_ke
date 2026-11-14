@@ -14,7 +14,7 @@ import frappe
 
 from royce_health_ke.privacy import RECEPTIONIST, ensure_role
 
-VERSION = 2
+VERSION = 3
 
 READ = ("read", "select", "report")
 RECEPTIONIST_ACCESS = {
@@ -48,6 +48,35 @@ CASHIER_ACCESS = {
 }
 
 
+# v3: the Pharmacist works the Pharmacy Worklist: puts drugs on the patient's
+# draft bill (the Cashier submits it and takes the payment), dispenses with
+# Delivery Notes and takes returns. Give them Stock User as well for
+# receiving stock, transfers and counts.
+PHARMACIST_ACCESS = {
+	"Sales Invoice": (*READ, "write", "create", "print"),
+	"Delivery Note": (*READ, "write", "create", "submit", "cancel", "print"),
+	"Serial and Batch Bundle": (*READ, "write", "create", "submit", "cancel"),
+	"Medication Request": READ,
+	"Medication": READ,
+	"Patient": READ,
+	"Patient Visit": READ,
+	"Patient Encounter": (*READ, "print"),
+	"Patient Insurance Coverage": READ,
+	"Healthcare Practitioner": READ,
+	"Customer": READ,
+	"Item": READ,
+	"Item Price": READ,
+	"Price List": READ,
+	"Batch": READ,
+	"Warehouse": READ,
+	"UOM": READ,
+	"Company": READ,
+	"Currency": READ,
+	"Cost Center": READ,
+	"Account": READ,
+}
+
+
 def apply_defaults():
 	done = frappe.db.get_single_value("Kenya Health Settings", "role_defaults_version") or 0
 	if done >= VERSION:
@@ -55,8 +84,13 @@ def apply_defaults():
 	from frappe.permissions import add_permission, update_permission_property
 
 	from royce_health_ke.cashier import CASHIER
+	from royce_health_ke.pharmacy import PHARMACIST
 
-	for role, access in ((RECEPTIONIST, RECEPTIONIST_ACCESS), (CASHIER, CASHIER_ACCESS)):
+	for role, access in (
+		(RECEPTIONIST, RECEPTIONIST_ACCESS),
+		(CASHIER, CASHIER_ACCESS),
+		(PHARMACIST, PHARMACIST_ACCESS),
+	):
 		ensure_role(role)
 		for doctype, ptypes in access.items():
 			if not frappe.db.exists("DocType", doctype):

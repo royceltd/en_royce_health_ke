@@ -1,0 +1,29 @@
+{#- Delivery Note. One label per dispensed drug, sized for an 80 mm label or
+    receipt printer: patient, drug, quantity, how to take it, batch and expiry. -#}
+{%- set labels = health_medicine_labels(doc) -%}
+<style>
+  .ml { width: 72mm; margin: 0 auto 4mm; font-family: Inter, Arial, sans-serif; color: #111827;
+        border: 1px solid #111827; border-radius: 4px; padding: 3mm; page-break-inside: avoid; }
+  .ml-hospital { font-size: 8.5pt; font-weight: 700; text-align: center; }
+  .ml-rule { border-top: 1px dashed #6b7280; margin: 4px 0; }
+  .ml-patient { font-size: 9pt; }
+  .ml-drug { font-size: 11.5pt; font-weight: 800; line-height: 1.2; margin-top: 2px; }
+  .ml-qty { font-size: 9pt; font-weight: 600; }
+  .ml-how { font-size: 11pt; font-weight: 700; margin: 4px 0; }
+  .ml-small { font-size: 7.5pt; color: #374151; }
+</style>
+{%- for l in labels %}
+<div class="ml">
+  <div class="ml-hospital">{{ doc.company }}</div>
+  <div class="ml-rule"></div>
+  <div class="ml-patient">{{ l.patient or "" }} · {{ frappe.utils.formatdate(doc.posting_date, "dd MMM yyyy") }}</div>
+  <div class="ml-drug">{{ l.drug }}</div>
+  <div class="ml-qty">{{ _("Quantity") }}: {{ l.qty }}</div>
+  {%- if l.instructions %}<div class="ml-how">{{ l.instructions }}</div>{% endif %}
+  <div class="ml-small">
+    {%- if l.batch %}{{ _("Batch") }} {{ l.batch }}{% endif %}{% if l.expiry %} · {{ _("Expires") }} {{ l.expiry }}{% endif %}
+  </div>
+  <div class="ml-rule"></div>
+  <div class="ml-small">{{ _("Keep out of reach of children.") }} {{ doc.name }}</div>
+</div>
+{%- endfor %}

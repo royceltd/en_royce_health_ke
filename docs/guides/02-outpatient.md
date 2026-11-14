@@ -179,22 +179,15 @@ A dosage's quantity comes from the tablets per dose set in Setup › Prescriptio
 
 ## Step 8 — Pay for and dispense medicine
 
-**Who:** cashier, then pharmacy. **Where:** Outpatient › Sales Invoice › *+ Add*.
+**Who:** pharmacy, cashier, pharmacy. **Where:** Kenya Health › Pharmacy › **Pharmacy Worklist**, then the Cashier.
 
-1. Choose the patient. Use **Get Items From › Prescriptions** (the review encounter) to bring in the drugs with their quantities.
-2. Tick **Update Stock** and set the pharmacy store as the warehouse, so the drugs leave stock when the bill is submitted.
-3. Tick **Include Payment** and enter the M-Pesa or cash payment, then submit; the invoice is signed by KRA eTIMS. An unpaid bill that issues stock is refused for a cash patient. Alternatively bill without Update Stock and let the pharmacy issue the drugs with a **Delivery Note** once the bill is paid.
-4. The pharmacist hands over the medicines against the paid bill, with the dosing instructions from the prescription.
+1. The patient's prescription is on the Pharmacy Worklist (*Waiting*). Open it: each drug shows the doctor's instructions and the stock in the pharmacy store.
+2. **Bill Drugs** puts the drugs on the patient's bill. The patient pays at the Cashier (the visit's bill, M-Pesa or cash); the bill is signed by KRA eTIMS.
+3. Back at the pharmacy the drugs now show *Paid*. Tick them and press **Dispense**: the drugs leave the store and the medicine labels print.
 
-| Pharmacy bill ACC-SINV-2026-00009 | Qty | KES |
-| --- | --- | --- |
-| Artemether-lumefantrine 20/120 | 24 | 600 |
-| Paracetamol 500 mg | 9 | 45 |
-| **Total, paid by M-Pesa** | | **645** |
+If a drug is out of stock, dispense what there is (the rest waits), let the patient **Buy Outside**, or **Send Back to Doctor** for a substitute. Details: [Pharmacy and stock](06-pharmacy-and-stock.md), Step 4.
 
-KRA receipt 33. Stock in the pharmacy store went down by 24 and 9 tablets. (This demo bill was made before payment-first dispensing and paid just after submitting; today it would need Include Payment.)
-
-Today the paid bill is the dispensing record. A pharmacy queue with a separate dispense step, partial dispensing and labels is on the roadmap.
+The cashier can still bill the drugs with **Update Stock** ticked and take the payment on the spot (the older way); the worklist then shows them as dispensed.
 
 ![Pharmacy bill with stock update](images/outpatient/09-pharmacy-bill.png)
 

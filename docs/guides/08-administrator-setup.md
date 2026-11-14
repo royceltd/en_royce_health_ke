@@ -30,7 +30,7 @@ The company, chart of accounts, VAT, KRA eTIMS and payroll are set up by Royce d
 | Doctor | Physician (set their login as the **User** on their Healthcare Practitioner record, so their Results Inbox and My Patients open on their own patients) |
 | Nurse, midwife | Nursing User |
 | Lab technologist | Laboratory User (works from the Lab Worklist: collects samples, enters and validates results, takes walk-in requests) |
-| Pharmacist | Stock User |
+| Pharmacist | Pharmacist and Stock User (the Pharmacy Worklist: bills drugs for the Cashier, dispenses, takes returns and counter sales; Stock User for receiving and moving stock) |
 | Cashier | Cashier (takes patients' payments, opens and closes their own shift; add Accounts User only if they also do accounts work) |
 | Manager who approves services before payment | Healthcare Administrator or Accounts Manager |
 | Kitchen, laundry | Kitchen User, Laundry User |
@@ -141,6 +141,7 @@ Demo record: GW Bed 03 in the General Ward, type General Ward Bed, warehouse GW 
 | Patient record access log | On |
 | Require full registration details | On |
 | Payment before service: laboratory, radiology, pharmacy | On (cash patients pay first; insured, inpatient and casualty are served first) |
+| Pharmacy: customer for walk-in counter sales | Blank (a customer named *Walk-in Customer* is made the first time) |
 | Laboratory: requesting doctor for walk-ins | The lab's medical officer in charge |
 | Laboratory: a second person validates results | Off (whoever entered the results validates them), until the lab wants a second check |
 

@@ -18,6 +18,11 @@ class IntegrationTestPrinting(IntegrationTestCase):
 		self.assertEqual(flag("9", "<5"), "H")
 		self.assertEqual(flag("60", "> 90"), "L")
 		self.assertEqual(flag("11.4", "Male: 13.0 - 17.0<br>Female: 12.0 - 15.5"), "L")
+		# ranges per sex: the patient's own
+		self.assertEqual(flag("13.0", "F 12.0 - 15.5 / M 13.5 - 17.5", "Male"), "L")
+		self.assertEqual(flag("13.0", "F 12.0 - 15.5 / M 13.5 - 17.5", "Female"), "")
+		self.assertEqual(flag("16.0", "Male: 13.0 - 17.0<br>Female: 12.0 - 15.5", "Female"), "H")
+		self.assertEqual(flag("6", "4 - 11 mmol/L", "Male"), "")
 		# never guess: text results, text ranges, empty values
 		self.assertEqual(flag("P. falciparum ++", "No parasites seen"), "")
 		self.assertEqual(flag("Positive", "Negative"), "")

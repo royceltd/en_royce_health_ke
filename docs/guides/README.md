@@ -5,13 +5,13 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 | Guide | For | Last checked |
 | --- | --- | --- |
 | [01 Overview](01-overview.md) | Management, ICT | 2026-11-11, v0.23.1 |
-| [02 Outpatient](02-outpatient.md) | Reception, triage, doctors, lab, cashier, pharmacy | 2026-11-14, v0.27.0 |
+| [02 Outpatient](02-outpatient.md) | Reception, triage, doctors, lab, cashier, pharmacy | 2026-11-15, v0.28.0 |
 | [03 Inpatient](03-inpatient.md) | Doctors, ward nurses, pharmacy, cashier | 2026-11-11, v0.23.1 |
 | [04 Insurance](04-insurance.md) | Reception, cashier, claims officer, finance | 2026-11-11, v0.23.1 |
 | [05 Maternity](05-maternity.md) | ANC nurses, midwives, MCH, cashier | 2026-11-11, v0.23.1 |
-| [06 Pharmacy and stock](06-pharmacy-and-stock.md) | Pharmacist, stores | 2026-11-14, v0.26.0 |
+| [06 Pharmacy and stock](06-pharmacy-and-stock.md) | Pharmacist, stores | 2026-11-15, v0.28.0 (worklist shots from a local demo) |
 | [07 Cashier day-end](07-cashier-day-end.md) | Cashier, accountant | 2026-11-11, v0.23.1 |
-| [08 Administrator setup](08-administrator-setup.md) | System administrator | 2026-11-14, v0.27.0 |
+| [08 Administrator setup](08-administrator-setup.md) | System administrator | 2026-11-15, v0.28.0 |
 | [09 Patient SMS](09-patient-sms.md) | Reception, clinical staff, administrator | 2026-11-08, v0.15.1 |
 | [10 Theatre](10-theatre.md) | Surgeons, anaesthetists, theatre and ward nurses | 2026-11-11, v0.23.1 |
 | [11 Theatre testing](11-theatre-testing.md) | The hospital's testers, before go-live | 2026-11-11, v0.23.1 |

@@ -109,6 +109,12 @@ def unbilled_lines(visit):
 			for d in get_drugs_to_invoice(encounter, customer) or []:
 				if flt(d.get("quantity")) <= 0:
 					continue
+				# bought outside, or sent back to the doctor: not billed
+				if frappe.db.get_value("Medication Request", d["reference_name"], "ke_pharmacy_status") in (
+					"Buy Outside",
+					"Sent Back",
+				):
+					continue
 				line = {
 					"dt": d["reference_type"],
 					"dn": d["reference_name"],

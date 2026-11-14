@@ -214,14 +214,37 @@ _RANGE = re.compile(r"(-?\d+(?:\.\d+)?)\s*(?:-|\u2013|to)\s*(-?\d+(?:\.\d+)?)")
 _LIMIT = re.compile(r"(<|>|≤|≥|<=|>=)\s*(-?\d+(?:\.\d+)?)")
 
 
-def flag(value, normal_range) -> str:
-	"""'H' or 'L' when a numeric result is outside a numeric range; '' when it
-	is inside, or when either isn't a plain number/range (we never guess)."""
+_SEX_LABEL = re.compile(r"(?:^|(?<=[\s/;,|(]))(male|female|men|women|m|f)\b\s*:?", re.I)
+
+
+def range_for_sex(text, sex=None) -> str:
+	"""The part of a range written per sex ('F 12.0 - 15.5 / M 13.5 - 17.5')
+	that applies to this patient; the whole text when it isn't split by sex or
+	the sex is unknown."""
+	key = (sex or "").strip()[:1].upper()
+	if key not in ("M", "F"):
+		return text
+	labels = list(_SEX_LABEL.finditer(text))
+	if len(labels) < 2:
+		return text
+	for i, m in enumerate(labels):
+		word = m.group(1).lower()
+		label = "F" if word in ("f", "female", "women") else "M"
+		if label == key:
+			end = labels[i + 1].start() if i + 1 < len(labels) else len(text)
+			return text[m.end() : end]
+	return text
+
+
+def flag(value, normal_range, sex=None) -> str:
+	"""'H' or 'L' when a numeric result is outside a numeric range (the
+	patient's sex's range, when the range is given per sex); '' when it is
+	inside, or when either isn't a plain number/range (we never guess)."""
 	try:
 		v = float(str(value).strip().replace(",", ""))
 	except (TypeError, ValueError):
 		return ""
-	text = re.sub(r"<[^>]+>", " ", str(normal_range or ""))
+	text = range_for_sex(re.sub(r"<[^>]+>", " ", str(normal_range or "")), sex)
 	m = _RANGE.search(text)
 	if m:
 		lo, hi = float(m.group(1)), float(m.group(2))
@@ -251,7 +274,7 @@ def lab_results(doc) -> list[frappe._dict]:
 				result=r.result_value or "",
 				unit=r.lab_test_uom or "",
 				range=_plain(r.normal_range),
-				flag=flag(r.result_value, r.normal_range),
+				flag=flag(r.result_value, r.normal_range, doc.get("patient_sex")),
 				comment=r.lab_test_comment or "",
 				indent=bool(r.lab_test_event and r.lab_test_name and not heading),
 			)
