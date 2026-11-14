@@ -67,6 +67,7 @@ def lab_rows(from_date, to_date, company=None, template=None):
 			"creation",
 			"modified",
 			"ke_result_at",
+			"ke_sample_collected_at",
 		],
 	)
 	targets = dict(
@@ -79,7 +80,9 @@ def lab_rows(from_date, to_date, company=None, template=None):
 		if not (start <= get_datetime(result) <= end):
 			continue
 		ordered = _ordered_at(t.service_request, t.creation, t.creation)
-		collected = t.sample and frappe.db.get_value("Sample Collection", t.sample, "collected_time")
+		collected = t.ke_sample_collected_at or (
+			t.sample and frappe.db.get_value("Sample Collection", t.sample, "collected_time")
+		)
 		rows.append(
 			{
 				"department": "Laboratory",

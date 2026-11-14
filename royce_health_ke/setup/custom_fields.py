@@ -292,6 +292,78 @@ LAB_TEST = [
 		"no_copy": 1,
 		"description": "When the result was submitted (for turnaround time).",
 	},
+	{
+		"fieldname": "ke_patient_visit",
+		"fieldtype": "Link",
+		"label": "Patient Visit",
+		"options": "Patient Visit",
+		"insert_after": "practitioner_name",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+	{
+		"fieldname": "ke_lab_work_section",
+		"fieldtype": "Section Break",
+		"label": "Sample and Validation",
+		"insert_after": "ke_result_at",
+		"collapsible": 1,
+	},
+	{
+		"fieldname": "ke_sample_collected_at",
+		"fieldtype": "Datetime",
+		"label": "Sample Collected At",
+		"insert_after": "ke_lab_work_section",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+	{
+		"fieldname": "ke_sample_collected_by",
+		"fieldtype": "Link",
+		"label": "Sample Collected By",
+		"options": "User",
+		"insert_after": "ke_sample_collected_at",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+	{
+		"fieldname": "ke_results_by",
+		"fieldtype": "Link",
+		"label": "Results Entered By",
+		"options": "User",
+		"insert_after": "ke_sample_collected_by",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+	{"fieldname": "ke_lab_work_cb", "fieldtype": "Column Break", "insert_after": "ke_results_by"},
+	{
+		"fieldname": "ke_seen_at",
+		"fieldtype": "Datetime",
+		"label": "Seen by Clinician At",
+		"insert_after": "ke_lab_work_cb",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+	{
+		"fieldname": "ke_seen_by",
+		"fieldtype": "Link",
+		"label": "Seen by Clinician",
+		"options": "User",
+		"insert_after": "ke_seen_at",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+]
+
+SERVICE_REQUEST = [
+	{
+		"fieldname": "ke_patient_visit",
+		"fieldtype": "Link",
+		"label": "Patient Visit",
+		"options": "Patient Visit",
+		"insert_after": "order_group",
+		"read_only": 1,
+		"no_copy": 1,
+	},
 ]
 
 LAB_TEST_TEMPLATE = [
@@ -749,6 +821,23 @@ IMAGING_OBSERVATION = [
 		"insert_after": "ke_reported_at",
 		"read_only": 1,
 	},
+	{
+		"fieldname": "ke_seen_at",
+		"fieldtype": "Datetime",
+		"label": "Seen by Clinician At",
+		"insert_after": "ke_verified_by",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+	{
+		"fieldname": "ke_seen_by",
+		"fieldtype": "Link",
+		"label": "Seen by Clinician",
+		"options": "User",
+		"insert_after": "ke_seen_at",
+		"read_only": 1,
+		"no_copy": 1,
+	},
 ]
 for _field in IMAGING_OBSERVATION:
 	_field["allow_on_submit"] = 1
@@ -821,6 +910,7 @@ def apply():
 		MEDICATION_REQUEST,
 		PAYMENT_ENTRY,
 		LAB_TEST,
+		SERVICE_REQUEST,
 		LAB_TEST_TEMPLATE,
 		PRACTITIONER,
 		CLAIM_COVERAGE,
@@ -846,6 +936,7 @@ def apply():
 		"Medication Request": MEDICATION_REQUEST,
 		"Payment Entry": PAYMENT_ENTRY,
 		"Lab Test": LAB_TEST,
+		"Service Request": SERVICE_REQUEST,
 		"Lab Test Template": LAB_TEST_TEMPLATE,
 		"Healthcare Service Unit": SERVICE_UNIT,
 	}

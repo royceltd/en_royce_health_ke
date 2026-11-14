@@ -45,7 +45,11 @@
   "cashier_section",
   "only_cashiers_take_payment",
   "cashier_cb",
-  "require_cashier_shift"
+  "require_cashier_shift",
+  "laboratory_section",
+  "walk_in_lab_practitioner",
+  "laboratory_cb",
+  "lab_second_validator"
  ],
  "fields": [
   {
@@ -305,11 +309,36 @@
    "label": "Insured: uncovered items paid first",
    "default": "1",
    "description": "An insured patient is served first only for what the scheme covers (its Item Insurance Eligibility list, approved). Anything else, or anything still waiting for the insurer's approval, is billed to the patient on a bill of its own and paid before the lab, radiology or pharmacy serve it. Load each scheme's list before switching this on."
+  },
+  {
+   "fieldname": "laboratory_section",
+   "fieldtype": "Section Break",
+   "label": "Laboratory",
+   "collapsible": 1,
+   "description": "The Lab Worklist: walk-in requests and who validates results."
+  },
+  {
+   "fieldname": "walk_in_lab_practitioner",
+   "fieldtype": "Link",
+   "label": "Requesting Doctor for Walk-ins",
+   "options": "Healthcare Practitioner",
+   "description": "Put on a walk-in's lab requests when the lab doesn't choose a doctor (the patient brings an outside doctor's note). For example the lab's medical officer in charge."
+  },
+  {
+   "fieldname": "laboratory_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lab_second_validator",
+   "fieldtype": "Check",
+   "label": "A second person validates results",
+   "default": "0",
+   "description": "Off: whoever entered the results may validate them. On: someone else must validate."
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-13 11:45:03.323022",
+ "modified": "2026-11-14 23:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

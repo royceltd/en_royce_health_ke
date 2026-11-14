@@ -477,8 +477,14 @@ def is_paid(dt, dn):
 
 
 def visit_of_request(service_request):
-	encounter = frappe.db.get_value("Service Request", service_request, "order_group")
-	return encounter and frappe.db.get_value("Patient Encounter", encounter, "ke_patient_visit")
+	r = frappe.db.get_value(
+		"Service Request", service_request, ["order_group", "ke_patient_visit"], as_dict=True
+	)
+	if not r:
+		return None
+	return r.ke_patient_visit or (
+		r.order_group and frappe.db.get_value("Patient Encounter", r.order_group, "ke_patient_visit")
+	)
 
 
 def exemption(patient, visit=None, inpatient_record=None, insured=False):

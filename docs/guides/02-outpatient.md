@@ -111,11 +111,28 @@ KRA receipt 32. Medical services are VAT exempt, so no VAT is added.
 
 ## Step 6 — Laboratory results
 
-**Who:** lab technologist. **Where:** Diagnostics › Lab Test, or the open **Service Request** for the test.
+**Who:** lab technologist. **Where:** Kenya Health › Laboratory › **Lab Worklist**.
 
-1. Open the lab test created from the doctor's order; the template brings in the result lines and normal ranges. For a cash patient, the test starts only once the bill is paid (the visit's **Bill** reads *Paid*).
-2. Enter each result value (for example *P. falciparum seen (+)*, Hb 12.4).
-3. Submit. The status becomes *Completed* and the result appears in the patient's history for the doctor.
+The worklist shows one row per patient order, not one per test: the visit, the patient, who requested, how long ago, the tests (counted, and named), urgency, cash or insurance, and how far the tests have got. The tabs follow the lab's day:
+
+| Tab | Shows orders with tests that are… |
+| --- | --- |
+| Requests | requested by the doctor, sample not yet taken |
+| Results Entry | sample taken, no results yet |
+| Validate Results | results typed in, not yet validated |
+| Completed | validated and released to the doctor |
+| Lab Register | every order in the dates chosen |
+
+The list refreshes every minute. Change the dates at the top to look further back (the last seven days by default).
+
+1. On **Requests**, click the patient's row. The order opens with each test, its urgency and its payment: *Paid*, *Insured*, *Inpatient*, *Credit approved* or *Not paid*.
+2. Take the samples, tick those tests and press **Collect Samples**. A cash patient's unpaid tests can't be ticked: send the patient to the Cashier first (or a manager approves credit on the visit). The time and your name are recorded as the sample collection.
+3. On **Results Entry**, open the order and press **Enter Results**. All its tests come up on one screen, each with its normal range. A number outside the range is flagged **H** or **L** as you type. Tests with antibiotic sensitivity or organisms have an *Open full form* link instead.
+4. **Save** keeps the results as a draft (the order moves to *Validate Results*). **Save and Validate** releases them: the results can't be changed afterwards, the doctor sees them in their Results Inbox, and the printed Laboratory Report shows who validated and when.
+
+By default the person who entered the results validates them. To require a second person, an administrator ticks *A second person validates results* in Kenya Health Settings › Laboratory.
+
+**Walk-in patients** (sent by an outside doctor, or asking for a test themselves): press **Walk-in Request**, choose the patient (reception registers new patients), the tests, and who referred them. The tests are requested on the patient's visit today, or on a new *Lab only* visit. A cash patient then pays at the Cashier (the visit's **Create Bill** picks the tests up) before you collect. If you leave *Requesting doctor* blank, the requests carry the default doctor set in Kenya Health Settings › Laboratory.
 
 **Send SMS** on the lab test can notify the patient that results are ready.
 
@@ -132,7 +149,7 @@ Demo records: HLC-LAB-2026-00006 (malaria slide, positive), HLC-LAB-2026-00005 (
 **Who:** doctor. **Where:** a new encounter on the same appointment (Outpatient › Consultation).
 
 1. Link the same appointment, so the review is not charged as a second consultation.
-2. Read the results (Patient History, or the lab tests linked to the patient) and record the diagnosis.
+2. Read the results in Kenya Health › Laboratory › **Results Inbox**: your patients' validated lab tests and reported imaging exams, newest first, marked *New* until you open them, with *Abnormal* on lab results outside their normal range. Untick *Unread only* to see the ones you have read; clear the *Consultant* box to see every consultant's. (The inbox opens on your own results when your login is set as the **User** on your Healthcare Practitioner record.) Then record the diagnosis.
 3. In **Drug Prescription**, add each drug with dosage, period and interval. The quantity to dispense is worked out from them: *4-0-4* for 3 days is 24 tablets, *1-1-1* for 3 days is 9.
 4. Submit. Each drug becomes a medication request for the cashier and pharmacy.
 

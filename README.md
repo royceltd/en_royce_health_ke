@@ -105,6 +105,17 @@ Around Marley's Clinical Procedure (which carries the procedure's price and cons
 - **Into Theatre** needs submitted consent, ward preparation done (an emergency may go in without it, with a warning), Sign In done and no pending/declined pre-authorisation (an emergency may proceed while pending); it creates and starts the Clinical Procedure. **Complete** needs Time Out, Sign Out and the operation note; it completes the procedure and issues its consumables from the theatre's warehouse.
 - **Theatre List** report: the day's list per theatre with consent, checklist and anaesthesia status.
 
+### Laboratory worklist and results inbox
+
+`lab.py`, desk pages **Lab Worklist** (`lab-worklist`, Laboratory User) and **Results Inbox** (`results-inbox`, Physician), both under Kenya Health › Laboratory (v0.27).
+
+- **One row per order:** Marley keeps one Service Request and one Lab Test per test; the worklist groups them by the visit (Service Request `ke_patient_visit`, set from the ordering encounter, or the encounter's), else the encounter, else patient and day. Lab tests made without a request join their patient's group. Tabs by the stage of at least one test: Requests (no lab test yet), Results Entry (lab test draft, no result values), Validate Results (draft with values), Completed (submitted), Lab Register (all), within a date range (last 7 days by default) on the order date. Urgency is the highest Service Request priority; payment shows *Not paid* counts using the same rules as the payment gate (`visit_bill.exemption`, `is_paid`, `_cover`).
+- **Collect Samples:** creates each lab test from its request (Marley's `make_lab_test`, so our payment gate applies; a refused test doesn't stop the others) and stamps `ke_sample_collected_at` / `_by`, which the Laboratory Report and the Turnaround Time report use.
+- **Results on one screen:** normal and descriptive result lines of every draft test of the order; H/L as typed (same rule as the printed report). Sensitivity, organisms and free-text tests open the full form. *Save and Validate* submits each test; one failing (a required value missing) doesn't stop the others.
+- **Validation:** whoever last changed the result values is `ke_results_by`; submitting records Marley's *Verified By* (`user`) and approval date (printed). Kenya Health Settings › Laboratory › *A second person validates results* (off by default) refuses validation by `ke_results_by`.
+- **Walk-in:** Service Requests (source Direct, or External Referral with the referrer in the order description; requesting doctor from the dialog, else the setting *Requesting Doctor for Walk-ins*, else the visit's) on the patient's open visit today, or a new *Lab only* cash visit. The visit bill picks them up like any request.
+- **Results Inbox:** submitted lab tests (`ke_result_at`) and imaging observations Reported/Verified (`ke_reported_at`) for a practitioner (default: the one whose User is the logged-in user; blank = all), last 14 days, unread first. Opening one from the inbox stamps `ke_seen_at` / `ke_seen_by` (Lab Test and Observation). *Abnormal* = any numeric result outside its range.
+
 ### Radiology
 
 Built on Marley's imaging Observations (Observation Template category *Imaging*, ordered from an encounter like a lab test):

@@ -285,6 +285,8 @@ def lab_people(doc) -> frappe._dict:
 
 
 def _collected(doc) -> str:
+	if doc.get("ke_sample_collected_at"):
+		return format_datetime(doc.ke_sample_collected_at, "d MMM yyyy HH:mm")
 	if doc.get("sample"):
 		when = frappe.db.get_value("Sample Collection", doc.sample, "collected_time")
 		if when:

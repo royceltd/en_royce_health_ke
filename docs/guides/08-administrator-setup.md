@@ -27,9 +27,9 @@ The company, chart of accounts, VAT, KRA eTIMS and payroll are set up by Royce d
 | Job | Roles |
 | --- | --- |
 | Reception | Receptionist (registers and checks in patients, records insurance policies, sees phone and ID numbers) |
-| Doctor | Physician |
+| Doctor | Physician (set their login as the **User** on their Healthcare Practitioner record, so their Results Inbox and My Patients open on their own patients) |
 | Nurse, midwife | Nursing User |
-| Lab technologist | Laboratory User; LabTest Approver to verify results |
+| Lab technologist | Laboratory User (works from the Lab Worklist: collects samples, enters and validates results, takes walk-in requests) |
 | Pharmacist | Stock User |
 | Cashier | Cashier (takes patients' payments, opens and closes their own shift; add Accounts User only if they also do accounts work) |
 | Manager who approves services before payment | Healthcare Administrator or Accounts Manager |
@@ -141,6 +141,8 @@ Demo record: GW Bed 03 in the General Ward, type General Ward Bed, warehouse GW 
 | Patient record access log | On |
 | Require full registration details | On |
 | Payment before service: laboratory, radiology, pharmacy | On (cash patients pay first; insured, inpatient and casualty are served first) |
+| Laboratory: requesting doctor for walk-ins | The lab's medical officer in charge |
+| Laboratory: a second person validates results | Off (whoever entered the results validates them), until the lab wants a second check |
 
 Save the page once after installation, even if you change nothing, so every default is stored.
 
