@@ -36,11 +36,11 @@
  },
  {
   "file": "09-requisition.png",
-  "url": "/desk/material-request/MAT-MR-2026-00002"
+  "url": "/desk/material-request/MAT-MR-2026-00001"
  },
  {
   "file": "10-transfer-batches.png",
-  "url": "/desk/serial-and-batch-bundle/f3f497ac2dbb0f3fb0d1",
+  "url": "/desk/serial-and-batch-bundle/5ede5fbf0018951e62f1",
   "note": "the transfer line's bundle: open the Stock Entry from the Material Request's Connections and copy its Serial and Batch Bundle name (it differs per site)"
  },
  {

@@ -141,7 +141,7 @@ Demo record: MAT-RECO-2026-00001 — paracetamol counted at 970 tablets against 
 
 Still to come: a one-click recall list with patients' names and phone numbers.
 
-Demo: batch MF24117 is in the OPD pharmacy (280 tablets) and went to one patient's bill, ACC-SINV-2026-00012.
+Demo: batch MF24117 is in the OPD pharmacy (280 tablets) and went to one patient's bill, ACC-SINV-2026-00019.
 
 ![Available Batch Report](images/pharmacy/11-available-batches.png)
 

@@ -29,7 +29,7 @@ const guides = [
   ["03-inpatient.md", "03 RoyceERP Health - Inpatient Workflow"],
   ["04-insurance.md", "04 RoyceERP Health - Insurance Workflow"],
   ["05-maternity.md", "05 RoyceERP Health - Maternity Workflow"],
-  ["06-pharmacy-and-stock.md", "06 RoyceERP Health - Pharmacy and Stock", "13 November 2026"],
+  ["06-pharmacy-and-stock.md", "06 RoyceERP Health - Pharmacy and Stock", "14 November 2026"],
   ["07-cashier-day-end.md", "07 RoyceERP Health - Cashier Day-End"],
   ["08-administrator-setup.md", "08 RoyceERP Health - Administrator Setup"],
   ["09-patient-sms.md", "09 RoyceERP Health - Patient SMS", "8 November 2026"],
@@ -38,7 +38,7 @@ const guides = [
   ["12-reception-queue-billing.md", "12 RoyceERP Health - Reception, Queue and Billing", "11 November 2026"],
   ["13-reception-billing-testing.md", "13 RoyceERP Health - Reception and Billing Testing Guide", "11 November 2026"],
   ["14-v0.22-testing.md", "14 RoyceERP Health - Version 0.22 Testing Guide", "11 November 2026"],
-  ["15-pharmacy-setup-and-upload.md", "15 RoyceERP Health - Pharmacy and Stock Setup and Data Upload", "13 November 2026"],
+  ["15-pharmacy-setup-and-upload.md", "15 RoyceERP Health - Pharmacy and Stock Setup and Data Upload", "14 November 2026"],
 ];
 // Temporary guides (../temporary): setup checklists and release testing
 // scripts, built with TEMPORARY=1 into their own folder.

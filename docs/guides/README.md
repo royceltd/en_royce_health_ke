@@ -9,7 +9,7 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 | [03 Inpatient](03-inpatient.md) | Doctors, ward nurses, pharmacy, cashier | 2026-11-11, v0.23.1 |
 | [04 Insurance](04-insurance.md) | Reception, cashier, claims officer, finance | 2026-11-11, v0.23.1 |
 | [05 Maternity](05-maternity.md) | ANC nurses, midwives, MCH, cashier | 2026-11-11, v0.23.1 |
-| [06 Pharmacy and stock](06-pharmacy-and-stock.md) | Pharmacist, stores | 2026-11-13, v0.26.0 (batch shots from a local demo) |
+| [06 Pharmacy and stock](06-pharmacy-and-stock.md) | Pharmacist, stores | 2026-11-14, v0.26.0 |
 | [07 Cashier day-end](07-cashier-day-end.md) | Cashier, accountant | 2026-11-11, v0.23.1 |
 | [08 Administrator setup](08-administrator-setup.md) | System administrator | 2026-11-11, v0.23.1 |
 | [09 Patient SMS](09-patient-sms.md) | Reception, clinical staff, administrator | 2026-11-08, v0.15.1 |
@@ -18,7 +18,7 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 | [12 Reception, queue and billing](12-reception-queue-billing.md) | Reception, triage, cashier, lab, pharmacy, managers | 2026-11-11, v0.23.1 |
 | [13 Reception and billing testing](13-reception-billing-testing.md) | The hospital's testers, before go-live | 2026-11-11, v0.23.1 |
 | [14 Version 0.22 testing](14-v0.22-testing.md) | The hospital's testers: residence, consultation, pricebooks, insured billing, cashiers, TAT | 2026-11-11, v0.23.1 |
-| [15 Pharmacy and stock setup and data upload](15-pharmacy-setup-and-upload.md) | ICT manager, pharmacist-in-charge, accountant | 2026-11-13, v0.26.0 (local demo) |
+| [15 Pharmacy and stock setup and data upload](15-pharmacy-setup-and-upload.md) | ICT manager, pharmacist-in-charge, accountant | 2026-11-14, v0.26.0 (Data Import shot from a local demo) |
 
 Planned next: radiology, emergency, kitchen and laundry, MOH reporting for the HRIO.
 

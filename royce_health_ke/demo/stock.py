@@ -138,7 +138,7 @@ def run(company):
 
 	etims = journey._etims_active(company)
 	if etims:
-		journey._register_items(company)
+		_register_drug(company)
 	a = masters.abbr(company)
 	stores = f"Stores - {a}"
 
@@ -248,3 +248,14 @@ def _mode_of_payment(company):
 		if frappe.db.exists("Mode of Payment Account", {"parent": "M-Pesa", "company": company})
 		else "Cash"
 	)
+
+
+def _register_drug(company):
+	"""Register only this module's medicine with KRA: an older demo item missing
+	its KRA fields would otherwise stop the run (journey._register_items does all)."""
+	from royce_etims.etims_sync.item import sync_item
+	from royce_etims.utils.id_mapping import get_etims_id
+
+	if not get_etims_id(frappe.get_doc("Item", DRUG), company):
+		sync_item(DRUG, company)
+		frappe.db.commit()
