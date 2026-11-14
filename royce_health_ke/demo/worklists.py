@@ -24,6 +24,9 @@ sales (one paid and waiting, one dispensed).
 Petty cash (`petty_cash()`, also run by `run()`): three requests by staff,
 one waiting for the accounts office, one approved, one paid.
 
+Billing approvals (`billing_approvals()`): Mercy's 10% discount and Hassan's
+pay-later waiting for the manager; Faith's walk-in bill waived.
+
 `users(password)` makes the demo logins (one per role) with that password."""
 
 import frappe
@@ -59,6 +62,7 @@ USERS = (
 	("pharmacy@kijanivalley.example", "Pharmacy", "Technologist", ("Pharmacist", "Stock User"), None),
 	("cashier@kijanivalley.example", "Main", "Cashier", ("Cashier",), None),
 	("accounts@kijanivalley.example", "Accounts", "Office", ("Accounts User",), None),
+	("manager@kijanivalley.example", "Hospital", "Manager", ("Healthcare Administrator",), None),
 )
 # Petty cash (kenyan_accountant): requester, purpose, on behalf of, [(what, qty, price, account name)], how far
 PETTY_CASH = (
@@ -164,7 +168,48 @@ def run(company: str = DEMO_COMPANY):
 	item = frappe.db.get_value("Sales Invoice Item", {"parent": sold["invoice"]}, "name")
 	pharmacy.dispense([{"kind": "sale", "ref": item, "qty": 15}], store)
 	frappe.db.commit()
-	return {"patients": list(p.values()), "store": store, "petty_cash": petty_cash(ctx.company)}
+	return {
+		"patients": list(p.values()),
+		"store": store,
+		"petty_cash": petty_cash(ctx.company),
+		"approvals": billing_approvals(p),
+	}
+
+
+def billing_approvals(p):
+	"""For the Patient Bills board: a 10% discount on Mercy's draft bill and
+	pay-later for Hassan, both waiting for a manager; Faith's walk-in bill
+	waived by the manager."""
+	from royce_health_ke import approvals
+
+	cashier = "cashier@kijanivalley.example"
+	manager = "manager@kijanivalley.example"
+	if not (frappe.db.exists("User", cashier) and frappe.db.exists("User", manager)):
+		return "make the demo logins first (users)"
+	visits = {
+		key: frappe.db.get_value("Patient Visit", {"patient": p[key], "visit_date": today()}, "name")
+		for key in ("mercy", "hassan", "faith")
+	}
+	bills = {}
+	for key in ("mercy", "faith"):
+		bill = visit_bill.make_bill(visits[key])
+		bills[key] = (
+			bill["existing"]
+			if bill.get("existing")
+			else frappe.get_doc(bill).insert(ignore_permissions=True).name
+		)
+	frappe.get_doc("Sales Invoice", bills["faith"]).submit()
+	frappe.set_user(cashier)
+	approvals.request(visits["mercy"], "Discount", "Staff relative: hospital policy 10%", bills["mercy"], 10)
+	approvals.request(visits["hassan"], "Pay Later", "Known patient, pays at month end (demo)")
+	waiver = approvals.request(
+		visits["faith"], "Waiver", "Student, can't pay: waived by the manager (demo)", bills["faith"]
+	)
+	frappe.set_user(manager)
+	approvals.approve(waiver, "Approved for the demo")
+	frappe.set_user("Administrator")
+	frappe.db.commit()
+	return list(visits.values())
 
 
 def petty_cash(company: str = DEMO_COMPANY):

@@ -29,7 +29,9 @@ def make_patient():
 
 class TestPatientVisit(IntegrationTestCase):
 	def setUp(self):
-		self.company = frappe.db.get_value("Company", {}, "name")
+		self.company = frappe.db.get_single_value(
+			"Global Defaults", "default_company"
+		) or frappe.db.get_value("Company", {}, "name")
 		self.patient = make_patient()
 
 	def visit(self, **values):
@@ -128,7 +130,9 @@ class TestPatientVisit(IntegrationTestCase):
 
 class TestVisitInsurance(IntegrationTestCase):
 	def setUp(self):
-		self.company = frappe.db.get_value("Company", {}, "name")
+		self.company = frappe.db.get_single_value(
+			"Global Defaults", "default_company"
+		) or frappe.db.get_value("Company", {}, "name")
 		self.payor = frappe.db.get_value("Insurance Payor", {}, "name")
 		if not self.payor:
 			self.skipTest("needs an Insurance Payor (load the demo)")

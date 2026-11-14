@@ -10,7 +10,9 @@ from royce_health_ke.test_visits import make_patient
 
 class IntegrationTestHistory(IntegrationTestCase):
 	def setUp(self):
-		self.company = frappe.db.get_value("Company", {}, "name")
+		self.company = frappe.db.get_single_value(
+			"Global Defaults", "default_company"
+		) or frappe.db.get_value("Company", {}, "name")
 		self.patient = make_patient()
 		frappe.db.set_value(
 			"Patient",

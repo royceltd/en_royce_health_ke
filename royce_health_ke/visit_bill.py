@@ -183,11 +183,29 @@ def invoices(visit_name):
 
 def bill_status(unbilled, raised):
 	submitted = [i for i in raised if i.docstatus == 1]
-	if unbilled:
+	if unbilled or any(i.docstatus == 0 for i in raised):
 		return "To Bill"
 	if any(flt(i.outstanding_amount) > 0 for i in submitted):
 		return "Unpaid"
 	return "Paid" if submitted else ""
+
+
+def on_drafts(visit_name):
+	"""(reference doctype, name) of every line already on one of the visit's
+	draft invoices: Marley still counts those as unbilled."""
+	drafts = frappe.get_all(
+		"Sales Invoice", filters={"ke_patient_visit": visit_name, "docstatus": 0}, pluck="name"
+	)
+	if not drafts:
+		return set()
+	return {
+		(r.reference_dt, r.reference_dn)
+		for r in frappe.get_all(
+			"Sales Invoice Item",
+			filters={"parent": ["in", drafts], "reference_dn": ["is", "set"]},
+			fields=["reference_dt", "reference_dn"],
+		)
+	}
 
 
 @frappe.whitelist()
@@ -196,20 +214,21 @@ def visit_bill(visit: str) -> dict:
 	doc = frappe.get_doc("Patient Visit", visit)
 	doc.check_permission("read")
 	try:
-		lines = unbilled_lines(doc)
+		drafted = on_drafts(doc.name)
+		all_lines = unbilled_lines(doc)
+		lines = [line for line in all_lines if (line["dt"], line["dn"]) not in drafted]
 	except frappe.ValidationError as e:
 		# Marley stops at a missing price setup, e.g. a doctor with no consultation charge.
 		frappe.clear_last_message()
 		return {"error": _("The bill can't be worked out yet: {0}").format(frappe.utils.strip_html(str(e)))}
 	charges, unbilled_total, currency = [], 0, None
-	if lines:
+	if all_lines:
 		if not frappe.db.get_value("Patient", doc.patient, "customer"):
 			return {"error": _("The patient has no customer record, so nothing can be priced or billed.")}
 		with _as_administrator():
-			si = _invoice(doc, lines)
+			si = _invoice(doc, all_lines)
 			_apply_billing_rules(si)
 		currency = si.currency
-		unbilled_total = si.grand_total
 		charges = [
 			{
 				"item": row.item_name or row.item_code,
@@ -220,16 +239,21 @@ def visit_bill(visit: str) -> dict:
 				"amount": row.amount,
 				"insurance": flt(row.get("insurance_coverage_amount")),
 				"covered": bool(row.get("insurance_coverage")),
+				# already on one of the visit's draft bills (Marley still counts it unbilled)
+				"on_draft": (row.reference_dt, row.reference_dn) in drafted,
 			}
 			for row in si.items
 		]
+		on_draft = sum(c["amount"] for c in charges if c["on_draft"])
+		unbilled_total = max(flt(si.grand_total) - on_draft, 0)
 	split = splits(doc)
-	patient_now = sum(c["amount"] for c in charges if not c["covered"]) if split else 0
+	patient_now = sum(c["amount"] for c in charges if not c["covered"] and not c["on_draft"]) if split else 0
 	raised = invoices(doc.name)
 	submitted = [i for i in raised if i.docstatus == 1]
 	billed = sum(flt(i.grand_total) for i in submitted)
 	insurance = sum(flt(i.total_insurance_coverage_amount) for i in submitted)
 	balance = sum(flt(i.outstanding_amount) for i in submitted)
+	draft_total = sum(flt(i.grand_total) for i in raised if i.docstatus == 0 and not i.is_return)
 	status = bill_status(lines, raised)
 	if status != (doc.bill_status or ""):
 		doc.db_set("bill_status", status, update_modified=False)
@@ -242,13 +266,22 @@ def visit_bill(visit: str) -> dict:
 		"insurance": insurance,
 		"paid": billed - insurance - balance,
 		"balance": balance,
-		"to_pay": balance + unbilled_total,
+		"to_pay": balance + draft_total + unbilled_total,
+		"draft_total": draft_total,
 		"status": status,
 		"split": split,
 		"patient_now": patient_now,
 		"can_bill": bool(frappe.has_permission("Sales Invoice", "create")),
 		"can_approve_credit": bool(set(CREDIT_ROLES) & set(frappe.get_roles())),
+		"approvals": _approvals(doc.name),
+		"can_request": bool(frappe.has_permission("Bill Approval Request", "create")),
 	}
+
+
+def _approvals(visit):
+	from royce_health_ke.approvals import for_visit
+
+	return for_visit(visit)
 
 
 def refresh_bill_status(visit_name):

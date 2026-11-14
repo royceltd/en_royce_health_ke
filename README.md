@@ -260,6 +260,15 @@ A **Patient Visit** is one arrival: reception checks the patient in, and the vis
 - Marley's own *Process Service Request Only If Paid* only checks that a request is invoiced, not paid, and can't tell cash from insured: leave it off.
 - Marley refuses to price a consultation whose practitioner has no OP consulting charge; the Bill section then says so. Set it on every consulting practitioner.
 
+### Billing approvals and Patient Bills
+
+`approvals.py`, doctype **Bill Approval Request**, page **Patient Bills** (`bills.py`, `patient-bills`; Cashier, Accounts User/Manager, Healthcare Administrator) (v0.29).
+
+- **Requests** (Cashier, Accounts User, Receptionist own): *Discount* on a draft bill of the visit (percentage, or amount off the grand total; `apply_discount_on` Grand Total), *Waiver* of a submitted bill's balance (default the whole balance), *Pay Later* (the visit's `allow_credit`). From the visit's **Bill** menu or the list.
+- **Decisions** by `visit_bill.CREDIT_ROLES`, never on your own request; reject needs a reason. Approval applies itself with system rights (the manager may lack accounting roles): the discount on the draft (refused if submitted meanwhile), a *Write Off Entry* Journal Entry debiting Kenya Health Settings › *Waiver Account* (else the company's write-off account) and crediting the patient against the bill, or credit on the visit. Cancelling the waiver entry marks the request Rejected.
+- **Visit bill**: lines already on a draft invoice are flagged `on_draft` (Marley still counts them unbilled), shown with their draft, not under *Not billed yet*; *To pay* = submitted balances + drafts + unbilled. Bill status *To Bill* while a draft exists. The pharmacy's *Bill Drugs* skips drugs already on a draft.
+- **Patient Bills**: visits in a date range (7 days by default), Cash / Insurance tabs, billed / insurance / paid / discount (+ approved waivers) / balance / draft per visit, totals, *Has balance* / *Cleared* filter, approvals waiting.
+
 ### Triage vitals flags
 
 Each Vital Signs record is flagged **Normal** or **Abnormal** on save, with the abnormal readings listed (for example *Temperature 38.9 °C (high)*). Abnormal readings show in red on the form, and the Vitals column of the list is a red or green pill. Adds SpO2, which Marley lacks.
@@ -288,7 +297,7 @@ The loader refuses to run unless the site opts in, so it can't touch a client's 
 
 ### Demo worklists
 
-`demo.worklists` (v0.28.1, demo sites only): `run()` gives eight fictional patients a visit dated today, one at each stage of the Lab Worklist, Results Inbox and Pharmacy Worklist (requested and unpaid, samples taken, results waiting validation, validated with abnormal flags, urgent walk-in; prescription unbilled, paid and ready, partly dispensed, sent back and bought outside, two counter sales). Once a day; set the worklists' dates to today to show only these. `petty_cash()` (also run by `run()`, needs kenyan_accountant 16.8) adds three petty cash requests by staff: pending, approved, paid, the float topped up from M-Pesa. `users(password)` makes one demo login per role (reception, nurse, two doctors linked to their practitioners, lab, pharmacy, cashier, accounts office) at kijanivalley.example.
+`demo.worklists` (v0.28.1, demo sites only): `run()` gives eight fictional patients a visit dated today, one at each stage of the Lab Worklist, Results Inbox and Pharmacy Worklist (requested and unpaid, samples taken, results waiting validation, validated with abnormal flags, urgent walk-in; prescription unbilled, paid and ready, partly dispensed, sent back and bought outside, two counter sales). Once a day; set the worklists' dates to today to show only these. `petty_cash()` (also run by `run()`, needs kenyan_accountant 16.8) adds three petty cash requests by staff: pending, approved, paid, the float topped up from M-Pesa. `users(password)` makes one demo login per role (reception, nurse, two doctors linked to their practitioners, lab, pharmacy, cashier, accounts office, manager) at kijanivalley.example. `billing_approvals()` (run by `run()`): a pending discount and pay-later and an approved waiver for the Patient Bills board.
 
 ### License
 

@@ -43,6 +43,7 @@
   "pay_before_pharmacy",
   "auto_bill_insured",
   "insured_pay_uncovered",
+  "waiver_account",
   "cashier_section",
   "only_cashiers_take_payment",
   "cashier_cb",
@@ -319,6 +320,13 @@
    "description": "An insured patient is served first only for what the scheme covers (its Item Insurance Eligibility list, approved). Anything else, or anything still waiting for the insurer's approval, is billed to the patient on a bill of its own and paid before the lab, radiology or pharmacy serve it. Load each scheme's list before switching this on."
   },
   {
+   "fieldname": "waiver_account",
+   "fieldtype": "Link",
+   "label": "Waiver Account",
+   "options": "Account",
+   "description": "Approved waivers (what a patient can't pay) are written off to this expense account. Blank: the company's write-off account."
+  },
+  {
    "fieldname": "laboratory_section",
    "fieldtype": "Section Break",
    "label": "Laboratory",
@@ -346,7 +354,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-15 00:30:00.000000",
+ "modified": "2026-11-15 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

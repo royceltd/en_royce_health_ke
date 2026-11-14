@@ -35,7 +35,7 @@ const guides = [
   ["09-patient-sms.md", "09 RoyceERP Health - Patient SMS", "8 November 2026"],
   ["10-theatre.md", "10 RoyceERP Health - Theatre Workflow", "11 November 2026"],
   ["11-theatre-testing.md", "11 RoyceERP Health - Theatre Testing Guide", "11 November 2026"],
-  ["12-reception-queue-billing.md", "12 RoyceERP Health - Reception, Queue and Billing", "11 November 2026"],
+  ["12-reception-queue-billing.md", "12 RoyceERP Health - Reception, Queue and Billing", "15 November 2026"],
   ["13-reception-billing-testing.md", "13 RoyceERP Health - Reception and Billing Testing Guide", "11 November 2026"],
   ["14-v0.22-testing.md", "14 RoyceERP Health - Version 0.22 Testing Guide", "11 November 2026"],
   ["15-pharmacy-setup-and-upload.md", "15 RoyceERP Health - Pharmacy and Stock Setup and Data Upload", "14 November 2026"],
@@ -50,6 +50,7 @@ const temporaryGuides = [
   ["v0.27-testing.md", "Version 0.27 Lab Worklist and Results Inbox Testing Guide", "14 November 2026"],
   ["v0.28-testing.md", "Version 0.28 Pharmacy Worklist Testing Guide", "15 November 2026"],
   ["petty-cash-testing.md", "Petty Cash Testing Guide", "15 November 2026"],
+  ["v0.29-testing.md", "Version 0.29 Billing Approvals and Patient Bills Testing Guide", "15 November 2026"],
   ["demo-script-bethesda.md", "Demo Script for Bethesda", "15 November 2026",
     "Written 15 November 2026 for the demo of RoyceERP Health to Bethesda Healthcare Services, on hospital.royceltd.com (v0.28.1). All patients, staff and records shown are fictional."],
 ];

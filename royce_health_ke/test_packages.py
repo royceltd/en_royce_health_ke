@@ -49,7 +49,9 @@ def package(name, kind="Vaginal delivery", payor=None, nights=2, rate=20000):
 
 class IntegrationTestPackages(IntegrationTestCase):
 	def setUp(self):
-		self.company = frappe.db.get_value("Company", {}, "name")
+		self.company = frappe.db.get_single_value(
+			"Global Defaults", "default_company"
+		) or frappe.db.get_value("Company", {}, "name")
 		if not self.company:
 			self.skipTest("no company")
 		# packages are matched by type and payor: keep the site's own out of the way

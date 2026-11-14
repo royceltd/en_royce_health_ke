@@ -16,7 +16,9 @@ DEMO_INSURER = "Mlima Health Assurance (Demo)"
 
 class IntegrationTestSchemes(IntegrationTestCase):
 	def setUp(self):
-		self.company = frappe.db.get_value("Company", {}, "name")
+		self.company = frappe.db.get_single_value(
+			"Global Defaults", "default_company"
+		) or frappe.db.get_value("Company", {}, "name")
 		self.practitioner = frappe.db.get_value(
 			"Healthcare Practitioner",
 			{

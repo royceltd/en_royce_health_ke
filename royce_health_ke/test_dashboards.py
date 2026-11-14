@@ -98,7 +98,9 @@ class IntegrationTestDashboards(IntegrationTestCase):
 			frappe.set_user("Administrator")
 
 	def test_every_card_and_chart_runs(self):
-		company = frappe.db.get_value("Company", {}, "name")
+		company = frappe.db.get_single_value("Global Defaults", "default_company") or frappe.db.get_value(
+			"Company", {}, "name"
+		)
 		if not company:
 			self.skipTest("no company")
 		filters = frappe.as_json({"company": company, "period": "This Year"})

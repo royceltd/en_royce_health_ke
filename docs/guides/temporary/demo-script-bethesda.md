@@ -60,6 +60,14 @@ A 20-minute walk through Bethesda's own outpatient flow on the demo hospital, in
 - The visit's running bill, **Create Bill**, M-Pesa or cash, signed by KRA eTIMS.
 - Cashier shifts: open, take payments, close and count (point 16).
 
+## 6a. Discounts, waivers and pay-later (their billing screen)
+
+**Login:** cashier, then manager. **Where:** Kenya Health › Patients › **Patient Bills**.
+
+- The board: one row per visit, billed / paid / discount / balance, cash and insurance tabs, totals. *Approvals waiting: 2*.
+- Faith's walk-in bill: waived by the manager (shown under *Discount / waived*, balance 0).
+- As manager: open the approvals, **Approve** Mercy's 10% discount (her draft bill drops), and Hassan's pay-later. As the cashier, show **Bill › Request Discount** on a visit.
+
 ## 7. Petty cash (point 17)
 
 **Login:** reception, then accounts. **Where:** Kenya Accounting › Petty Cash › **Petty Cash Request**.

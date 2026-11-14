@@ -31,7 +31,10 @@ def fp_visit(patient_name, method, **kwargs):
 		{
 			"doctype": "Family Planning Visit",
 			"patient": patient_name,
-			"company": frappe.db.get_value("Company", {}, "name"),
+			"company": (
+				frappe.db.get_single_value("Global Defaults", "default_company")
+				or frappe.db.get_value("Company", {}, "name")
+			),
 			"visit_date": "2020-03-10",
 			"method": method,
 			**kwargs,
@@ -47,7 +50,9 @@ def rows_by_indicator(rows):
 
 class IntegrationTestMOH711(IntegrationTestCase):
 	def setUp(self):
-		self.company = frappe.db.get_value("Company", {}, "name")
+		self.company = frappe.db.get_single_value(
+			"Global Defaults", "default_company"
+		) or frappe.db.get_value("Company", {}, "name")
 		if not self.company:
 			self.skipTest("no company")
 

@@ -22,7 +22,9 @@ def user(email, roles):
 
 class IntegrationTestCashier(IntegrationTestCase):
 	def setUp(self):
-		self.company = frappe.db.get_value("Company", {}, "name")
+		self.company = frappe.db.get_single_value(
+			"Global Defaults", "default_company"
+		) or frappe.db.get_value("Company", {}, "name")
 		self.item = frappe.db.get_value(
 			"Item", {"is_stock_item": 0, "disabled": 0, "is_sales_item": 1}, "name"
 		)

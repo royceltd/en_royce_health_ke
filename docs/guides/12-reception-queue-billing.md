@@ -188,6 +188,24 @@ The same exemptions apply as for the lab. Drugs for an insured patient are cover
 
 For a patient who will pay later (a staff member, a waiver, a family that is raising the money), give the reason and confirm. The lab, radiology and pharmacy then serve the visit before payment. The reason and who approved it show at the top of the visit, and in the Bill column as *(credit approved)*.
 
+## Step 9a — Discounts, waivers and pay-later: ask a manager
+
+**Who:** cashier or reception asks; a manager (Healthcare Administrator or Accounts Manager) decides. **Where:** on the visit, **Bill ›**:
+
+| Ask for | When | What approval does |
+| --- | --- | --- |
+| **Request Discount** | The visit has a draft bill not yet paid | Takes the percentage, or the amount, off the draft bill's total |
+| **Request Waiver** | A submitted bill still has a balance the patient can't pay | Writes the amount off (Kenya Health Settings › Waiver Account), so the balance is cleared without a payment |
+| **Request Pay Later** | The patient will pay later | Serves the visit before payment, as in Step 9 |
+
+Give the reason and **Send for Approval**. The request appears on the visit under **Approvals** and in **Bill Approval Request**. The manager opens it from the **Patient Bills** board (*Approvals waiting*) or the list, and presses **Approve** or **Reject** (rejecting needs a reason). Nobody decides their own request. A discount can only go on a draft: once the bill is submitted, ask for a waiver.
+
+## Step 9b — Patient Bills
+
+**Who:** cashier, accounts office, managers. **Where:** Kenya Health › Patients › **Patient Bills**.
+
+One row per visit for the dates chosen: what was billed, paid, discounted or waived, covered by insurance, and the balance, with totals at the bottom. **Cash bills** and **Insurance bills** are on separate tabs. Filter by *Has balance* to see who still owes. A visit with a draft bill shows the draft amount under *Billed*, and the status says *To Bill*. **Approvals waiting** opens the requests waiting for a manager.
+
 ## Step 10 — Close the visit
 
 **Who:** the last station. **Where:** on the visit, **Status › Complete Visit**.
@@ -204,6 +222,7 @@ The patient leaves every waiting list. **Status › Cancel Visit** (with a reaso
 | Payment Before Service | Laboratory | On |
 | | Radiology | On |
 | | Pharmacy | On |
+| | Waiver Account | The company's write-off account; set your own (for example "Patient Waivers") |
 
 Each consulting doctor needs a **consultation charge** (Healthcare › Practitioner › Charges). Without it the visit's bill can't price the consultation and says so.
 

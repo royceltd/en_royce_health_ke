@@ -13,7 +13,9 @@ from royce_health_ke import lab, visit_bill
 
 class TestLab(IntegrationTestCase):
 	def setUp(self):
-		self.company = frappe.db.get_value("Company", {}, "name")
+		self.company = frappe.db.get_single_value(
+			"Global Defaults", "default_company"
+		) or frappe.db.get_value("Company", {}, "name")
 		self.template = frappe.db.get_value(
 			"Lab Test Template",
 			{"is_billable": 1, "disabled": 0, "item": ["is", "set"], "lab_test_template_type": "Single"},

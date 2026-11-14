@@ -13,7 +13,9 @@ from royce_health_ke import pharmacy, visit_bill
 
 class TestPharmacy(IntegrationTestCase):
 	def setUp(self):
-		self.company = frappe.db.get_value("Company", {}, "name")
+		self.company = frappe.db.get_single_value(
+			"Global Defaults", "default_company"
+		) or frappe.db.get_value("Company", {}, "name")
 		self.practitioner = frappe.db.get_value(
 			"Healthcare Practitioner",
 			{"status": "Active", "op_consulting_charge_item": ["is", "set"]},

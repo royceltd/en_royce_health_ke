@@ -211,15 +211,17 @@ function render_bill(frm) {
 		const c = b.currency;
 		const esc = frappe.utils.escape_html;
 		frm.__ke_patient_now = b.patient_now;
+		// lines already on a draft bill are shown with that bill, not here
+		const pending = b.charges.filter((r) => !r.on_draft);
 		let html = "";
-		if (b.charges.length) {
+		if (pending.length) {
 			html += `<p class="text-muted small mb-1">${__("Not billed yet")}</p>
 				<table class="table table-sm table-bordered mb-3"><thead><tr>
 				<th>${__("Item")}</th><th class="text-right">${__("Qty")}</th>
 				<th class="text-right">${__("Rate")}</th><th class="text-right">${__("Amount")}</th>
-				${b.insurance || b.charges.some((r) => r.insurance) ? `<th class="text-right">${__("Insurance")}</th>` : ""}
+				${b.insurance || pending.some((r) => r.insurance) ? `<th class="text-right">${__("Insurance")}</th>` : ""}
 				</tr></thead><tbody>
-				${b.charges
+				${pending
 					.map(
 						(r) => `<tr><td>${esc(r.item)}<div class="text-muted small">${esc(__(r.reference_dt || ""))}${
 							b.split
@@ -230,7 +232,7 @@ function render_bill(frm) {
 						}</div></td>
 						<td class="text-right">${r.qty}</td><td class="text-right">${money(r.rate, c)}</td>
 						<td class="text-right">${money(r.amount, c)}</td>
-						${b.charges.some((x) => x.insurance) ? `<td class="text-right">${money(r.insurance, c)}</td>` : ""}</tr>`,
+						${pending.some((x) => x.insurance) ? `<td class="text-right">${money(r.insurance, c)}</td>` : ""}</tr>`,
 					)
 					.join("")}
 				<tr><td colspan="3" class="text-right"><b>${__("Total to bill (with tax)")}</b></td>
@@ -254,6 +256,20 @@ function render_bill(frm) {
 					.join("")}
 				</tbody></table>`;
 		}
+		if ((b.approvals || []).length) {
+			const colours = { Pending: "orange", Approved: "green", Rejected: "red" };
+			html += `<p class="text-muted small mb-1">${__("Approvals")}</p>
+				<table class="table table-sm table-bordered mb-3"><tbody>
+				${b.approvals
+					.map(
+						(a) => `<tr><td><a href="/app/bill-approval-request/${encodeURIComponent(a.name)}">${esc(a.name)}</a></td>
+						<td>${esc(__(a.request_type))}${a.discount_percentage ? " " + esc(a.discount_percentage) + "%" : a.amount ? " " + money(a.amount, c) : ""}</td>
+						<td>${esc(a.reason || "")}</td>
+						<td><span class="indicator-pill ${colours[a.status]} no-indicator-dot">${esc(__(a.status))}</span></td></tr>`,
+					)
+					.join("")}
+				</tbody></table>`;
+		}
 		if (!html) {
 			html = `<div class="text-muted">${__("No charges yet.")}</div>`;
 		} else {
@@ -272,8 +288,21 @@ function render_bill(frm) {
 		}
 
 		if (frm.doc.status !== "Open") return;
-		if (b.can_bill && b.charges.length && (!b.split || b.patient_now > 0)) {
+		if (b.can_bill && pending.length && (!b.split || b.patient_now > 0)) {
 			frm.add_custom_button(__("Create Bill"), () => make_bill(frm), __("Bill"));
+		}
+		if (b.can_request) {
+			const drafts = b.invoices.filter((i) => !i.docstatus && !i.is_return).map((i) => i.name);
+			const owing = b.invoices.filter((i) => i.docstatus === 1 && i.outstanding_amount > 0).map((i) => i.name);
+			if (drafts.length) {
+				frm.add_custom_button(__("Request Discount"), () => request_approval(frm, "Discount", drafts), __("Bill"));
+			}
+			if (owing.length) {
+				frm.add_custom_button(__("Request Waiver"), () => request_approval(frm, "Waiver", owing), __("Bill"));
+			}
+			if (!frm.doc.allow_credit && !b.can_approve_credit) {
+				frm.add_custom_button(__("Request Pay Later"), () => request_approval(frm, "Pay Later", []), __("Bill"));
+			}
 		}
 		if (b.can_approve_credit && !frm.doc.allow_credit) {
 			frm.add_custom_button(
@@ -295,6 +324,51 @@ function render_bill(frm) {
 			);
 		}
 	});
+}
+
+function request_approval(frm, type, invoices) {
+	const fields = [];
+	if (type !== "Pay Later") {
+		fields.push({
+			fieldname: "sales_invoice",
+			fieldtype: "Select",
+			label: __("Bill"),
+			options: invoices.join("\n"),
+			default: invoices[0],
+			reqd: 1,
+		});
+	}
+	if (type === "Discount") {
+		fields.push(
+			{ fieldname: "discount_percentage", fieldtype: "Percent", label: __("Discount %") },
+			{ fieldname: "amount", fieldtype: "Currency", label: __("Or an amount off") },
+		);
+	}
+	if (type === "Waiver") {
+		fields.push({
+			fieldname: "amount",
+			fieldtype: "Currency",
+			label: __("Amount to waive"),
+			description: __("Blank: the whole balance."),
+		});
+	}
+	fields.push({ fieldname: "reason", fieldtype: "Small Text", label: __("Reason"), reqd: 1 });
+	frappe.prompt(
+		fields,
+		(v) =>
+			frappe
+				.call({
+					method: "royce_health_ke.approvals.request",
+					args: { visit: frm.doc.name, request_type: type, ...v },
+					freeze: true,
+				})
+				.then(({ message }) => {
+					frappe.show_alert({ message: __("{0} sent to a manager for approval.", [message]), indicator: "green" });
+					frm.reload_doc();
+				}),
+		__("Request {0}", [__(type)]),
+		__("Send for Approval"),
+	);
 }
 
 function make_bill(frm) {

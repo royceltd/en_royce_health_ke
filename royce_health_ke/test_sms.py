@@ -75,7 +75,9 @@ class IntegrationTestPatientSMS(IntegrationTestCase):
 	def test_campaign_pregnant_mothers_only(self):
 		mother = patient("Mother")
 		other = patient("Other")
-		company = frappe.db.get_value("Company", {}, "name")
+		company = frappe.db.get_single_value("Global Defaults", "default_company") or frappe.db.get_value(
+			"Company", {}, "name"
+		)
 		frappe.get_doc(
 			{
 				"doctype": "Pregnancy Record",

@@ -708,7 +708,12 @@ def bill_drugs(visit: str):
 	_check_access()
 	doc = frappe.get_doc("Patient Visit", visit)
 	split = visit_bill.splits(doc)
-	lines = [line for line in visit_bill.unbilled_lines(doc) if line["dt"] == MR]
+	drafted = visit_bill.on_drafts(visit)
+	lines = [
+		line
+		for line in visit_bill.unbilled_lines(doc)
+		if line["dt"] == MR and (line["dt"], line["dn"]) not in drafted
+	]
 	if split:
 		lines = [line for line in lines if not visit_bill._covered(line)]
 	if not lines:

@@ -20,7 +20,9 @@ class IntegrationTestUncoveredItems(IntegrationTestCase):
 	def setUp(self):
 		from royce_health_ke.demo import masters
 
-		self.company = frappe.db.get_value("Company", {}, "name")
+		self.company = frappe.db.get_single_value(
+			"Global Defaults", "default_company"
+		) or frappe.db.get_value("Company", {}, "name")
 		self.practitioner = frappe.db.get_value(
 			"Healthcare Practitioner",
 			{

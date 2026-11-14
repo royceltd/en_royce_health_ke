@@ -62,7 +62,12 @@ doc_events = {
 		"on_submit": "royce_health_ke.pharmacy.delivery_changed",
 		"on_cancel": "royce_health_ke.pharmacy.delivery_changed",
 	},
-	"Journal Entry": {"on_cancel": "royce_health_ke.claims.on_settlement_cancel"},
+	"Journal Entry": {
+		"on_cancel": [
+			"royce_health_ke.claims.on_settlement_cancel",
+			"royce_health_ke.approvals.journal_entry_cancelled",
+		]
+	},
 	"Observation": {"before_insert": "royce_health_ke.radiology.before_insert_observation"},
 	"Lab Test": {
 		"before_insert": [

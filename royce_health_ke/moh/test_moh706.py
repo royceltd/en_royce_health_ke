@@ -80,7 +80,9 @@ class IntegrationTestMOH706(IntegrationTestCase):
 			self.assertIn(age_group, ("", "Under 5", "5 and above"), code)
 
 	def test_report_lists_unmapped_rows(self):
-		company = frappe.db.get_value("Company", {}, "name")
+		company = frappe.db.get_single_value("Global Defaults", "default_company") or frappe.db.get_value(
+			"Company", {}, "name"
+		)
 		if not company:
 			self.skipTest("no company")
 		rows = moh706.compute(company, 2020, 3)

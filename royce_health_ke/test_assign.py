@@ -14,7 +14,9 @@ DAYS = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 
 class IntegrationTestAssign(IntegrationTestCase):
 	def setUp(self):
-		self.company = frappe.db.get_value("Company", {}, "name")
+		self.company = frappe.db.get_single_value(
+			"Global Defaults", "default_company"
+		) or frappe.db.get_value("Company", {}, "name")
 		self.rooms = frappe.get_all(
 			"Healthcare Service Unit",
 			filters={"is_group": 0, "company": self.company},
