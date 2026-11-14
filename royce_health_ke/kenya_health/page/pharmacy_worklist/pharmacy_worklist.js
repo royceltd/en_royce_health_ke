@@ -63,7 +63,7 @@ class PharmacyWorklist {
 			fieldtype: "Date",
 			fieldname: "from_date",
 			label: __("From"),
-			default: frappe.datetime.add_days(frappe.datetime.get_today(), -2),
+			default: frappe.datetime.add_days(frappe.datetime.get_today(), -6),
 			change: () => this.refresh(),
 		});
 		this.to = page.add_field({

@@ -286,6 +286,10 @@ The demo pharmacy has reorder levels, so the dashboard shows amoxicillin below i
 
 The loader refuses to run unless the site opts in, so it can't touch a client's live data. It is safe to run again.
 
+### Demo worklists
+
+`demo.worklists` (v0.28.1, demo sites only): `run()` gives eight fictional patients a visit dated today, one at each stage of the Lab Worklist, Results Inbox and Pharmacy Worklist (requested and unpaid, samples taken, results waiting validation, validated with abnormal flags, urgent walk-in; prescription unbilled, paid and ready, partly dispensed, sent back and bought outside, two counter sales). Once a day; set the worklists' dates to today to show only these. `users(password)` makes one demo login per role (reception, nurse, two doctors linked to their practitioners, lab, pharmacy, cashier) at kijanivalley.example.
+
 ### License
 
 MIT (scaffold default). Under review: Marley Health is GPL-3.0.

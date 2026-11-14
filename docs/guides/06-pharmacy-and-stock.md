@@ -109,7 +109,7 @@ Medicines leave the pharmacy three ways:
 
 **Who:** pharmacist (roles *Pharmacist* and *Stock User*). **Where:** Kenya Health › Pharmacy › **Pharmacy Worklist**.
 
-The worklist shows one row per patient: the doctor's prescriptions from the outpatient consultation, and the pharmacy's own counter sales. Choose the **pharmacy store** at the top (the default is Kenya Health Settings › Pharmacy Warehouse): the stock shown, and the stock dispensed, are that store's. Tabs: *Waiting*, *Dispensed*, *Buy Outside / Sent Back* and *All*, for the dates chosen (the last three days by default).
+The worklist shows one row per patient: the doctor's prescriptions from the outpatient consultation, and the pharmacy's own counter sales. Choose the **pharmacy store** at the top (the default is Kenya Health Settings › Pharmacy Warehouse): the stock shown, and the stock dispensed, are that store's. Tabs: *Waiting*, *Dispensed*, *Buy Outside / Sent Back* and *All*, for the dates chosen (the last seven days by default).
 
 Open a row to see each drug with the doctor's instructions, the quantity prescribed and already dispensed, the stock in the store (red when there isn't enough), and the payment: *Not billed*, *Billed, not paid*, *Paid*, *Insured*, *Credit approved*. Tick the drugs, check the quantity, then:
 

@@ -262,7 +262,7 @@ def _stock(items, warehouse):
 
 def _range(from_date, to_date):
 	to_date = getdate(to_date or nowdate())
-	return getdate(from_date or add_days(to_date, -2)), to_date
+	return getdate(from_date or add_days(to_date, -6)), to_date
 
 
 @frappe.whitelist()
