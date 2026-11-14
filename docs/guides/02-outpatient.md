@@ -130,6 +130,18 @@ The list refreshes every minute. Change the dates at the top to look further bac
 3. On **Results Entry**, open the order and press **Enter Results**. All its tests come up on one screen, each with its normal range. A number outside the range is flagged **H** or **L** as you type. Tests with antibiotic sensitivity or organisms have an *Open full form* link instead.
 4. **Save** keeps the results as a draft (the order moves to *Validate Results*). **Save and Validate** releases them: the results can't be changed afterwards, the doctor sees them in their Results Inbox, and the printed Laboratory Report shows who validated and when.
 
+![Lab Worklist](images/outpatient/11-lab-worklist.png)
+
+*The Lab Worklist: one row per order. Lucy's two tests have their samples taken; Joseph's white cell count is waiting.*
+
+![An order opened](images/outpatient/12-lab-order.png)
+
+*Joseph's order: the test is paid, so it is ticked for Collect Samples.*
+
+![Results entry](images/outpatient/13-lab-results-entry.png)
+
+*Enter Results: both of Lucy's tests on one screen, with their normal ranges.*
+
 By default the person who entered the results validates them. To require a second person, an administrator ticks *A second person validates results* in Kenya Health Settings › Laboratory.
 
 **Walk-in patients** (sent by an outside doctor, or asking for a test themselves): press **Walk-in Request**, choose the patient (reception registers new patients), the tests, and who referred them. The tests are requested on the patient's visit today, or on a new *Lab only* visit. A cash patient then pays at the Cashier (the visit's **Create Bill** picks the tests up) before you collect. If you leave *Requesting doctor* blank, the requests carry the default doctor set in Kenya Health Settings › Laboratory.
@@ -150,6 +162,10 @@ Demo records: HLC-LAB-2026-00006 (malaria slide, positive), HLC-LAB-2026-00005 (
 
 1. Link the same appointment, so the review is not charged as a second consultation.
 2. Read the results in Kenya Health › Laboratory › **Results Inbox**: your patients' validated lab tests and reported imaging exams, newest first, marked *New* until you open them, with *Abnormal* on lab results outside their normal range. Untick *Unread only* to see the ones you have read; clear the *Consultant* box to see every consultant's. (The inbox opens on your own results when your login is set as the **User** on your Healthcare Practitioner record.) Then record the diagnosis.
+
+   ![Results Inbox](images/outpatient/14-results-inbox.png)
+
+   *The Results Inbox: a new result waiting to be read.*
 3. In **Drug Prescription**, add each drug with dosage, period and interval. The quantity to dispense is worked out from them: *4-0-4* for 3 days is 24 tablets, *1-1-1* for 3 days is 9.
 4. Submit. Each drug becomes a medication request for the cashier and pharmacy.
 

@@ -25,13 +25,13 @@ const workDir = fs.mkdtempSync(path.join((await import("os")).tmpdir(), "guides-
 fs.mkdirSync(outDir, { recursive: true });
 const guides = [
   ["01-overview.md", "01 RoyceERP Health - Overview"],
-  ["02-outpatient.md", "02 RoyceERP Health - Outpatient Workflow"],
+  ["02-outpatient.md", "02 RoyceERP Health - Outpatient Workflow", "14 November 2026"],
   ["03-inpatient.md", "03 RoyceERP Health - Inpatient Workflow"],
   ["04-insurance.md", "04 RoyceERP Health - Insurance Workflow"],
   ["05-maternity.md", "05 RoyceERP Health - Maternity Workflow"],
   ["06-pharmacy-and-stock.md", "06 RoyceERP Health - Pharmacy and Stock", "14 November 2026"],
   ["07-cashier-day-end.md", "07 RoyceERP Health - Cashier Day-End"],
-  ["08-administrator-setup.md", "08 RoyceERP Health - Administrator Setup"],
+  ["08-administrator-setup.md", "08 RoyceERP Health - Administrator Setup", "14 November 2026"],
   ["09-patient-sms.md", "09 RoyceERP Health - Patient SMS", "8 November 2026"],
   ["10-theatre.md", "10 RoyceERP Health - Theatre Workflow", "11 November 2026"],
   ["11-theatre-testing.md", "11 RoyceERP Health - Theatre Testing Guide", "11 November 2026"],
@@ -46,6 +46,7 @@ const temporaryGuides = [
   ["bethesda-setup-v0.25.md", "Bethesda Setup for Versions 0.24 and 0.25", "13 November 2026",
     "Written 13 November 2026 for Bethesda Healthcare Services (bethesda.royceltd.com), version 0.25."],
   ["v0.25-testing.md", "Version 0.24 and 0.25 Testing Guide", "13 November 2026"],
+  ["v0.27-testing.md", "Version 0.27 Lab Worklist and Results Inbox Testing Guide", "14 November 2026"],
 ];
 const selected = process.env.TEMPORARY ? temporaryGuides : guides;
 const css = `

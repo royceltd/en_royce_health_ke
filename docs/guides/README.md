@@ -5,7 +5,7 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 | Guide | For | Last checked |
 | --- | --- | --- |
 | [01 Overview](01-overview.md) | Management, ICT | 2026-11-11, v0.23.1 |
-| [02 Outpatient](02-outpatient.md) | Reception, triage, doctors, lab, cashier, pharmacy | 2026-11-14, v0.27.0 (lab screenshots to retake) |
+| [02 Outpatient](02-outpatient.md) | Reception, triage, doctors, lab, cashier, pharmacy | 2026-11-14, v0.27.0 |
 | [03 Inpatient](03-inpatient.md) | Doctors, ward nurses, pharmacy, cashier | 2026-11-11, v0.23.1 |
 | [04 Insurance](04-insurance.md) | Reception, cashier, claims officer, finance | 2026-11-11, v0.23.1 |
 | [05 Maternity](05-maternity.md) | ANC nurses, midwives, MCH, cashier | 2026-11-11, v0.23.1 |
