@@ -51,7 +51,11 @@
   "laboratory_section",
   "walk_in_lab_practitioner",
   "laboratory_cb",
-  "lab_second_validator"
+  "lab_second_validator",
+  "surveillance_section",
+  "surveillance_sms",
+  "surveillance_cb",
+  "surveillance_sms_numbers"
  ],
  "fields": [
   {
@@ -350,11 +354,34 @@
    "label": "A second person validates results",
    "default": "0",
    "description": "Off: whoever entered the results may validate them. On: someone else must validate."
+  },
+  {
+   "fieldname": "surveillance_section",
+   "fieldtype": "Section Break",
+   "label": "Disease Surveillance (IDSR)",
+   "description": "Immediately reportable diseases and outbreak alerts notify users with the Disease Surveillance Officer role (Healthcare Administrators when nobody has it). Diseases, thresholds and codes: Notifiable Disease."
+  },
+  {
+   "fieldname": "surveillance_sms",
+   "fieldtype": "Check",
+   "label": "SMS Surveillance Alerts",
+   "description": "Also send alerts by SMS. The message names the disease, facility and case number, never the patient."
+  },
+  {
+   "fieldname": "surveillance_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "surveillance_sms_numbers",
+   "fieldtype": "Small Text",
+   "label": "Alert Numbers",
+   "depends_on": "surveillance_sms",
+   "description": "One mobile number per line: the facility surveillance focal person, and the sub-county Disease Surveillance Coordinator if they agree."
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-15 14:00:00.000000",
+ "modified": "2026-11-15 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

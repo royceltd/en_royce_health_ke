@@ -1,0 +1,153 @@
+{
+ "name": "Notifiable Disease",
+ "actions": [],
+ "creation": "2026-11-15 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-15 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "disease_name",
+   "fieldtype": "Data",
+   "label": "Disease",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "label": "IDSR Category",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "options": "Immediately Reportable\nWeekly Reportable",
+   "default": "Immediately Reportable",
+   "description": "Immediately reportable: the surveillance officer is alerted on every case, to notify the county within 24 hours. Weekly reportable: counted on the IDSR weekly report."
+  },
+  {
+   "fieldname": "ihr_notifiable",
+   "fieldtype": "Check",
+   "label": "IHR Notifiable",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "International Health Regulations (2005), Annex 2: the county informs the national IHR focal point, who assesses notification to WHO within 24 hours."
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "alert_threshold",
+   "fieldtype": "Int",
+   "label": "Outbreak Alert at (cases)",
+   "non_negative": 1,
+   "description": "This many cases within the period below raise an outbreak alert (a Public Health Event). 0 = no automatic outbreak alert. Use the county's threshold."
+  },
+  {
+   "fieldname": "threshold_days",
+   "fieldtype": "Int",
+   "label": "Within (days)",
+   "default": "7",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "case_definition_section",
+   "fieldtype": "Section Break",
+   "label": "Case Definition"
+  },
+  {
+   "fieldname": "case_definition",
+   "fieldtype": "Small Text",
+   "label": "Case Definition",
+   "description": "The MOH standard case definition (suspected / probable / confirmed), for clinicians and the surveillance officer."
+  },
+  {
+   "fieldname": "mapping_section",
+   "fieldtype": "Section Break",
+   "label": "What Counts as a Case",
+   "description": "Code prefixes (ICD-10 or ICD-11) and/or specific Diagnosis records. A submitted consultation with a matching diagnosis records a case."
+  },
+  {
+   "fieldname": "codes",
+   "fieldtype": "Table",
+   "label": "Mapping",
+   "options": "Notifiable Disease Code"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Disease Surveillance Officer",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "field_order": [
+  "disease_name",
+  "category",
+  "ihr_notifiable",
+  "column_break_1",
+  "alert_threshold",
+  "threshold_days",
+  "disabled",
+  "case_definition_section",
+  "case_definition",
+  "mapping_section",
+  "codes"
+ ],
+ "autoname": "field:disease_name",
+ "naming_rule": "By fieldname",
+ "title_field": "disease_name",
+ "track_changes": 1
+}

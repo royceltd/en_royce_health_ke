@@ -1,0 +1,238 @@
+{
+ "name": "Public Health Event",
+ "actions": [],
+ "creation": "2026-11-15 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-15 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "event_type",
+   "fieldtype": "Select",
+   "label": "Event Type",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "options": "Outbreak Alert\nRumour\nCluster of Illness\nMaternal Death\nNeonatal Death\nAdverse Event Following Immunisation\nOther Public Health Event",
+   "default": "Rumour"
+  },
+  {
+   "fieldname": "disease",
+   "fieldtype": "Link",
+   "label": "Disease",
+   "options": "Notifiable Disease",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "options": "Open\nVerified\nReported to County\nDiscarded\nClosed",
+   "default": "Open"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reported_on",
+   "fieldtype": "Datetime",
+   "label": "Reported On",
+   "reqd": 1,
+   "default": "Now",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Source",
+   "options": "Staff\nCommunity\nMedia\nAutomatic Threshold\nOther",
+   "default": "Staff"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "ihr_notifiable",
+   "fieldtype": "Check",
+   "label": "IHR Notifiable",
+   "fetch_from": "disease.ihr_notifiable",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "What Happened"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description",
+   "reqd": 1
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Place (village, ward, school, ...)"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cases",
+   "fieldtype": "Int",
+   "label": "Cases",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "deaths",
+   "fieldtype": "Int",
+   "label": "Deaths",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "first_case_on",
+   "fieldtype": "Date",
+   "label": "First Case"
+  },
+  {
+   "fieldname": "last_case_on",
+   "fieldtype": "Date",
+   "label": "Latest Case"
+  },
+  {
+   "fieldname": "response_section",
+   "fieldtype": "Section Break",
+   "label": "Verification and Response"
+  },
+  {
+   "fieldname": "verified_by",
+   "fieldtype": "Link",
+   "label": "Verified By",
+   "options": "User"
+  },
+  {
+   "fieldname": "verified_on",
+   "fieldtype": "Datetime",
+   "label": "Verified On"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reported_to_county_on",
+   "fieldtype": "Datetime",
+   "label": "Reported to County On"
+  },
+  {
+   "fieldname": "county_reference",
+   "fieldtype": "Data",
+   "label": "County Reference"
+  },
+  {
+   "fieldname": "response_section_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "action_taken",
+   "fieldtype": "Small Text",
+   "label": "Action Taken"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Disease Surveillance Officer",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "create": 1,
+   "write": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "create": 1,
+   "write": 1
+  }
+ ],
+ "field_order": [
+  "event_type",
+  "disease",
+  "status",
+  "column_break_1",
+  "reported_on",
+  "source",
+  "company",
+  "ihr_notifiable",
+  "details_section",
+  "description",
+  "location",
+  "column_break_2",
+  "cases",
+  "deaths",
+  "first_case_on",
+  "last_case_on",
+  "response_section",
+  "verified_by",
+  "verified_on",
+  "column_break_3",
+  "reported_to_county_on",
+  "county_reference",
+  "response_section_2",
+  "action_taken"
+ ],
+ "autoname": "format:PHE-{YYYY}-{#####}",
+ "naming_rule": "Expression",
+ "title_field": "event_type",
+ "track_changes": 1
+}

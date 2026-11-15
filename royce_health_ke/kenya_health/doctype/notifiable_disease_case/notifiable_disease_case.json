@@ -1,0 +1,299 @@
+{
+ "name": "Notifiable Disease Case",
+ "actions": [],
+ "creation": "2026-11-15 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-15 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "disease",
+   "fieldtype": "Link",
+   "label": "Disease",
+   "options": "Notifiable Disease",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Data",
+   "label": "IDSR Category",
+   "read_only": 1,
+   "fetch_from": "disease.category",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "ihr_notifiable",
+   "fieldtype": "Check",
+   "label": "IHR Notifiable",
+   "read_only": 1,
+   "fetch_from": "disease.ihr_notifiable"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "options": "New\nNotified to County\nClosed\nNot a Case",
+   "default": "New",
+   "description": "New: waiting for the surveillance officer. Notified to County: reported (record the date and reference). Not a Case: ruled out after investigation."
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "onset_date",
+   "fieldtype": "Date",
+   "label": "Date Seen",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "The consultation date. Correct it to the date of onset if known."
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "facility",
+   "fieldtype": "Link",
+   "label": "Health Facility",
+   "options": "Health Facility"
+  },
+  {
+   "fieldname": "patient_section",
+   "fieldtype": "Section Break",
+   "label": "Patient"
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "reqd": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "read_only": 1,
+   "fetch_from": "patient.patient_name",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "sex",
+   "fieldtype": "Data",
+   "label": "Sex",
+   "read_only": 1
+  },
+  {
+   "fieldname": "age_years",
+   "fieldtype": "Int",
+   "label": "Age (years)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "county",
+   "fieldtype": "Data",
+   "label": "County",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sub_county",
+   "fieldtype": "Data",
+   "label": "Sub-County",
+   "read_only": 1
+  },
+  {
+   "fieldname": "residence",
+   "fieldtype": "Data",
+   "label": "Residence",
+   "read_only": 1
+  },
+  {
+   "fieldname": "clinical_section",
+   "fieldtype": "Section Break",
+   "label": "Clinical"
+  },
+  {
+   "fieldname": "encounter",
+   "fieldtype": "Link",
+   "label": "Consultation",
+   "options": "Patient Encounter",
+   "read_only": 1
+  },
+  {
+   "fieldname": "diagnosis",
+   "fieldtype": "Link",
+   "label": "Diagnosis",
+   "options": "Diagnosis",
+   "read_only": 1
+  },
+  {
+   "fieldname": "practitioner",
+   "fieldtype": "Link",
+   "label": "Clinician",
+   "options": "Healthcare Practitioner",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "inpatient",
+   "fieldtype": "Check",
+   "label": "Admitted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outcome",
+   "fieldtype": "Select",
+   "label": "Outcome",
+   "options": "\nAlive\nDied",
+   "in_standard_filter": 1,
+   "description": "Deaths count on the IDSR weekly report."
+  },
+  {
+   "fieldname": "lab_confirmed",
+   "fieldtype": "Check",
+   "label": "Laboratory Confirmed"
+  },
+  {
+   "fieldname": "reporting_section",
+   "fieldtype": "Section Break",
+   "label": "Reporting"
+  },
+  {
+   "fieldname": "notified_on",
+   "fieldtype": "Datetime",
+   "label": "Notified to County On"
+  },
+  {
+   "fieldname": "notified_by",
+   "fieldtype": "Link",
+   "label": "Notified By",
+   "options": "User"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "county_reference",
+   "fieldtype": "Data",
+   "label": "County / Line List Reference"
+  },
+  {
+   "fieldname": "event",
+   "fieldtype": "Link",
+   "label": "Public Health Event",
+   "options": "Public Health Event"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Disease Surveillance Officer",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "field_order": [
+  "disease",
+  "category",
+  "ihr_notifiable",
+  "status",
+  "column_break_1",
+  "onset_date",
+  "company",
+  "facility",
+  "patient_section",
+  "patient",
+  "patient_name",
+  "sex",
+  "age_years",
+  "column_break_2",
+  "county",
+  "sub_county",
+  "residence",
+  "clinical_section",
+  "encounter",
+  "diagnosis",
+  "practitioner",
+  "column_break_3",
+  "inpatient",
+  "outcome",
+  "lab_confirmed",
+  "reporting_section",
+  "notified_on",
+  "notified_by",
+  "column_break_4",
+  "county_reference",
+  "event",
+  "remarks"
+ ],
+ "autoname": "format:NDC-{YYYY}-{#####}",
+ "naming_rule": "Expression",
+ "title_field": "disease",
+ "track_changes": 1
+}

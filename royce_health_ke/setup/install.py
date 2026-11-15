@@ -28,6 +28,7 @@ def run():
 	codes.ensure_code_systems()
 	seed_moh705()
 	seed_moh706()
+	seed_notifiable_diseases()
 	default_settings()
 	privacy.apply_defaults()
 	roles.apply_defaults()
@@ -79,6 +80,32 @@ def seed_moh706():
 				"range_low": low,
 				"range_high": high,
 				"age_group": age_group,
+			}
+		).insert(ignore_permissions=True)
+
+
+def seed_notifiable_diseases():
+	"""Create the Disease Surveillance Officer role and the default notifiable
+	diseases that don't exist yet; existing rows are the hospital's (ADR-023)."""
+	import frappe
+
+	from royce_health_ke.moh.seed_idsr import rows
+	from royce_health_ke.privacy import ensure_role
+	from royce_health_ke.surveillance import OFFICER_ROLE
+
+	ensure_role(OFFICER_ROLE)
+	for disease, category, ihr, alert, days, mapping in rows():
+		if frappe.db.exists("Notifiable Disease", disease):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Notifiable Disease",
+				"disease_name": disease,
+				"category": category,
+				"ihr_notifiable": ihr,
+				"alert_threshold": alert,
+				"threshold_days": days,
+				"codes": [{"code_system": system, "code_prefix": prefix} for system, prefix in mapping],
 			}
 		).insert(ignore_permissions=True)
 

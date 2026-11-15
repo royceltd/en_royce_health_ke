@@ -4,6 +4,7 @@
 from frappe import _
 
 from royce_health_ke.moh.moh717 import compute
+from royce_health_ke.moh.periods import combine, months_in
 
 
 def execute(filters=None):
@@ -13,4 +14,6 @@ def execute(filters=None):
 		{"fieldname": "value", "label": _("Value"), "fieldtype": "Int", "width": 90},
 		{"fieldname": "note", "label": _("Note"), "fieldtype": "Data", "width": 160},
 	]
-	return columns, compute(filters["company"], filters["year"], filters["month"])
+	return columns, combine(
+		[compute(filters["company"], y, m) for y, m in months_in(filters)], key=("indicator",)
+	)

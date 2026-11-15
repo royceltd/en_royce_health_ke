@@ -1,0 +1,49 @@
+{
+ "name": "Notifiable Disease Code",
+ "actions": [],
+ "creation": "2026-11-15 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-15 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "code_system",
+   "fieldtype": "Link",
+   "label": "Code System",
+   "options": "Code System",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "code_prefix",
+   "fieldtype": "Data",
+   "label": "Code Prefix",
+   "in_list_view": 1,
+   "columns": 3,
+   "description": "Matches every code starting with this, e.g. A00 matches A00.0-A00.9."
+  },
+  {
+   "fieldname": "diagnosis",
+   "fieldtype": "Link",
+   "label": "Or Diagnosis",
+   "options": "Diagnosis",
+   "in_list_view": 1,
+   "columns": 5
+  }
+ ],
+ "permissions": [],
+ "field_order": [
+  "code_system",
+  "code_prefix",
+  "diagnosis"
+ ],
+ "istable": 1,
+ "editable_grid": 1
+}

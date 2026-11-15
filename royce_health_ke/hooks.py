@@ -108,8 +108,10 @@ doc_events = {
 			"royce_health_ke.schemes.cover_consultation",
 			"royce_health_ke.coverage.warn_uncovered",
 			"royce_health_ke.visit_bill.orders_changed",
+			"royce_health_ke.surveillance.encounter_submitted",
 		],
 	},
+	"Public Health Event": {"after_insert": "royce_health_ke.surveillance.event_inserted"},
 	"Medication Request": {"on_submit": "royce_health_ke.coverage.cover_drug"},
 	"Service Request": {"before_insert": "royce_health_ke.lab.link_request_visit"},
 }
@@ -152,7 +154,10 @@ doctype_js = {
 doctype_list_js = {"Vital Signs": "public/js/vital_signs_list.js"}
 
 scheduler_events = {
-	"daily": ["royce_health_ke.identity.remind_licence_expiry"],
+	"daily": [
+		"royce_health_ke.identity.remind_licence_expiry",
+		"royce_health_ke.surveillance.weekly_job",
+	],
 	"hourly": ["royce_health_ke.sms.send_appointment_reminders"],
 }
 
