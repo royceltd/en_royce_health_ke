@@ -55,7 +55,11 @@
   "surveillance_section",
   "surveillance_sms",
   "surveillance_cb",
-  "surveillance_sms_numbers"
+  "surveillance_sms_numbers",
+  "clinical_services_section",
+  "add_clinical_services",
+  "clinical_services_cb",
+  "load_growth_standards"
  ],
  "fields": [
   {
@@ -377,6 +381,27 @@
    "label": "Alert Numbers",
    "depends_on": "surveillance_sms",
    "description": "One mobile number per line: the facility surveillance focal person, and the sub-county Disease Surveillance Coordinator if they agree."
+  },
+  {
+   "fieldname": "clinical_services_section",
+   "fieldtype": "Section Break",
+   "label": "Clinical Services and Child Growth"
+  },
+  {
+   "fieldname": "add_clinical_services",
+   "fieldtype": "Button",
+   "label": "Add Therapy and Counselling Services",
+   "description": "Adds Physiotherapy, Occupational Therapy, Counselling and Medical Social Work as services a clinician can order (not billed until you set a price on each Therapy Type)."
+  },
+  {
+   "fieldname": "clinical_services_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "load_growth_standards",
+   "fieldtype": "Button",
+   "label": "Load WHO Growth Standards",
+   "description": "Downloads the WHO Child Growth Standards (birth to 5 years) from WHO, for growth charts and the nutrition status of children under 5. Needs internet once."
   }
  ],
  "issingle": 1,

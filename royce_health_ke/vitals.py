@@ -108,3 +108,6 @@ def validate_vital_signs(doc, method=None):
 	doc.ke_vitals_status = ("Abnormal" if flags else "Normal") if measured else ""
 	doc.ke_vitals_flags = "\n".join(text for _f, text in flags)
 	doc.ke_abnormal_fields = ",".join(f for f, _t in flags)
+	from royce_health_ke.growth import apply_to_vital_signs
+
+	apply_to_vital_signs(doc)

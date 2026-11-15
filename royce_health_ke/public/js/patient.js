@@ -39,6 +39,10 @@ frappe.ui.form.on("Patient", {
 				__("View")
 			);
 		}
+		// Under 5 (the WHO standards' range): plot every measurement on the WHO curves.
+		if (frm.doc.dob && moment().diff(moment(frm.doc.dob), "days") <= 1856) {
+			frm.add_custom_button(__("Growth Chart"), () => growth_chart_dialog(frm), __("View"));
+		}
 		if (frappe.boot.ke_sms) {
 			if (frm.perm[0] && frm.perm[0].write) {
 				frm.add_custom_button(__("Send SMS"), () => send_sms_dialog(frm), __("SMS"));
@@ -71,16 +75,18 @@ function sms_templates(info) {
 	const at = info.facility || info.hospital || __("the hospital");
 	const call = info.phone ? " " + __("Call {0}.", [info.phone]) : "";
 	return {
-		[__("Please call us")]: __("Dear {0}, {1} would like to speak with you.", [name, at]) + call,
-		[__("Results ready")]: __("Dear {0}, your results are ready at {1}. Please see your clinician.", [
-			name,
-			at,
-		]) + call,
-		[__("Missed appointment")]: __(
-			"Dear {0}, we missed you at your appointment at {1}. Please contact us to book another.",
-			[name, at]
-		) + call,
-		[__("Medicine ready")]: __("Dear {0}, your medicine is ready for collection at {1}.", [name, at]) + call,
+		[__("Please call us")]:
+			__("Dear {0}, {1} would like to speak with you.", [name, at]) + call,
+		[__("Results ready")]:
+			__("Dear {0}, your results are ready at {1}. Please see your clinician.", [name, at]) +
+			call,
+		[__("Missed appointment")]:
+			__(
+				"Dear {0}, we missed you at your appointment at {1}. Please contact us to book another.",
+				[name, at]
+			) + call,
+		[__("Medicine ready")]:
+			__("Dear {0}, your medicine is ready for collection at {1}.", [name, at]) + call,
 	};
 }
 
@@ -95,7 +101,9 @@ function send_sms_dialog(frm) {
 				return;
 			}
 			if (!info.mobile) {
-				frappe.msgprint(__("This patient has no mobile number. Add one to the record first."));
+				frappe.msgprint(
+					__("This patient has no mobile number. Add one to the record first.")
+				);
 				return;
 			}
 			const templates = sms_templates(info);
@@ -108,7 +116,13 @@ function send_sms_dialog(frm) {
 			const d = new frappe.ui.Dialog({
 				title: __("SMS to {0}", [frm.doc.patient_name]),
 				fields: [
-					{ fieldtype: "Data", fieldname: "to", label: __("To"), read_only: 1, default: info.mobile },
+					{
+						fieldtype: "Data",
+						fieldname: "to",
+						label: __("To"),
+						read_only: 1,
+						default: info.mobile,
+					},
 					{ fieldtype: "HTML", fieldname: "warning", options: warning },
 					{
 						fieldtype: "Select",
@@ -125,7 +139,9 @@ function send_sms_dialog(frm) {
 						fieldname: "message",
 						label: __("Message"),
 						reqd: 1,
-						description: __("Don't include results or diagnoses: phones are not private."),
+						description: __(
+							"Don't include results or diagnoses: phones are not private."
+						),
 					},
 					{ fieldtype: "HTML", fieldname: "count" },
 				],
@@ -173,4 +189,119 @@ function send_sms_dialog(frm) {
 			d.show();
 		},
 	});
+}
+
+// Growth chart: WHO curves (-3, -2, median, +2, +3 SD) by month, birth to 5
+// years, with the child's measurements on top (royce_health_ke.growth.chart).
+const GROWTH_COLOURS = {
+	"-3": "#c0392b",
+	"-2": "#e67e22",
+	0: "#27ae60",
+	2: "#e67e22",
+	3: "#c0392b",
+};
+
+function growth_chart_dialog(frm) {
+	const charts = { [__("Weight-for-age")]: "wfa", [__("Length/height-for-age")]: "lhfa" };
+	const d = new frappe.ui.Dialog({
+		title: __("Growth Chart"),
+		size: "extra-large",
+		fields: [
+			{
+				fieldname: "chart_type",
+				fieldtype: "Select",
+				label: __("Chart"),
+				options: Object.keys(charts).join("\n"),
+				default: __("Weight-for-age"),
+				change: () => load(),
+			},
+			{ fieldname: "chart", fieldtype: "HTML" },
+		],
+	});
+	const load = () =>
+		frappe.call({
+			method: "royce_health_ke.growth.chart",
+			args: {
+				patient: frm.doc.name,
+				indicator: charts[d.get_value("chart_type")] || "wfa",
+			},
+			callback: (r) => r.message && d.fields_dict.chart.$wrapper.html(growth_svg(r.message)),
+		});
+	d.show();
+	load();
+}
+
+function growth_svg(data) {
+	const W = 860,
+		H = 440,
+		left = 50,
+		right = 20,
+		top = 20,
+		bottom = 40;
+	const all = data.curves.flatMap((c) => c.values).concat(data.measurements.map((m) => m.value));
+	const lo = Math.floor(Math.min(...all)),
+		hi = Math.ceil(Math.max(...all));
+	const x = (months) => left + (months / 60) * (W - left - right);
+	const y = (v) => top + (1 - (v - lo) / (hi - lo)) * (H - top - bottom);
+	const path = (pts) =>
+		pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+	let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;font-size:11px">`;
+	for (let m = 0; m <= 60; m += 6) {
+		svg += `<line x1="${x(m)}" x2="${x(m)}" y1="${top}" y2="${H - bottom}" stroke="#eee"/>`;
+		svg += `<text x="${x(m)}" y="${
+			H - bottom + 15
+		}" text-anchor="middle" fill="#666">${m}</text>`;
+	}
+	const step = Math.max(1, Math.round((hi - lo) / 10));
+	for (let v = lo; v <= hi; v += step) {
+		svg += `<line x1="${left}" x2="${W - right}" y1="${y(v)}" y2="${y(v)}" stroke="#eee"/>`;
+		svg += `<text x="${left - 6}" y="${y(v) + 4}" text-anchor="end" fill="#666">${v}</text>`;
+	}
+	for (const c of data.curves) {
+		const pts = c.values.map((v, m) => [x(m), y(v)]);
+		svg += `<path d="${path(pts)}" fill="none" stroke="${GROWTH_COLOURS[c.z]}" stroke-width="${
+			c.z === 0 ? 2 : 1.3
+		}"/>`;
+		const last = pts[pts.length - 1];
+		svg += `<text x="${last[0] - 2}" y="${last[1] - 3}" text-anchor="end" fill="${
+			GROWTH_COLOURS[c.z]
+		}">${c.z === 0 ? __("Median") : (c.z > 0 ? "+" : "") + c.z}</text>`;
+	}
+	const pts = data.measurements.map((m) => [x(m.months), y(m.value)]);
+	if (pts.length > 1)
+		svg += `<path d="${path(pts)}" fill="none" stroke="#2c3e50" stroke-width="1.5"/>`;
+	for (const m of data.measurements) {
+		const tip = `${frappe.datetime.str_to_user(m.date)}: ${m.value}${
+			m.z !== null ? " (z " + m.z + ")" : ""
+		}`;
+		svg += `<circle cx="${x(m.months)}" cy="${y(
+			m.value
+		)}" r="4" fill="#2c3e50"><title>${frappe.utils.escape_html(tip)}</title></circle>`;
+	}
+	svg += `<text x="${(left + W - right) / 2}" y="${H - 5}" text-anchor="middle" fill="#444">${__(
+		"Age (months)"
+	)}</text>`;
+	svg += "</svg>";
+	const rows = data.measurements
+		.map(
+			(m) =>
+				`<tr><td>${frappe.datetime.str_to_user(m.date)}</td><td>${m.months}</td><td>${
+					m.value
+				}</td><td>${m.z ?? ""}</td></tr>`
+		)
+		.join("");
+	const table = data.measurements.length
+		? `<table class="table table-sm mt-3"><thead><tr><th>${__("Date")}</th><th>${__(
+				"Age (months)"
+		  )}</th><th>${__("Value")}</th><th>${__(
+				"Z-score"
+		  )}</th></tr></thead><tbody>${rows}</tbody></table>`
+		: `<p class="text-muted mt-3">${__(
+				"No measurements recorded yet. Record weight and height in Vital Signs."
+		  )}</p>`;
+	return `<h5>${frappe.utils.escape_html(data.title)}: ${frappe.utils.escape_html(
+		data.patient_name
+	)}</h5>${svg}<p class="text-muted small">${__(
+		"WHO Child Growth Standards. Green: median; orange: -2 / +2 SD; red: -3 / +3 SD."
+	)}</p>${table}`;
 }

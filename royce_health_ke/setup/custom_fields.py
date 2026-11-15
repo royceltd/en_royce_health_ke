@@ -194,6 +194,71 @@ VITAL_SIGNS = [
 		"hidden": 1,
 		"read_only": 1,
 	},
+	# Child growth (royce_health_ke.growth): WHO z-scores for children under 5.
+	{
+		"fieldname": "ke_growth_section",
+		"fieldtype": "Section Break",
+		"label": "Child Growth (WHO)",
+		"insert_after": "nutrition_note",
+		"collapsible": 1,
+		"depends_on": "eval:doc.ke_nutrition_status",
+		"description": "Z-scores against the WHO Child Growth Standards, worked out on save for children under 5.",
+	},
+	{
+		"fieldname": "ke_nutrition_status",
+		"fieldtype": "Data",
+		"label": "Nutrition Status",
+		"insert_after": "ke_growth_section",
+		"read_only": 1,
+		"in_list_view": 1,
+	},
+	{
+		"fieldname": "ke_wflh_z",
+		"fieldtype": "Float",
+		"label": "Weight-for-Length/Height (z)",
+		"insert_after": "ke_nutrition_status",
+		"read_only": 1,
+		"precision": "2",
+	},
+	{
+		"fieldname": "ke_growth_cb",
+		"fieldtype": "Column Break",
+		"insert_after": "ke_wflh_z",
+	},
+	{
+		"fieldname": "ke_wfa_z",
+		"fieldtype": "Float",
+		"label": "Weight-for-Age (z)",
+		"insert_after": "ke_growth_cb",
+		"read_only": 1,
+		"precision": "2",
+	},
+	{
+		"fieldname": "ke_lhfa_z",
+		"fieldtype": "Float",
+		"label": "Length/Height-for-Age (z)",
+		"insert_after": "ke_wfa_z",
+		"read_only": 1,
+		"precision": "2",
+	},
+	{
+		"fieldname": "ke_bmi_z",
+		"fieldtype": "Float",
+		"label": "BMI-for-Age (z)",
+		"insert_after": "ke_lhfa_z",
+		"read_only": 1,
+		"precision": "2",
+	},
+]
+
+THERAPY_SESSION = [
+	{
+		"fieldname": "ke_session_notes",
+		"fieldtype": "Text Editor",
+		"label": "Session Notes",
+		"insert_after": "exercises",
+		"description": "What was done, the patient's response and the plan (physiotherapy, occupational therapy, counselling, social work).",
+	},
 ]
 
 ENCOUNTER = [
@@ -1027,6 +1092,7 @@ def apply():
 		PHARMACY_SALE_ITEM,
 		LAB_TEST_TEMPLATE,
 		PRACTITIONER,
+		THERAPY_SESSION,
 		CLAIM_COVERAGE,
 		OPERATION_NOTE,
 		IMAGING_TEMPLATE,
@@ -1038,6 +1104,7 @@ def apply():
 	fields = {
 		"Patient": PATIENT,
 		"Vital Signs": VITAL_SIGNS,
+		"Therapy Session": THERAPY_SESSION,
 		"Patient Insurance Policy": INSURANCE_POLICY,
 		"Healthcare Practitioner": PRACTITIONER,
 		"Insurance Claim Coverage": CLAIM_COVERAGE,
