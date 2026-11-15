@@ -31,6 +31,7 @@ def run():
 	seed_notifiable_diseases()
 	clinical.ensure_note_types()
 	seed_clinical_alerts()
+	seed_quality_measures()
 	default_settings()
 	privacy.apply_defaults()
 	roles.apply_defaults()
@@ -122,6 +123,18 @@ def seed_clinical_alerts():
 	for row in rows():
 		if not frappe.db.exists("Clinical Alert Rule", row["rule_name"]):
 			frappe.get_doc({"doctype": "Clinical Alert Rule", **row}).insert(ignore_permissions=True)
+
+
+def seed_quality_measures():
+	"""Create the default quality measures that don't exist yet; existing
+	measures and their targets are the hospital's (ADR-023)."""
+	import frappe
+
+	from royce_health_ke.moh.seed_quality import MEASURES
+
+	for row in MEASURES:
+		if not frappe.db.exists("Quality Measure", row["measure_code"]):
+			frappe.get_doc({"doctype": "Quality Measure", **row}).insert(ignore_permissions=True)
 
 
 def default_settings():

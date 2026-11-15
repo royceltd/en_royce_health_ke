@@ -1,0 +1,166 @@
+{
+ "name": "Quality Measure Result",
+ "actions": [],
+ "creation": "2026-11-16 00:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-16 00:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "measure",
+   "fieldtype": "Link",
+   "label": "Measure",
+   "options": "Quality Measure",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "measure_name",
+   "fieldtype": "Data",
+   "label": "Measure Name",
+   "fetch_from": "measure.measure_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Source",
+   "options": "Calculated\nEntered\nImported",
+   "default": "Entered",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "period_start",
+   "fieldtype": "Date",
+   "label": "Period From",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "period_end",
+   "fieldtype": "Date",
+   "label": "Period To",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "values_section",
+   "fieldtype": "Section Break",
+   "label": "Result"
+  },
+  {
+   "fieldname": "numerator",
+   "fieldtype": "Int",
+   "label": "Numerator",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "denominator",
+   "fieldtype": "Int",
+   "label": "Denominator",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Percent",
+   "label": "Rate %",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "target_percent",
+   "fieldtype": "Percent",
+   "label": "Target %",
+   "read_only": 1
+  },
+  {
+   "fieldname": "met_target",
+   "fieldtype": "Select",
+   "label": "Met Target",
+   "options": "\nYes\nNo",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "import": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "import": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "field_order": [
+  "measure",
+  "measure_name",
+  "company",
+  "source",
+  "column_break_1",
+  "period_start",
+  "period_end",
+  "values_section",
+  "numerator",
+  "denominator",
+  "column_break_2",
+  "rate",
+  "target_percent",
+  "met_target",
+  "notes"
+ ],
+ "autoname": "format:QMR-{YYYY}-{#####}",
+ "naming_rule": "Expression",
+ "title_field": "measure_name",
+ "track_changes": 1
+}

@@ -1,0 +1,190 @@
+{
+ "name": "Quality Measure",
+ "actions": [],
+ "creation": "2026-11-16 00:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-16 00:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "measure_code",
+   "fieldtype": "Data",
+   "label": "Code",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "measure_name",
+   "fieldtype": "Data",
+   "label": "Measure",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "domain",
+   "fieldtype": "Select",
+   "label": "Domain",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "options": "Clinical Process\nClinical Outcome\nPatient Safety\nMaternal and Child Health\nService Efficiency"
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "target_percent",
+   "fieldtype": "Percent",
+   "label": "Target %"
+  },
+  {
+   "fieldname": "higher_is_better",
+   "fieldtype": "Check",
+   "label": "Higher Is Better",
+   "default": "1",
+   "description": "Untick for measures where lower is better (e.g. inpatient deaths)."
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Numerator and Denominator",
+   "description": "What is counted, in words, for the report and anyone receiving the export."
+  },
+  {
+   "fieldname": "calculation_section",
+   "fieldtype": "Section Break",
+   "label": "How It Is Calculated"
+  },
+  {
+   "fieldname": "method",
+   "fieldtype": "Select",
+   "label": "Method",
+   "reqd": 1,
+   "options": "Vital Recorded at Consultation\nLab Result for Diagnosis\nLab Turnaround Within Target\nClinical Alerts Answered\nInpatient Deaths\nDeliveries with 4+ ANC Contacts\nEntered or Imported",
+   "default": "Vital Recorded at Consultation",
+   "description": "Entered or Imported: no calculation; the result is typed in or imported for each period."
+  },
+  {
+   "fieldname": "diagnosis_prefixes",
+   "fieldtype": "Small Text",
+   "label": "Diagnosis Code Prefixes",
+   "depends_on": "eval:in_list(['Vital Recorded at Consultation','Lab Result for Diagnosis'], doc.method)",
+   "description": "Comma-separated ICD-10 / ICD-11 prefixes. Blank = every consultation."
+  },
+  {
+   "fieldname": "min_age_years",
+   "fieldtype": "Float",
+   "label": "From Age (years)",
+   "depends_on": "eval:in_list(['Vital Recorded at Consultation','Lab Result for Diagnosis'], doc.method)"
+  },
+  {
+   "fieldname": "max_age_years",
+   "fieldtype": "Float",
+   "label": "Under Age (years)",
+   "depends_on": "eval:in_list(['Vital Recorded at Consultation','Lab Result for Diagnosis'], doc.method)"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vital_sign",
+   "fieldtype": "Select",
+   "label": "Vital Sign",
+   "options": "\nbp_systolic\nweight\nheight\ntemperature\nke_spo2\npulse\nrespiratory_rate",
+   "depends_on": "eval:doc.method=='Vital Recorded at Consultation'"
+  },
+  {
+   "fieldname": "lab_result_names",
+   "fieldtype": "Small Text",
+   "label": "Lab Result Name Contains Any Of",
+   "depends_on": "eval:doc.method=='Lab Result for Diagnosis'",
+   "description": "e.g. hba1c, glycated"
+  },
+  {
+   "fieldname": "look_back_days",
+   "fieldtype": "Int",
+   "label": "Lab Result Within (days)",
+   "non_negative": 1,
+   "depends_on": "eval:doc.method=='Lab Result for Diagnosis'",
+   "description": "Before or on the consultation date."
+  },
+  {
+   "fieldname": "target_minutes",
+   "fieldtype": "Int",
+   "label": "Turnaround Target (minutes)",
+   "non_negative": 1,
+   "depends_on": "eval:doc.method=='Lab Turnaround Within Target'",
+   "description": "Order to result."
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "import": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "import": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "field_order": [
+  "measure_code",
+  "measure_name",
+  "domain",
+  "enabled",
+  "column_break_1",
+  "target_percent",
+  "higher_is_better",
+  "description",
+  "calculation_section",
+  "method",
+  "diagnosis_prefixes",
+  "min_age_years",
+  "max_age_years",
+  "column_break_2",
+  "vital_sign",
+  "lab_result_names",
+  "look_back_days",
+  "target_minutes"
+ ],
+ "autoname": "field:measure_code",
+ "naming_rule": "By fieldname",
+ "title_field": "measure_name",
+ "track_changes": 1
+}
