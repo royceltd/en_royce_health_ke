@@ -1,0 +1,141 @@
+{
+ "name": "Clinical Alert Rule",
+ "actions": [],
+ "creation": "2026-11-15 23:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-15 23:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "rule_name",
+   "fieldtype": "Data",
+   "label": "Alert",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "severity",
+   "fieldtype": "Select",
+   "label": "Severity",
+   "options": "Info\nWarning\nCritical",
+   "default": "Warning",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sex",
+   "fieldtype": "Select",
+   "label": "Sex",
+   "options": "Any\nMale\nFemale",
+   "default": "Any"
+  },
+  {
+   "fieldname": "min_age_years",
+   "fieldtype": "Float",
+   "label": "From Age (years)",
+   "description": "Blank = any age."
+  },
+  {
+   "fieldname": "max_age_years",
+   "fieldtype": "Float",
+   "label": "Under Age (years)",
+   "description": "e.g. 5 = children under 5. Blank = any age."
+  },
+  {
+   "fieldname": "recommendation_section",
+   "fieldtype": "Section Break",
+   "label": "What the Clinician Sees"
+  },
+  {
+   "fieldname": "recommendation",
+   "fieldtype": "Small Text",
+   "label": "Recommendation",
+   "reqd": 1
+  },
+  {
+   "fieldname": "evidence_source",
+   "fieldtype": "Data",
+   "label": "Evidence / Guideline",
+   "description": "The guideline the recommendation comes from, shown with the alert."
+  },
+  {
+   "fieldname": "conditions_section",
+   "fieldtype": "Section Break",
+   "label": "Fires When",
+   "description": "The patient matches the sex and age above AND every condition below. To fire on either of two things, make two alerts."
+  },
+  {
+   "fieldname": "conditions",
+   "fieldtype": "Table",
+   "label": "Conditions",
+   "options": "Clinical Alert Condition"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "field_order": [
+  "rule_name",
+  "enabled",
+  "severity",
+  "column_break_1",
+  "sex",
+  "min_age_years",
+  "max_age_years",
+  "recommendation_section",
+  "recommendation",
+  "evidence_source",
+  "conditions_section",
+  "conditions"
+ ],
+ "autoname": "field:rule_name",
+ "naming_rule": "By fieldname",
+ "title_field": "rule_name",
+ "track_changes": 1
+}

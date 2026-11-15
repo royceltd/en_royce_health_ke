@@ -251,6 +251,44 @@ VITAL_SIGNS = [
 	},
 ]
 
+MEDICATION = [
+	# Clinical decision support (royce_health_ke.cds): alerts when prescribed.
+	{
+		"fieldname": "ke_cds_section",
+		"fieldtype": "Section Break",
+		"label": "Safety Alerts",
+		"insert_after": "is_orderable",
+		"collapsible": 1,
+	},
+	{
+		"fieldname": "ke_recalled",
+		"fieldtype": "Check",
+		"label": "Recalled",
+		"insert_after": "ke_cds_section",
+		"description": "A recall notice from the Pharmacy and Poisons Board or the manufacturer: prescribers get a critical alert.",
+	},
+	{
+		"fieldname": "ke_recall_note",
+		"fieldtype": "Data",
+		"label": "Recall Notice",
+		"insert_after": "ke_recalled",
+		"depends_on": "ke_recalled",
+		"description": "Reference, batches affected and what to use instead.",
+	},
+	{
+		"fieldname": "ke_cds_cb",
+		"fieldtype": "Column Break",
+		"insert_after": "ke_recall_note",
+	},
+	{
+		"fieldname": "ke_side_effects",
+		"fieldtype": "Small Text",
+		"label": "Side Effects to Explain",
+		"insert_after": "ke_cds_cb",
+		"description": "Shown to the prescriber as a reminder to counsel the patient, e.g. nausea, vomiting.",
+	},
+]
+
 THERAPY_SESSION = [
 	{
 		"fieldname": "ke_session_notes",
@@ -1093,6 +1131,7 @@ def apply():
 		LAB_TEST_TEMPLATE,
 		PRACTITIONER,
 		THERAPY_SESSION,
+		MEDICATION,
 		CLAIM_COVERAGE,
 		OPERATION_NOTE,
 		IMAGING_TEMPLATE,
@@ -1105,6 +1144,7 @@ def apply():
 		"Patient": PATIENT,
 		"Vital Signs": VITAL_SIGNS,
 		"Therapy Session": THERAPY_SESSION,
+		"Medication": MEDICATION,
 		"Patient Insurance Policy": INSURANCE_POLICY,
 		"Healthcare Practitioner": PRACTITIONER,
 		"Insurance Claim Coverage": CLAIM_COVERAGE,

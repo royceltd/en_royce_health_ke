@@ -59,7 +59,9 @@
   "clinical_services_section",
   "add_clinical_services",
   "clinical_services_cb",
-  "load_growth_standards"
+  "load_growth_standards",
+  "cds_section",
+  "clinical_alerts"
  ],
  "fields": [
   {
@@ -402,6 +404,18 @@
    "fieldtype": "Button",
    "label": "Load WHO Growth Standards",
    "description": "Downloads the WHO Child Growth Standards (birth to 5 years) from WHO, for growth charts and the nutrition status of children under 5. Needs internet once."
+  },
+  {
+   "fieldname": "cds_section",
+   "fieldtype": "Section Break",
+   "label": "Clinical Decision Support"
+  },
+  {
+   "fieldname": "clinical_alerts",
+   "fieldtype": "Check",
+   "label": "Clinical Alerts",
+   "default": "1",
+   "description": "Check each consultation against the Clinical Alert Rules and recalled / side-effect medicines, and show the alerts to the clinician. Never blocks saving."
   }
  ],
  "issingle": 1,

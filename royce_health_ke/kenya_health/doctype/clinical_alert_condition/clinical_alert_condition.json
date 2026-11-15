@@ -1,0 +1,110 @@
+{
+ "name": "Clinical Alert Condition",
+ "actions": [],
+ "creation": "2026-11-15 23:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-15 23:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "condition",
+   "fieldtype": "Select",
+   "label": "When",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 2,
+   "options": "Diagnosis\nVital Sign\nLab Result\nAllergy\nMedication"
+  },
+  {
+   "fieldname": "code_system",
+   "fieldtype": "Link",
+   "label": "Code System",
+   "options": "Code System",
+   "in_list_view": 1,
+   "columns": 1,
+   "depends_on": "eval:doc.condition=='Diagnosis'"
+  },
+  {
+   "fieldname": "code_prefix",
+   "fieldtype": "Small Text",
+   "label": "Code Prefixes",
+   "in_list_view": 1,
+   "columns": 2,
+   "depends_on": "eval:doc.condition=='Diagnosis'",
+   "description": "Comma-separated, e.g. E10, E11. Any of them matches."
+  },
+  {
+   "fieldname": "vital_sign",
+   "fieldtype": "Select",
+   "label": "Vital Sign",
+   "options": "temperature\npulse\nrespiratory_rate\nke_spo2\nbp_systolic\nbp_diastolic\nbmi\nweight\nke_wflh_z\nke_wfa_z\nke_lhfa_z",
+   "in_list_view": 1,
+   "columns": 1,
+   "depends_on": "eval:doc.condition=='Vital Sign'",
+   "description": "ke_wflh_z / ke_wfa_z / ke_lhfa_z: the child's WHO z-scores."
+  },
+  {
+   "fieldname": "lab_result_name",
+   "fieldtype": "Data",
+   "label": "Lab Result Name Contains",
+   "in_list_view": 1,
+   "columns": 1,
+   "depends_on": "eval:doc.condition=='Lab Result'",
+   "description": "e.g. Haemoglobin. Matches the result row's name."
+  },
+  {
+   "fieldname": "operator",
+   "fieldtype": "Select",
+   "label": "Is",
+   "options": "<\n<=\n>\n>=\n=",
+   "in_list_view": 1,
+   "columns": 1,
+   "depends_on": "eval:in_list(['Vital Sign','Lab Result'], doc.condition)"
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Float",
+   "label": "Value",
+   "in_list_view": 1,
+   "columns": 1,
+   "depends_on": "eval:in_list(['Vital Sign','Lab Result'], doc.condition)"
+  },
+  {
+   "fieldname": "text",
+   "fieldtype": "Small Text",
+   "label": "Contains Any Of",
+   "in_list_view": 1,
+   "columns": 2,
+   "depends_on": "eval:in_list(['Allergy','Medication'], doc.condition)",
+   "description": "Comma-separated words, e.g. amoxicillin, ampicillin. Allergy: the patient's allergy list. Medication: drugs prescribed in this consultation."
+  },
+  {
+   "fieldname": "look_back_days",
+   "fieldtype": "Int",
+   "label": "Look Back (days)",
+   "non_negative": 1,
+   "description": "Diagnosis: 0 = this consultation only; more = also earlier consultations (the problem list). Vital sign: default 1. Lab result: default 30."
+  }
+ ],
+ "permissions": [],
+ "field_order": [
+  "condition",
+  "code_system",
+  "code_prefix",
+  "vital_sign",
+  "lab_result_name",
+  "operator",
+  "value",
+  "text",
+  "look_back_days"
+ ],
+ "istable": 1,
+ "editable_grid": 1
+}

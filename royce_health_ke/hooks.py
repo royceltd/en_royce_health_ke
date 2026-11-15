@@ -101,6 +101,7 @@ doc_events = {
 		"on_update": [
 			"royce_health_ke.visits.encounter_saved",
 			"royce_health_ke.history.save_history_to_patient",
+			"royce_health_ke.cds.encounter_saved",
 		],
 		"on_submit": [
 			"royce_health_ke.visits.encounter_saved",
@@ -109,6 +110,7 @@ doc_events = {
 			"royce_health_ke.coverage.warn_uncovered",
 			"royce_health_ke.visit_bill.orders_changed",
 			"royce_health_ke.surveillance.encounter_submitted",
+			"royce_health_ke.cds.encounter_saved",
 		],
 	},
 	"Public Health Event": {"after_insert": "royce_health_ke.surveillance.event_inserted"},
@@ -149,6 +151,7 @@ doctype_js = {
 	"Vital Signs": "public/js/vital_signs.js",
 	"Patient Appointment": "public/js/patient_appointment.js",
 	"Sales Invoice": "public/js/sales_invoice.js",
+	"Patient Encounter": "public/js/patient_encounter.js",
 }
 
 doctype_list_js = {"Vital Signs": "public/js/vital_signs_list.js"}

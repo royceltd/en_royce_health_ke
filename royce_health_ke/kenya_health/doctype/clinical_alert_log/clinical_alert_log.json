@@ -1,0 +1,191 @@
+{
+ "name": "Clinical Alert Log",
+ "actions": [],
+ "creation": "2026-11-15 23:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-15 23:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Kind",
+   "options": "Clinical Rule\nRecalled Medication\nSide Effects",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "rule",
+   "fieldtype": "Link",
+   "label": "Alert Rule",
+   "options": "Clinical Alert Rule",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "severity",
+   "fieldtype": "Data",
+   "label": "Severity",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "response",
+   "fieldtype": "Select",
+   "label": "Response",
+   "options": "Pending\nActed On\nOverridden",
+   "default": "Pending",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "read_only": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "patient.patient_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "encounter",
+   "fieldtype": "Link",
+   "label": "Consultation",
+   "options": "Patient Encounter",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "message_section",
+   "fieldtype": "Section Break",
+   "label": "Alert"
+  },
+  {
+   "fieldname": "key",
+   "fieldtype": "Data",
+   "label": "Key",
+   "hidden": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Small Text",
+   "label": "Message",
+   "read_only": 1
+  },
+  {
+   "fieldname": "shown_to",
+   "fieldtype": "Link",
+   "label": "Shown To",
+   "options": "User",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "shown_on",
+   "fieldtype": "Datetime",
+   "label": "Shown On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "response_section",
+   "fieldtype": "Section Break",
+   "label": "Response"
+  },
+  {
+   "fieldname": "response_reason",
+   "fieldtype": "Small Text",
+   "label": "Reason (when overridden)"
+  },
+  {
+   "fieldname": "responded_by",
+   "fieldtype": "Link",
+   "label": "Responded By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "responded_on",
+   "fieldtype": "Datetime",
+   "label": "Responded On",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1
+  }
+ ],
+ "field_order": [
+  "kind",
+  "rule",
+  "severity",
+  "response",
+  "column_break_1",
+  "patient",
+  "patient_name",
+  "encounter",
+  "company",
+  "message_section",
+  "key",
+  "message",
+  "shown_to",
+  "shown_on",
+  "response_section",
+  "response_reason",
+  "responded_by",
+  "responded_on"
+ ],
+ "autoname": "format:CAL-{YYYY}-{######}",
+ "naming_rule": "Expression",
+ "title_field": "kind",
+ "track_changes": 1
+}

@@ -30,6 +30,7 @@ def run():
 	seed_moh706()
 	seed_notifiable_diseases()
 	clinical.ensure_note_types()
+	seed_clinical_alerts()
 	default_settings()
 	privacy.apply_defaults()
 	roles.apply_defaults()
@@ -111,6 +112,18 @@ def seed_notifiable_diseases():
 		).insert(ignore_permissions=True)
 
 
+def seed_clinical_alerts():
+	"""Create the default clinical alert rules that don't exist yet; existing
+	rules are the hospital's (ADR-023)."""
+	import frappe
+
+	from royce_health_ke.moh.seed_cds import rows
+
+	for row in rows():
+		if not frappe.db.exists("Clinical Alert Rule", row["rule_name"]):
+			frappe.get_doc({"doctype": "Clinical Alert Rule", **row}).insert(ignore_permissions=True)
+
+
 def default_settings():
 	"""Defaults for Kenya Health Settings fields added after a site was set up:
 	a Single's new field starts empty, not at its default. Only fields never
@@ -124,6 +137,7 @@ def default_settings():
 		("pay_before_radiology", 1),
 		("pay_before_pharmacy", 1),
 		("auto_bill_insured", 1),
+		("clinical_alerts", 1),
 	):
 		if not frappe.db.exists("Singles", {"doctype": "Kenya Health Settings", "field": field}):
 			frappe.db.set_single_value("Kenya Health Settings", field, value)
