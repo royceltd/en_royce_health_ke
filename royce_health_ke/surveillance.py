@@ -375,7 +375,7 @@ def weekly_summary(company, year, week):
 			{
 				"disease": d.name,
 				"category": d.category,
-				"ihr": d.ihr_notifiable,
+				"ihr": _("Yes") if d.ihr_notifiable else "",
 				"cases_u5": c["cases_u5"],
 				"deaths_u5": c["deaths_u5"],
 				"cases_o5": c["cases_o5"],

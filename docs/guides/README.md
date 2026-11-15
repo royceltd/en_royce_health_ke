@@ -20,6 +20,7 @@ Step-by-step guides for hospital staff, written against the demo hospital (Kijan
 | [14 Version 0.22 testing](14-v0.22-testing.md) | The hospital's testers: residence, consultation, pricebooks, insured billing, cashiers, TAT | 2026-11-11, v0.23.1 |
 | [15 Pharmacy and stock setup and data upload](15-pharmacy-setup-and-upload.md) | ICT manager, pharmacist-in-charge, accountant | 2026-11-14, v0.26.0 (Data Import shot from a local demo) |
 | [16 Petty cash](16-petty-cash.md) | Staff, accounts office | 2026-11-15, kenyan_accountant 16.8.0 |
+| [17 Surveillance, growth, clinical alerts and quality](17-surveillance-growth-alerts-quality.md) | Clinicians, triage nurses, surveillance focal person, HRIO, quality committee, administrator | 2026-11-16, v0.33.0 (shots from a local demo) |
 
 Planned next: radiology, emergency, kitchen and laundry, MOH reporting for the HRIO.
 

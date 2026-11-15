@@ -17,7 +17,7 @@ def execute(filters=None):
 			"width": 280,
 		},
 		{"fieldname": "category", "label": _("IDSR Category"), "fieldtype": "Data", "width": 170},
-		{"fieldname": "ihr", "label": _("IHR"), "fieldtype": "Check", "width": 55},
+		{"fieldname": "ihr", "label": _("IHR"), "fieldtype": "Data", "width": 60},
 		{"fieldname": "cases_u5", "label": _("Cases < 5"), "fieldtype": "Int", "width": 90},
 		{"fieldname": "deaths_u5", "label": _("Deaths < 5"), "fieldtype": "Int", "width": 90},
 		{"fieldname": "cases_o5", "label": _("Cases 5+"), "fieldtype": "Int", "width": 90},

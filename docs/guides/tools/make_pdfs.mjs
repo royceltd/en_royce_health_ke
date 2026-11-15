@@ -40,6 +40,7 @@ const guides = [
   ["14-v0.22-testing.md", "14 RoyceERP Health - Version 0.22 Testing Guide", "11 November 2026"],
   ["15-pharmacy-setup-and-upload.md", "15 RoyceERP Health - Pharmacy and Stock Setup and Data Upload", "14 November 2026"],
   ["16-petty-cash.md", "16 RoyceERP Health - Petty Cash", "15 November 2026"],
+  ["17-surveillance-growth-alerts-quality.md", "17 RoyceERP Health - Disease Surveillance, Child Growth, Clinical Alerts and Quality Measures", "16 November 2026"],
 ];
 // Temporary guides (../temporary): setup checklists and release testing
 // scripts, built with TEMPORARY=1 into their own folder.
