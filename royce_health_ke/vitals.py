@@ -97,10 +97,33 @@ def abnormal_readings(values, age):
 	return out
 
 
+HEIGHT_CM = (20, 250)
+
+
+def set_height(doc):
+	"""Height is recorded in centimetres (ke_height_cm); Marley's Height, which
+	BMI and the growth charts use, stays in metres. A record with only the
+	metres (older ones, or saved another way) gets its centimetres."""
+	cm = flt(doc.get("ke_height_cm"))
+	if cm:
+		low, high = HEIGHT_CM
+		if not low <= cm <= high:
+			frappe.throw(
+				_("Height is in centimetres: enter, for example, 165 for 1.65 m (got {0}).").format(
+					f"{cm:g}"
+				),
+				title=_("Check the height"),
+			)
+		doc.height = cm / 100
+	elif flt(doc.get("height")):
+		doc.ke_height_cm = round(flt(doc.height) * 100, 1)
+
+
 def validate_vital_signs(doc, method=None):
 	"""Vital Signs validate: set the Normal/Abnormal status and list what is out of range."""
-	if not doc.get("bmi") and flt(doc.get("height")) and flt(doc.get("weight")):
-		# Marley works BMI out in the browser; fill it for records saved another way (height in metres).
+	set_height(doc)
+	if flt(doc.get("height")) and flt(doc.get("weight")):
+		# Marley works BMI out in the browser; work it out here too, for records saved another way.
 		doc.bmi = round(flt(doc.weight) / (flt(doc.height) ** 2), 2)
 	dob = frappe.db.get_value("Patient", doc.patient, "dob") if doc.get("patient") else None
 	flags = abnormal_readings(doc.as_dict(), age_in_years(dob, doc.get("signs_date")))

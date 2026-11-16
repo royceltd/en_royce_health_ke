@@ -203,3 +203,11 @@ def extend_bootinfo(bootinfo):
 		)
 	except Exception:
 		bootinfo.ke_require_registration = 0
+
+
+@frappe.whitelist()
+def sub_counties(county: str) -> list[str]:
+	"""The sub-counties offered on the Patient form once the county is chosen."""
+	from royce_health_ke.kenya import SUB_COUNTIES
+
+	return list(SUB_COUNTIES.get(county) or ())

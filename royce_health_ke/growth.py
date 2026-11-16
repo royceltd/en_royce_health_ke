@@ -196,6 +196,13 @@ def status(z):
 # Vital Signs ----------------------------------------------------------------------
 
 
+def height_in_cm(v):
+	"""Height in cm as recorded (ke_height_cm), else from Marley's metres."""
+	if flt(v.get("ke_height_cm")):
+		return flt(v.get("ke_height_cm"))
+	return round(flt(v.get("height")) * 100, 1) if flt(v.get("height")) else None
+
+
 def apply_to_vital_signs(doc):
 	"""Called from Vital Signs validate: z-scores and nutrition status for
 	children under 5 (cleared for anyone else)."""
@@ -204,7 +211,7 @@ def apply_to_vital_signs(doc):
 	if doc.get("patient") and (doc.get("weight") or doc.get("height")):
 		p = frappe.db.get_value("Patient", doc.patient, ["sex", "dob"], as_dict=True)
 		if p:
-			height_cm = flt(doc.get("height")) * 100 if doc.get("height") else None
+			height_cm = height_in_cm(doc)
 			result = assess(p.sex, p.dob, doc.get("signs_date") or getdate(), doc.get("weight"), height_cm)
 	for field in fields:
 		doc.set(field, None)
@@ -251,12 +258,12 @@ def chart(patient: str, indicator: str = "wfa"):
 	for v in frappe.get_all(
 		"Vital Signs",
 		filters={"patient": patient, "docstatus": ["!=", 2], field: [">", 0]},
-		fields=["signs_date", "weight", "height"],
+		fields=["signs_date", "weight", "height", "ke_height_cm"],
 		order_by="signs_date asc",
 	):
 		days = age_days(p.dob, v.signs_date)
 		if 0 <= days <= MAX_DAYS:
-			value = flt(v.weight) if field == "weight" else round(flt(v.height) * 100, 1)
+			value = flt(v.weight) if field == "weight" else height_in_cm(v)
 			measurements.append(
 				{
 					"date": str(v.signs_date),

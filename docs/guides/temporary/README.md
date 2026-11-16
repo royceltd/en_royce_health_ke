@@ -14,6 +14,7 @@ Once a temporary guide's job is done (the hospital is set up, the release is tes
 | [Petty cash testing](petty-cash-testing.md) | The hospital's testers, on the demo | kenyan_accountant 16.8.0 | 2026-11-15 |
 | [Billing approvals and Patient Bills testing](v0.29-testing.md) | The hospital's testers, on the demo | v0.29.0 | 2026-11-15 |
 | [Surveillance, growth, clinical alerts and quality testing](v0.33-testing.md) | The hospital's testers, on the demo | v0.33.1 | 2026-11-16 |
+| [Registration, check-in and triage changes testing](v0.34-testing.md) | Bethesda's testers, on their own system | v0.34.0 | 2026-11-16 |
 | [Bethesda go-live, 16 to 20 November](bethesda-go-live.md) | Royce's go-live team, Bethesda's coordinator and department leads | v0.29.0 | 2026-11-15 |
 
 PDFs: `TEMPORARY=1 node make_pdfs.mjs ../temporary "<output folder>/Temporary"` from `docs/guides/tools` (same environment variables as the numbered guides).

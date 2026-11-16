@@ -117,7 +117,8 @@ def before_insert_visit(doc):
 		from royce_health_ke.assign import default_facility
 
 		doc.facility = default_facility(doc.company)
-	if doc.payment_method == "Insurance" and not doc.insurance_policy:
+	# without a member number, validate asks for it
+	if doc.payment_method == "Insurance" and not doc.insurance_policy and doc.member_number:
 		doc.insurance_policy = find_or_create_policy(doc)
 	station = FIRST_STATION.get(doc.visit_type, "Triage")
 	_move(doc, _("Reception"), station)
@@ -148,10 +149,12 @@ def find_or_create_policy(doc):
 			"policy_number": doc.member_number,
 			"docstatus": 1,
 		},
-		"name",
+		["name", "policy_expiry_date"],
+		as_dict=True,
 	)
 	if existing:
-		return existing
+		renew_policy(existing, doc.get("policy_expiry"))
+		return existing.name
 	policy = frappe.get_doc(
 		{
 			"doctype": "Patient Insurance Policy",
@@ -168,6 +171,19 @@ def find_or_create_policy(doc):
 	policy.insert(ignore_permissions=True)
 	policy.submit()
 	return policy.name
+
+
+def renew_policy(policy, valid_until):
+	"""Reception saw a renewed card: the policy is valid until the later date."""
+	if not valid_until or (
+		policy.policy_expiry_date and getdate(valid_until) <= getdate(policy.policy_expiry_date)
+	):
+		return
+	frappe.db.set_value("Patient Insurance Policy", policy.name, "policy_expiry_date", getdate(valid_until))
+	frappe.get_doc("Patient Insurance Policy", policy.name).add_comment(
+		"Info",
+		_("Cover renewed at check-in: valid until {0}.").format(frappe.format(getdate(valid_until), "Date")),
+	)
 
 
 def _move(doc, from_station, to_station, practitioner=None, note=None, room=None):
@@ -403,6 +419,15 @@ def patient_policies(patient: str) -> list[dict]:
 	return frappe.get_all(
 		"Patient Insurance Policy",
 		filters={"patient": patient, "docstatus": 1, "policy_expiry_date": [">=", nowdate()]},
-		fields=["name", "insurance_payor", "insurance_plan", "policy_number", "policy_expiry_date"],
+		fields=[
+			"name",
+			"insurance_payor",
+			"insurance_plan",
+			"policy_number",
+			"policy_expiry_date",
+			"ke_relation",
+			"ke_principal_member",
+			"ke_principal_member_number",
+		],
 		order_by="creation desc",
 	)

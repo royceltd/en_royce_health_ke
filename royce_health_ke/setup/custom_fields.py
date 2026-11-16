@@ -86,6 +86,7 @@ PATIENT = [
 		"fieldname": "ke_sub_county",
 		"fieldtype": "Data",
 		"label": "Sub-County",
+		"description": "Choose the county first: its sub-counties are offered as you type.",
 		"insert_after": "ke_county",
 		"fetch_from": "ke_residence.sub_county",
 		"fetch_if_empty": 1,
@@ -151,6 +152,16 @@ PATIENT = [
 ]
 
 VITAL_SIGNS = [
+	# Height is taken in centimetres; Marley's Height (in metres), which BMI
+	# and the growth charts use, is worked out from it (royce_health_ke.vitals).
+	{
+		"fieldname": "ke_height_cm",
+		"fieldtype": "Float",
+		"label": "Height (cm)",
+		"insert_after": "height",
+		"precision": "1",
+		"in_list_view": 1,
+	},
 	{
 		"fieldname": "ke_spo2",
 		"fieldtype": "Data",

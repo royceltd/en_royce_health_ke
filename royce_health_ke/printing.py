@@ -349,6 +349,7 @@ def encounter_vitals(doc) -> frappe._dict:
 			"bp_diastolic",
 			"weight",
 			"height",
+			"ke_height_cm",
 			"bmi",
 		],
 		order_by="signs_date desc, signs_time desc",
@@ -364,7 +365,7 @@ def encounter_vitals(doc) -> frappe._dict:
 		("Resp. rate", f"{v.respiratory_rate} /min" if v.respiratory_rate else ""),
 		("BP", f"{bp} mmHg" if bp else ""),
 		("Weight", f"{flt(v.weight, 1):g} kg" if flt(v.weight) else ""),
-		("Height", f"{flt(v.height, 2):g} m" if flt(v.height) else ""),
+		("Height", f"{flt(v.ke_height_cm or flt(v.height) * 100, 1):g} cm" if flt(v.height) else ""),
 		("BMI", f"{flt(v.bmi, 1):g}" if flt(v.bmi) else ""),
 	]
 	return frappe._dict(items=[(k, val) for k, val in items if val])

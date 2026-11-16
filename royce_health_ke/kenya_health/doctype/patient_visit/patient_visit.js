@@ -106,6 +106,9 @@ frappe.ui.form.on("Patient Visit", {
 	payment_method(frm) {
 		if (frm.doc.patient && frm.doc.payment_method === "Insurance") fill_policy(frm);
 	},
+	insurance_payor(frm) {
+		if (frm.doc.patient && frm.doc.payment_method === "Insurance") fill_policy(frm);
+	},
 	insurance_policy(frm) {
 		if (!frm.doc.insurance_policy) return;
 		frappe.db
@@ -116,6 +119,7 @@ frappe.ui.form.on("Patient Visit", {
 				"ke_relation",
 				"ke_principal_member",
 				"ke_principal_member_number",
+				"policy_expiry_date",
 			])
 			.then(({ message: p }) => {
 				if (!p) return;
@@ -123,6 +127,7 @@ frappe.ui.form.on("Patient Visit", {
 					insurance_payor: p.insurance_payor,
 					insurance_plan: p.insurance_plan,
 					member_number: p.policy_number,
+					policy_expiry: p.policy_expiry_date,
 					relation: p.ke_relation || "Principal",
 					principal_member: p.ke_principal_member,
 					principal_member_number: p.ke_principal_member_number,
@@ -131,13 +136,31 @@ frappe.ui.form.on("Patient Visit", {
 	},
 });
 
-// The patient's active policy, when there is exactly one.
+// Reception types the member number; a returning member's details are filled
+// in from their policy with the chosen payer (or their only policy). The
+// policy itself is found, or created, from the payer and member number on save.
 function fill_policy(frm) {
-	if (frm.doc.insurance_policy) return;
+	if (frm.doc.insurance_policy || frm.doc.member_number) return;
 	frappe.call("royce_health_ke.visits.patient_policies", { patient: frm.doc.patient }).then(({ message }) => {
-		if (message && message.length === 1) frm.set_value("insurance_policy", message[0].name);
-		else if (message && message.length > 1)
-			frappe.show_alert({ message: __("This patient has {0} active policies: choose one.", [message.length]), indicator: "blue" });
+		const all = message || [];
+		const policies = frm.doc.insurance_payor ? all.filter((p) => p.insurance_payor === frm.doc.insurance_payor) : all;
+		if (policies.length === 1) {
+			const p = policies[0];
+			frm.set_value({
+				insurance_payor: p.insurance_payor,
+				insurance_plan: p.insurance_plan,
+				member_number: p.policy_number,
+				policy_expiry: p.policy_expiry_date,
+				relation: p.ke_relation || "Principal",
+				principal_member: p.ke_principal_member,
+				principal_member_number: p.ke_principal_member_number,
+			});
+		} else if (policies.length > 1) {
+			frappe.show_alert({
+				message: __("This patient has {0} active policies: choose the payer and type the member number.", [policies.length]),
+				indicator: "blue",
+			});
+		}
 	});
 }
 

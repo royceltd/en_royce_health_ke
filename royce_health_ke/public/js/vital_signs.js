@@ -4,6 +4,15 @@
 // Abnormal readings (worked out on save, royce_health_ke.vitals) shown in red,
 // with a headline listing them.
 frappe.ui.form.on("Vital Signs", {
+	// Height is typed in cm; Marley's Height (metres) follows, and its BMI with it.
+	ke_height_cm(frm) {
+		const cm = flt(frm.doc.ke_height_cm);
+		if (cm && cm < 3) {
+			frappe.show_alert({ message: __("Height is in centimetres, e.g. 165 for 1.65 m."), indicator: "orange" });
+			return;
+		}
+		frm.set_value("height", cm ? cm / 100 : 0);
+	},
 	refresh(frm) {
 		const abnormal = (frm.doc.ke_abnormal_fields || "").split(",").filter(Boolean);
 		for (const df of frm.meta.fields) {

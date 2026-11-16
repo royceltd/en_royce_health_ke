@@ -20,6 +20,17 @@ frappe.ui.form.on("Patient", {
 			sub_county: frm.doc.ke_sub_county || "",
 		});
 	},
+	onload_post_render(frm) {
+		ke_offer_sub_counties(frm);
+	},
+	ke_county(frm) {
+		ke_offer_sub_counties(frm).then((names) => {
+			// a sub-county of another county no longer fits
+			if (frm.doc.ke_sub_county && names.length && !names.includes(frm.doc.ke_sub_county)) {
+				frm.set_value("ke_sub_county", "");
+			}
+		});
+	},
 	refresh(frm) {
 		if (frappe.boot.ke_require_registration && frm.is_new()) {
 			for (const f of KE_REQUIRED) frm.toggle_reqd(f, true);
@@ -304,4 +315,33 @@ function growth_svg(data) {
 	)}</h5>${svg}<p class="text-muted small">${__(
 		"WHO Child Growth Standards. Green: median; orange: -2 / +2 SD; red: -3 / +3 SD."
 	)}</p>${table}`;
+}
+
+// The chosen county's sub-counties, offered as suggestions in the Sub-County
+// field (a text field: a name not on the list can still be typed).
+const ke_sub_county_cache = {};
+function ke_offer_sub_counties(frm) {
+	const county = frm.doc.ke_county;
+	const names = !county
+		? Promise.resolve([])
+		: ke_sub_county_cache[county]
+			? Promise.resolve(ke_sub_county_cache[county])
+			: frappe
+					.xcall("royce_health_ke.identity.sub_counties", { county })
+					.then((list) => (ke_sub_county_cache[county] = list || []));
+	return names.then((list) => {
+		const field = frm.fields_dict.ke_sub_county;
+		const input = field && field.$input && field.$input.get(0);
+		if (!input) return list;
+		if (!field.ke_awesomplete) {
+			field.ke_awesomplete = new Awesomplete(input, { minChars: 0, maxItems: 30, autoFirst: true });
+			$(input).on("focus", () => {
+				field.ke_awesomplete.evaluate();
+				if (field.ke_awesomplete._list.length) field.ke_awesomplete.open();
+			});
+			input.addEventListener("awesomplete-selectcomplete", () => $(input).trigger("change"));
+		}
+		field.ke_awesomplete.list = list;
+		return list;
+	});
 }

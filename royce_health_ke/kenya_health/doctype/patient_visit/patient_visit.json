@@ -252,7 +252,9 @@
    "label": "Insurance Policy",
    "options": "Patient Insurance Policy",
    "depends_on": "eval:doc.payment_method=='Insurance'",
-   "description": "The patient's policy with this payer. Leave empty for a new member: it is created from the details below."
+   "hidden": 1,
+   "read_only": 1,
+   "description": "Found from the payer and member number on save; a new member's policy is created from the details below."
   },
   {
    "fieldname": "member_number",
@@ -265,7 +267,7 @@
    "fieldname": "policy_expiry",
    "fieldtype": "Date",
    "label": "Cover Valid Until",
-   "depends_on": "eval:doc.payment_method=='Insurance' && !doc.insurance_policy",
+   "depends_on": "eval:doc.payment_method=='Insurance'",
    "mandatory_depends_on": "eval:doc.payment_method=='Insurance' && !doc.insurance_policy"
   },
   {
@@ -477,7 +479,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-13 11:58:42.878842",
+ "modified": "2026-11-16 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Patient Visit",
