@@ -119,6 +119,50 @@ def invoice_before_validate(doc, method=None):
 				p.account = shift.cash_account
 
 
+# A patient's payment by M-Pesa, card or bank carries its transaction code
+# (hospital feedback, 16 Nov 2026: "we need the code from M-Pesa"), so the
+# receipt shows it and the cashier's takings can be matched to the statement.
+
+
+def missing_references(doc):
+	"""Modes of payment on this patient payment that need a code and have none."""
+	if doc.doctype == "Payment Entry":
+		if doc.payment_type != "Receive" or not doc.mode_of_payment or doc.get("reference_no"):
+			return []
+		return [] if _is_cash(doc.mode_of_payment) else [doc.mode_of_payment]
+	if not cint(doc.get("is_pos")):
+		return []
+	return [
+		p.mode_of_payment
+		for p in doc.get("payments") or []
+		if flt(p.amount)
+		and p.mode_of_payment
+		and not _is_cash(p.mode_of_payment)
+		and not p.get("reference_no")
+	]
+
+
+def require_payment_reference(doc, method=None):
+	"""Sales Invoice / Payment Entry validate."""
+	if doc.docstatus != 0 or frappe.session.user in ("Administrator", "Guest"):
+		return
+	if frappe.flags.in_install or frappe.flags.in_migrate or frappe.flags.in_import:
+		return
+	customer = doc.party if doc.doctype == "Payment Entry" else doc.get("customer")
+	if doc.doctype == "Payment Entry" and doc.party_type != "Customer":
+		return
+	if not is_patient_customer(customer):
+		return
+	missing = missing_references(doc)
+	if missing:
+		frappe.throw(
+			_(
+				"Enter the transaction code (e.g. the M-Pesa code) for the {0} payment in Reference No."
+			).format(", ".join(dict.fromkeys(missing))),
+			title=_("Transaction code required"),
+		)
+
+
 def takings(shift):
 	"""{mode of payment: (payments, amount)} on a shift: payments received
 	less refunds, and payments on its POS invoices less change given."""

@@ -42,6 +42,10 @@ doc_events = {
 			"royce_health_ke.packages.apply_maternity_package",
 			"royce_health_ke.cashier.invoice_before_validate",
 		],
+		"validate": [
+			"royce_health_ke.pharmacy.lock_substitution",
+			"royce_health_ke.cashier.require_payment_reference",
+		],
 		"before_submit": "royce_health_ke.visit_bill.invoice_before_submit",
 		"on_submit": [
 			"royce_health_ke.visit_bill.invoice_changed",
@@ -54,10 +58,12 @@ doc_events = {
 	},
 	"Payment Entry": {
 		"before_validate": "royce_health_ke.cashier.payment_entry_before_validate",
+		"validate": "royce_health_ke.cashier.require_payment_reference",
 		"on_submit": "royce_health_ke.visit_bill.payment_changed",
 		"on_cancel": "royce_health_ke.visit_bill.payment_changed",
 	},
 	"Delivery Note": {
+		"validate": "royce_health_ke.pharmacy.lock_substitution",
 		"before_submit": "royce_health_ke.visit_bill.delivery_before_submit",
 		"on_submit": "royce_health_ke.pharmacy.delivery_changed",
 		"on_cancel": "royce_health_ke.pharmacy.delivery_changed",
@@ -141,6 +147,7 @@ jinja = {
 		"royce_health_ke.printing.health_treatment_sheet",
 		"royce_health_ke.assign.health_queue_slip",
 		"royce_health_ke.pharmacy.health_medicine_labels",
+		"royce_health_ke.printing.health_patient_receipt",
 	]
 }
 

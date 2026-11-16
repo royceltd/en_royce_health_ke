@@ -1,0 +1,85 @@
+{#- Sales Invoice. The patient's payment receipt, sized for an 80 mm EPOS
+    printer (hospital feedback, 16 Nov 2026): facility and patient, the
+    invoice, how it was paid with the M-Pesa or card code, items, discount,
+    amount tendered and change. -#}
+{%- set r = health_patient_receipt(doc) -%}
+{%- set c = r.company -%}
+<style>
+  .pr { width: 72mm; margin: 0 auto; font-family: Inter, Arial, sans-serif; color: #111827; font-size: 8.5pt; }
+  .pr-logo { text-align: center; margin-bottom: 4px; }
+  .pr-logo img { max-width: 48mm; max-height: 18mm; }
+  .pr-co { text-align: center; }
+  .pr-co-name { font-size: 10pt; font-weight: 700; }
+  .pr-rule { border-top: 1px dashed #6b7280; margin: 6px 0; }
+  .pr-title { text-align: center; font-weight: 700; font-size: 10pt; letter-spacing: 0.04em; }
+  .pr-kv { width: 100%; border-collapse: collapse; }
+  .pr-kv td { padding: 1px 0; vertical-align: top; }
+  .pr-kv td.k { width: 30mm; color: #374151; }
+  .pr-items { width: 100%; border-collapse: collapse; }
+  .pr-items th { text-align: left; font-size: 7.5pt; border-bottom: 1px solid #111827; padding: 1px 0; }
+  .pr-items td { padding: 2px 0; vertical-align: top; }
+  .pr-items .n { text-align: right; white-space: nowrap; }
+  .pr-total td { padding: 1px 0; }
+  .pr-total td.k { text-align: right; padding-right: 6px; }
+  .pr-total td.v { text-align: right; width: 24mm; white-space: nowrap; }
+  .pr-strong td { font-weight: 700; font-size: 9.5pt; }
+  .pr-foot { text-align: center; font-size: 8pt; color: #374151; }
+  .pr-badge { text-align: center; font-weight: 700; color: #b91c1c; }
+</style>
+<div class="pr">
+  {%- if c.logo %}<div class="pr-logo"><img src="{{ c.logo }}" alt=""></div>{% endif %}
+  <div class="pr-co">
+    <div class="pr-co-name">{{ c.name }}</div>
+    {%- for line in (c.address.lines or []) %}<div>{{ line }}</div>{% endfor %}
+    {%- if c.phone %}<div>{{ _("Tel") }}: {{ c.phone }}</div>{% endif %}
+    {%- if c.email %}<div>{{ c.email }}</div>{% endif %}
+    {%- if c.website %}<div>{{ c.website }}</div>{% endif %}
+    {%- if c.tax_id %}<div>{{ _("KRA PIN") }}: {{ c.tax_id }}</div>{% endif %}
+  </div>
+  <div class="pr-rule"></div>
+  <div class="pr-title">{{ _("RECEIPT") if not doc.is_return else _("REFUND") }}</div>
+  {%- if r.badge %}<div class="pr-badge">{{ _(r.badge) | upper }}</div>{% endif %}
+  <table class="pr-kv">
+    <tr><td class="k">{{ _("Invoice No") }}</td><td>{{ doc.name }}</td></tr>
+    <tr><td class="k">{{ _("Date") }}</td><td>{{ frappe.utils.format_datetime(doc.posting_date|string + " " + (doc.posting_time or "00:00:00")|string, "dd MMM yyyy HH:mm") }}</td></tr>
+    <tr><td class="k">{{ _("Patient Name") }}</td><td>{{ r.patient.patient_name or doc.customer_name }}</td></tr>
+    {%- if r.patient_no %}<tr><td class="k">{{ _("Patient No") }}</td><td>{{ r.patient_no }}</td></tr>{% endif %}
+    {%- if r.patient.dob %}<tr><td class="k">{{ _("DOB") }}</td><td>{{ frappe.utils.formatdate(r.patient.dob) }}</td></tr>{% endif %}
+    {%- if r.patient.sex %}<tr><td class="k">{{ _("Gender") }}</td><td>{{ _(r.patient.sex) }}</td></tr>{% endif %}
+    {%- if r.phone %}<tr><td class="k">{{ _("Phone No") }}</td><td>{{ r.phone }}</td></tr>{% endif %}
+    {%- if r.modes %}<tr><td class="k">{{ _("Payment") }}</td><td>{{ r.modes }}</td></tr>{% endif %}
+    {%- if r.references %}<tr><td class="k">{{ _("Ref (M-Pesa/Card)") }}</td><td>{{ r.references }}</td></tr>{% endif %}
+    {%- if r.paid_by %}<tr><td class="k">{{ _("Paid By") }}</td><td>{{ r.paid_by }}</td></tr>{% endif %}
+  </table>
+  <div class="pr-rule"></div>
+  <table class="pr-items">
+    <tr><th>{{ _("Description") }}</th><th class="n">{{ _("Qty") }}</th><th class="n">{{ _("Unit Cost") }}</th><th class="n">{{ _("Amount") }}</th></tr>
+    {%- for row in doc.items %}
+    <tr>
+      <td>{{ row.item_name or row.item_code }}</td>
+      <td class="n">{{ frappe.utils.fmt_money(row.qty, precision=0) if row.qty == row.qty|int else row.qty }}</td>
+      <td class="n">{{ frappe.utils.fmt_money(row.rate, currency=None) }}</td>
+      <td class="n">{{ frappe.utils.fmt_money(row.amount, currency=None) }}</td>
+    </tr>
+    {%- endfor %}
+  </table>
+  <div class="pr-rule"></div>
+  <table class="pr-total" style="width:100%">
+    <tr><td class="k">{{ _("Amount") }}</td><td class="v">{{ frappe.utils.fmt_money(doc.total, currency=None) }}</td></tr>
+    <tr><td class="k">{{ _("Discount") }}</td><td class="v">{{ frappe.utils.fmt_money(doc.discount_amount or 0, currency=None) }}</td></tr>
+    {%- if doc.total_taxes_and_charges %}<tr><td class="k">{{ _("Tax") }}</td><td class="v">{{ frappe.utils.fmt_money(doc.total_taxes_and_charges, currency=None) }}</td></tr>{% endif %}
+    {%- if doc.get("total_insurance_coverage_amount") %}<tr><td class="k">{{ _("Insurance pays") }}</td><td class="v">{{ frappe.utils.fmt_money(doc.total_insurance_coverage_amount, currency=None) }}</td></tr>{% endif %}
+    <tr class="pr-strong"><td class="k">{{ _("Net Total") }}</td><td class="v">{{ frappe.utils.fmt_money(doc.rounded_total or doc.grand_total, currency=doc.currency) }}</td></tr>
+    {%- for p in r.payments %}
+    <tr><td class="k">{{ p.mode or _("Payment") }}{% if p.reference %} ({{ p.reference }}){% endif %}</td><td class="v">{{ frappe.utils.fmt_money(p.amount, currency=None) }}</td></tr>
+    {%- endfor %}
+    {%- if doc.change_amount %}
+    <tr><td class="k">{{ _("Amount Tendered") }}</td><td class="v">{{ frappe.utils.fmt_money(r.tendered, currency=None) }}</td></tr>
+    <tr class="pr-strong"><td class="k">{{ _("Change") }}</td><td class="v">{{ frappe.utils.fmt_money(doc.change_amount, currency=None) }}</td></tr>
+    {%- endif %}
+    {%- if r.balance %}<tr class="pr-strong"><td class="k">{{ _("Balance Due") }}</td><td class="v">{{ frappe.utils.fmt_money(r.balance, currency=doc.currency) }}</td></tr>{% endif %}
+  </table>
+  <div class="pr-rule"></div>
+  <table class="pr-kv"><tr><td class="k">{{ _("Served by") }}</td><td>{{ r.served_by }}</td></tr></table>
+  <div class="pr-foot" style="margin-top:6px">{{ _("Get well soon") }}</div>
+</div>

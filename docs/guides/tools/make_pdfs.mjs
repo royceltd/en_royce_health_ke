@@ -57,6 +57,7 @@ const temporaryGuides = [
   ["v0.33-testing.md", "Version 0.30 to 0.33 Surveillance, Child Growth, Clinical Alerts and Quality Measures Testing Guide", "16 November 2026"],
   ["v0.34-testing.md", "Version 0.34 Registration, Check-in and Triage Changes Testing Guide", "16 November 2026"],
   ["v0.35-testing.md", "Version 0.35 Paying Before Service Testing Guide", "16 November 2026"],
+  ["v0.36-testing.md", "Version 0.36 Consultation Tabs, Pharmacy Lock and Patient Receipt Testing Guide", "16 November 2026"],
   ["demo-script-bethesda.md", "Demo Script for Bethesda", "15 November 2026",
     "Written 15 November 2026 for the demo of RoyceERP Health to Bethesda Healthcare Services, on hospital.royceltd.com (v0.28.1). All patients, staff and records shown are fictional."],
 ];

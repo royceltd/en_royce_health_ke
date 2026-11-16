@@ -1018,3 +1018,56 @@ def health_continuation_details(doc):
 
 def health_treatment_sheet(doc):
 	return treatment_sheet_details(doc)
+
+
+def health_patient_receipt(doc) -> frappe._dict:
+	"""Jinja (Patient Receipt, 80 mm): who paid, for what, how (with the
+	M-Pesa or card code) and the change, like the hospital's EPOS slips.
+	Payments are those taken on the invoice and any Payment Entry against it."""
+	ctx = health_print_context(doc)
+	patient = frappe._dict()
+	if doc.get("patient"):
+		patient = (
+			frappe.db.get_value(
+				"Patient", doc.patient, ["name", "patient_name", "dob", "sex", "mobile", "phone"], as_dict=True
+			)
+			or frappe._dict()
+		)
+	payments = [
+		frappe._dict(mode=p.mode_of_payment, amount=flt(p.amount), reference=p.get("reference_no") or "")
+		for p in doc.get("payments") or []
+		if flt(p.amount)
+	]
+	if doc.docstatus == 1:
+		for pe in frappe.db.sql(
+			"""select pe.name, pe.mode_of_payment, pe.reference_no, ref.allocated_amount
+			from `tabPayment Entry Reference` ref join `tabPayment Entry` pe on pe.name = ref.parent
+			where ref.reference_doctype = 'Sales Invoice' and ref.reference_name = %s
+				and pe.docstatus = 1 and pe.payment_type = 'Receive'
+			order by pe.posting_date, pe.creation""",
+			doc.name,
+			as_dict=True,
+		):
+			payments.append(
+				frappe._dict(
+					mode=pe.mode_of_payment, amount=flt(pe.allocated_amount), reference=pe.reference_no or "", entry=pe.name
+				)
+			)
+	paid = sum(p.amount for p in payments)
+	return frappe._dict(
+		company=ctx.company,
+		badge=ctx.badge,
+		patient=patient,
+		# the record number when patients are numbered (not when named by name)
+		patient_no=ctx.patient.get("number") or "",
+		phone=patient.get("mobile") or patient.get("phone") or "",
+		payments=payments,
+		modes=", ".join(dict.fromkeys(p.mode for p in payments if p.mode)),
+		references=", ".join(dict.fromkeys(p.reference for p in payments if p.reference)),
+		tendered=paid + flt(doc.get("change_amount")),
+		paid=paid,
+		balance=flt(doc.get("outstanding_amount")) if doc.docstatus == 1 else None,
+		served_by=frappe.utils.get_fullname(doc.owner),
+		paid_by=doc.get("patient_name") or doc.get("customer_name") or "",
+	)
+

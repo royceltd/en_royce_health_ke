@@ -11,6 +11,8 @@ elsewhere (hospital feedback on the outpatient flow, November 2026):
   type, visits.link_encounter), so the doctor does not see them.
 - Vital Signs: height is taken in centimetres (ke_height_cm); Marley's Height
   in metres is worked out from it and hidden.
+- Sales Invoice payments: the Reference No (M-Pesa or card code) is a column
+  of the payments table, where the cashier types it (cashier.py requires it).
 
 Each property is set only where the hospital has not set it itself, so a
 field shown again with Customize Form stays shown (ADR-023)."""
@@ -25,6 +27,7 @@ HIDDEN = {
 # Hidden fields a hospital can't fill in must not be mandatory either.
 NOT_REQUIRED = {"Patient Encounter": ("appointment_type",)}
 NOT_IN_LIST = {"Vital Signs": ("height",)}
+IN_LIST = {"Sales Invoice Payment": ("reference_no",)}
 
 
 def apply():
@@ -32,6 +35,7 @@ def apply():
 		("hidden", HIDDEN, "1"),
 		("reqd", NOT_REQUIRED, "0"),
 		("in_list_view", NOT_IN_LIST, "0"),
+		("in_list_view", IN_LIST, "1"),
 	):
 		for doctype, fieldnames in fields.items():
 			for fieldname in fieldnames:

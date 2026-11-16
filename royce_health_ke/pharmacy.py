@@ -808,6 +808,51 @@ def send_back(requests: str | list, note: str):
 	return done
 
 
+# Substitution lock (outpatient feedback, 16 Nov 2026): the drug the clinician
+# prescribed is the drug billed and dispensed. Nobody changes it on the bill or
+# the delivery, prescribers included: the prescriber changes the prescription
+# itself, so prescription, bill and dispensing record always agree. The
+# pharmacist's route is Send back to the doctor.
+
+
+def _prescribed(rows):
+	"""[(row, medication request)] for the rows that carry a prescription."""
+	out = []
+	for row in rows:
+		ref = row.get("ke_medication_request")
+		if not ref and row.get("reference_dt") == MR:
+			ref = row.get("reference_dn")
+		if not ref and row.get("si_detail"):
+			r = frappe.db.get_value("Sales Invoice Item", row.si_detail, ["reference_dt", "reference_dn"])
+			ref = r and r[0] == MR and r[1]
+		if ref:
+			out.append((row, ref))
+	return out
+
+
+def lock_substitution(doc, method=None):
+	"""Sales Invoice / Delivery Note validate: a prescribed drug can't be swapped."""
+	if doc.get("is_return"):
+		return
+	for row, ref in _prescribed(doc.get("items") or []):
+		m = frappe.db.get_value(MR, ref, ["medication_item", "medication", "practitioner_name"], as_dict=True)
+		if not m or not m.medication_item or row.item_code == m.medication_item:
+			continue
+		frappe.throw(
+			_(
+				"Row {0}: {1} was prescribed{2}, not {3}. A prescribed medicine is not changed on the bill or "
+				"at dispensing: to give a different one (e.g. out of stock), use Send back to the doctor "
+				"on the Pharmacy Worklist, and the doctor changes the prescription."
+			).format(
+				row.idx,
+				frappe.bold(m.medication or m.medication_item),
+				_(" by {0}").format(m.practitioner_name) if m.practitioner_name else "",
+				frappe.bold(row.item_code),
+			),
+			title=_("Prescribed medicine can't be substituted"),
+		)
+
+
 # Counter sales
 
 

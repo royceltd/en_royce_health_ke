@@ -310,6 +310,108 @@ THERAPY_SESSION = [
 	},
 ]
 
+# The consultation in the hospital's order (consultation.py sets the order of
+# the fields once): Patient, Observation, Requests, Results, Diagnosis,
+# Prescription, Complete. Positions below only matter if the hospital already
+# ordered the form itself.
+CONSULTATION_TABS = [
+	{
+		"fieldname": "ke_tab_patient",
+		"fieldtype": "Tab Break",
+		"label": "Patient",
+		"insert_after": "ke_patient_visit",
+	},
+	{
+		"fieldname": "ke_tab_observation",
+		"fieldtype": "Tab Break",
+		"label": "Observation",
+		"insert_after": "submit_orders_on_save",
+	},
+	{
+		"fieldname": "ke_obs_section",
+		"fieldtype": "Section Break",
+		"label": "Obstetric and Gynaecological History",
+		"insert_after": "ke_hx_social",
+		"depends_on": "eval:doc.patient_sex != 'Male'",
+	},
+	{
+		"fieldname": "ke_obs_gynae",
+		"fieldtype": "Text",
+		"label": "OBS/Gynae",
+		"insert_after": "ke_obs_section",
+		"description": "LMP, gravida/para, contraception, menstrual and gynaecological history.",
+	},
+	{
+		"fieldname": "ke_tab_requests",
+		"fieldtype": "Tab Break",
+		"label": "Requests",
+		"insert_after": "drug_prescription",
+	},
+	{"fieldname": "ke_requests_section", "fieldtype": "Section Break", "insert_after": "therapies"},
+	{
+		"fieldname": "ke_send_requests",
+		"fieldtype": "Button",
+		"label": "Send Requests",
+		"insert_after": "ke_requests_section",
+		"depends_on": "eval:!doc.__islocal && doc.docstatus == 0",
+		"description": "Sends the lab, imaging and procedure requests now: they go on the bill and to "
+		"their service point, and the consultation stays open for the results.",
+	},
+	{
+		"fieldname": "ke_tab_results",
+		"fieldtype": "Tab Break",
+		"label": "Results",
+		"insert_after": "ke_send_requests",
+	},
+	{"fieldname": "ke_results_section", "fieldtype": "Section Break", "insert_after": "ke_tab_results"},
+	{
+		"fieldname": "ke_results_html",
+		"fieldtype": "HTML",
+		"label": "Results",
+		"insert_after": "ke_results_section",
+	},
+	{
+		"fieldname": "ke_tab_diagnosis",
+		"fieldtype": "Tab Break",
+		"label": "Diagnosis",
+		"insert_after": "ke_results_html",
+	},
+	{
+		"fieldname": "ke_tab_prescription",
+		"fieldtype": "Tab Break",
+		"label": "Prescription",
+		"insert_after": "codification_table",
+	},
+	{"fieldname": "ke_pharmacy_section", "fieldtype": "Section Break", "insert_after": "ke_tab_prescription"},
+	{
+		"fieldname": "ke_pharmacy_html",
+		"fieldtype": "HTML",
+		"label": "Pharmacy",
+		"insert_after": "ke_pharmacy_section",
+	},
+	{
+		"fieldname": "ke_tab_complete",
+		"fieldtype": "Tab Break",
+		"label": "Complete",
+		"insert_after": "therapies",
+	},
+	{
+		"fieldname": "ke_referral_section",
+		"fieldtype": "Section Break",
+		"label": "Referral",
+		"insert_after": "referring_practitioner",
+	},
+	{"fieldname": "ke_complete_section", "fieldtype": "Section Break", "insert_after": "amended_from"},
+	{
+		"fieldname": "ke_complete_consultation",
+		"fieldtype": "Button",
+		"label": "Complete Consultation",
+		"insert_after": "ke_complete_section",
+		"depends_on": "eval:!doc.__islocal && doc.docstatus == 0",
+		"description": "Places any orders not sent yet, closes the consultation and sends the patient on.",
+	},
+]
+
 ENCOUNTER = [
 	{
 		"fieldname": "ke_patient_visit",
@@ -394,6 +496,7 @@ ENCOUNTER = [
 			("social", "ke_social_history", "Social History", "ke_hx_family"),
 		)
 	],
+	*CONSULTATION_TABS,
 ]
 
 LAB_TEST = [
@@ -803,7 +906,8 @@ MOH = {
 			"fieldname": "ke_referred_out",
 			"fieldtype": "Check",
 			"label": "Referred to Another Facility",
-			"insert_after": "source",
+			# its own section: Marley's Source section is hidden (forms.py)
+			"insert_after": "ke_referral_section",
 			"allow_on_submit": 1,
 		},
 		{
