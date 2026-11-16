@@ -54,6 +54,7 @@ const temporaryGuides = [
   ["v0.29-testing.md", "Version 0.29 Billing Approvals and Patient Bills Testing Guide", "15 November 2026"],
   ["bethesda-go-live.md", "Bethesda Go-Live: 16 to 20 November 2026", "15 November 2026",
     "Written 15 November 2026 for Bethesda Healthcare Services (bethesda.royceltd.com), version 0.29."],
+  ["v0.33-testing.md", "Version 0.30 to 0.33 Surveillance, Child Growth, Clinical Alerts and Quality Measures Testing Guide", "16 November 2026"],
   ["demo-script-bethesda.md", "Demo Script for Bethesda", "15 November 2026",
     "Written 15 November 2026 for the demo of RoyceERP Health to Bethesda Healthcare Services, on hospital.royceltd.com (v0.28.1). All patients, staff and records shown are fictional."],
 ];
