@@ -7,6 +7,8 @@ import frappe
 from frappe import _
 from frappe.utils import now_datetime, time_diff_in_hours
 
+from royce_health_ke import visit_bill
+
 PRIORITY = {"STAT": 0, "Urgent": 1, "Routine": 2}
 
 
@@ -40,8 +42,18 @@ def execute(filters=None):
 			"healthcare_practitioner",
 			"ke_radiographer",
 			"ke_reported_by",
+			"service_request",
 		],
 	)
+	# A cash patient's exam not paid yet is left out until the Cashier takes payment.
+	awaiting = [
+		r
+		for r in rows
+		if r.ke_exam_status == "Requested"
+		and r.service_request
+		and visit_bill.request_awaiting_payment(visit_bill.RADIOLOGY, r.service_request)
+	]
+	rows = [r for r in rows if r not in awaiting]
 	now = now_datetime()
 	for r in rows:
 		r.waiting_hours = round(time_diff_in_hours(now, r.creation), 1)
@@ -77,4 +89,11 @@ def execute(filters=None):
 			"width": 130,
 		},
 	]
-	return columns, rows
+	message = (
+		_(
+			"{0} more exam(s) are requested for patients paying at the Cashier. They appear here once paid."
+		).format(len(awaiting))
+		if awaiting
+		else None
+	)
+	return columns, rows, message

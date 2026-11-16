@@ -95,6 +95,12 @@ frappe.ui.form.on("Patient Visit", {
 		if (frm.doc.allow_credit) {
 			frm.dashboard.add_comment(__("Services before payment approved: {0}", [frm.doc.credit_reason || ""]), "blue", true);
 		}
+		if (frm.doc.fee_first && !frm.doc.fee_paid && !frm.doc.allow_credit) {
+			frm.dashboard.set_headline(
+				__("Consultation fee to pay at the Cashier: the patient joins the triage list once it is paid."),
+				"orange",
+			);
+		}
 		if (frm.doc.vitals_status === "Abnormal") {
 			frm.dashboard.set_headline(__("Abnormal vitals at triage. See the latest vital signs."), "red");
 		}
@@ -178,7 +184,7 @@ function send_to_dialog(frm, call) {
 				default:
 					frm.doc.current_station === "Triage"
 						? "Consultation"
-						: frm.__ke_patient_now > 0
+						: frm.__ke_patient_now > 0 || frm.__ke_cash_to_bill
 							? "Cashier"
 							: undefined,
 			},
@@ -218,6 +224,19 @@ function sent_message(r) {
 }
 
 const money = (value, currency) => format_currency(value || 0, currency);
+// What a charge is, in the words the cashier uses.
+const CHARGE_KINDS = {
+	"Patient Visit": __("Consultation fee"),
+	"Patient Appointment": __("Consultation fee"),
+	"Patient Encounter": __("Consultation"),
+	"Service Request": __("Request"),
+	"Medication Request": __("Drug"),
+	"Lab Test": __("Lab test"),
+	Observation: __("Imaging exam"),
+	"Clinical Procedure": __("Procedure"),
+	"Inpatient Occupancy": __("Bed"),
+};
+const charge_kind = (dt) => CHARGE_KINDS[dt] || __(dt || "");
 
 // The running bill: unbilled charges at the prices the invoice will use, the
 // visit's invoices, and what is left to pay. Create Bill hands the cashier a
@@ -234,6 +253,8 @@ function render_bill(frm) {
 		const c = b.currency;
 		const esc = frappe.utils.escape_html;
 		frm.__ke_patient_now = b.patient_now;
+		// a cash patient with requests to bill is sent to the Cashier
+		frm.__ke_cash_to_bill = frm.doc.payment_method === "Cash" && b.charges.some((r) => !r.on_draft);
 		// lines already on a draft bill are shown with that bill, not here
 		const pending = b.charges.filter((r) => !r.on_draft);
 		let html = "";
@@ -246,7 +267,7 @@ function render_bill(frm) {
 				</tr></thead><tbody>
 				${pending
 					.map(
-						(r) => `<tr><td>${esc(r.item)}<div class="text-muted small">${esc(__(r.reference_dt || ""))}${
+						(r) => `<tr><td>${esc(r.item)}<div class="text-muted small">${esc(charge_kind(r.reference_dt))}${
 							b.split
 								? r.covered
 									? ` · ${__("Insurer's bill")}`
@@ -312,7 +333,8 @@ function render_bill(frm) {
 
 		if (frm.doc.status !== "Open") return;
 		if (b.can_bill && pending.length && (!b.split || b.patient_now > 0)) {
-			frm.add_custom_button(__("Create Bill"), () => make_bill(frm), __("Bill"));
+			const billable = b.split ? pending.filter((r) => !r.covered) : pending;
+			frm.add_custom_button(__("Create Bill"), () => bill_dialog(frm, billable, c), __("Bill"));
 		}
 		if (b.can_request) {
 			const drafts = b.invoices.filter((i) => !i.docstatus && !i.is_return).map((i) => i.name);
@@ -394,8 +416,76 @@ function request_approval(frm, type, invoices) {
 	);
 }
 
-function make_bill(frm) {
-	frappe.call({ method: "royce_health_ke.visit_bill.make_bill", args: { visit: frm.doc.name }, freeze: true }).then(
+// The billing desk: the charges not billed yet, all ticked; untick what the
+// patient isn't paying for now. Unticked charges stay to bill later, and an
+// unpaid request stays off its service point's worklist.
+function bill_dialog(frm, charges, currency) {
+	if (!charges.length) return make_bill(frm);
+	const esc = frappe.utils.escape_html;
+	const d = new frappe.ui.Dialog({
+		title: __("Bill {0}", [frm.doc.patient_name]),
+		size: "large",
+		fields: [{ fieldname: "lines", fieldtype: "HTML" }],
+		primary_action_label: __("Create Invoice"),
+		primary_action() {
+			const ticked = [];
+			d.$wrapper.find(".ke-bill-line:checked").each((i, el) => {
+				const r = charges[$(el).data("idx")];
+				ticked.push([r.reference_dt, r.reference_dn]);
+			});
+			if (!ticked.length) {
+				frappe.msgprint(__("Tick at least one charge to bill."));
+				return;
+			}
+			d.hide();
+			make_bill(frm, ticked.length === charges.length ? null : ticked);
+		},
+	});
+	d.fields_dict.lines.$wrapper.html(`
+		<table class="table table-sm table-bordered">
+			<thead><tr>
+				<th style="width:32px"><input type="checkbox" class="ke-bill-all" checked></th>
+				<th>${__("Requested")}</th><th class="text-right">${__("Qty")}</th>
+				<th class="text-right">${__("Amount")}</th>
+			</tr></thead>
+			<tbody>${charges
+				.map(
+					(r, i) => `<tr>
+					<td><input type="checkbox" class="ke-bill-line" data-idx="${i}" checked></td>
+					<td>${esc(r.item)}<div class="text-muted small">${esc(charge_kind(r.reference_dt))}</div></td>
+					<td class="text-right">${r.qty}</td>
+					<td class="text-right">${money(r.amount, currency)}</td></tr>`,
+				)
+				.join("")}
+			<tr><td></td><td colspan="2" class="text-right"><b>${__("Total to bill")}</b></td>
+				<td class="text-right"><b class="ke-bill-total"></b></td></tr>
+			</tbody>
+		</table>
+		<div class="text-muted small">${__(
+			"Untick what the patient is not paying for now: it stays on the visit to bill later, and the service point sees a request only once it is paid. Taxes are added on the invoice.",
+		)}</div>`);
+	const total = () => {
+		let sum = 0;
+		d.$wrapper.find(".ke-bill-line:checked").each((i, el) => (sum += flt(charges[$(el).data("idx")].amount)));
+		d.$wrapper.find(".ke-bill-total").text(format_currency(sum, currency));
+		const lines = d.$wrapper.find(".ke-bill-line");
+		d.$wrapper.find(".ke-bill-all").prop("checked", lines.length === lines.filter(":checked").length);
+	};
+	d.$wrapper.on("change", ".ke-bill-line", total);
+	d.$wrapper.on("change", ".ke-bill-all", (e) => {
+		d.$wrapper.find(".ke-bill-line").prop("checked", $(e.currentTarget).prop("checked"));
+		total();
+	});
+	total();
+	d.show();
+}
+
+function make_bill(frm, lines) {
+	frappe.call({
+		method: "royce_health_ke.visit_bill.make_bill",
+		args: { visit: frm.doc.name, lines: lines || null },
+		freeze: true,
+	}).then(
 		({ message }) => {
 			if (!message) return;
 			if (message.existing) {

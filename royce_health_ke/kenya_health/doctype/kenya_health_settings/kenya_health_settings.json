@@ -37,6 +37,7 @@
   "registration_section",
   "require_registration_details",
   "payment_section",
+  "pay_before_triage",
   "pay_before_lab",
   "pay_before_radiology",
   "payment_cb",
@@ -269,6 +270,13 @@
    "description": "For cash patients, and for what an insured patient's scheme doesn't cover. Insured patients (for covered items), inpatients and casualty are served first and pay later; a manager can also approve services before payment on a visit."
   },
   {
+   "fieldname": "pay_before_triage",
+   "fieldtype": "Check",
+   "label": "Consultation fee before triage",
+   "default": "1",
+   "description": "A cash outpatient checked in for a consultation goes to the Cashier first and joins the triage list once the consultation fee is paid."
+  },
+  {
    "fieldname": "pay_before_lab",
    "fieldtype": "Check",
    "label": "Laboratory",
@@ -420,7 +428,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-15 21:00:00.000000",
+ "modified": "2026-11-16 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

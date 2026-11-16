@@ -121,6 +121,13 @@ def before_insert_visit(doc):
 	if doc.payment_method == "Insurance" and not doc.insurance_policy and doc.member_number:
 		doc.insurance_policy = find_or_create_policy(doc)
 	station = FIRST_STATION.get(doc.visit_type, "Triage")
+	from royce_health_ke.visit_bill import needs_fee_first
+
+	if needs_fee_first(doc):
+		# Cash consultation: the fee is paid at the Cashier, then the patient joins the triage list.
+		doc.fee_first = 1
+		_move(doc, _("Reception"), "Cashier", note=_("Consultation fee before triage"))
+		return
 	_move(doc, _("Reception"), station)
 
 
@@ -222,6 +229,17 @@ def send_to(visit: str, station: str, practitioner: str | None = None, note: str
 		frappe.throw(_("Unknown station {0}.").format(station))
 	if station == doc.current_station and doc.queue_status == "Waiting":
 		frappe.throw(_("{0} is already waiting at {1}.").format(doc.patient_name, _(station)))
+	if station in ("Triage", "Consultation"):
+		from royce_health_ke.visit_bill import fee_due
+
+		if fee_due(doc):
+			frappe.throw(
+				_(
+					"{0} has not paid the consultation fee. Bill and take the fee at the Cashier first: "
+					"the patient then joins the triage list. A manager can allow services before payment."
+				).format(doc.patient_name),
+				title=_("Consultation fee first"),
+			)
 	if station == "Consultation":
 		return _send_to_consultation(doc, practitioner, note)
 	if practitioner:
@@ -369,6 +387,7 @@ def link_encounter(doc, method=None):
 				"payment_method",
 				"insurance_policy",
 				"appointment",
+				"fee_first",
 			],
 			as_dict=True,
 		)
@@ -387,6 +406,17 @@ def link_encounter(doc, method=None):
 		# An insured visit's orders are covered: Marley gives the consultation's
 		# service requests insurance cover (and the scheme's prices) from its
 		# policy.
+		# The fee paid at check-in (billed on the visit) is this consultation's:
+		# the visit's first consultation is not billed again.
+		if (
+			doc.is_new()
+			and visit.fee_first
+			and not visit.appointment
+			and not frappe.db.exists(
+				"Patient Encounter", {"ke_patient_visit": doc.ke_patient_visit, "docstatus": ["<", 2]}
+			)
+		):
+			doc.invoiced = 1
 		policy = visit.insurance_policy if visit.payment_method == "Insurance" else None
 		for field, value in (
 			("appointment_type", visit.appointment_type),

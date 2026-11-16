@@ -147,6 +147,7 @@ def default_settings():
 	for field, value in (
 		("track_record_access", 1),
 		("require_registration_details", 1),
+		("pay_before_triage", 1),
 		("pay_before_lab", 1),
 		("pay_before_radiology", 1),
 		("pay_before_pharmacy", 1),

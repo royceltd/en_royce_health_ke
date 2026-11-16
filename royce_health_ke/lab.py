@@ -197,6 +197,11 @@ def _lab_tests(requests, from_date, to_date, company=None, patient=None):
 	)
 
 
+def _awaiting_payment(line):
+	"""A cash request not paid yet: off the worklist until the Cashier takes payment."""
+	return line.stage == REQUESTED and _pay(line)[1]
+
+
 def _pay(line):
 	"""(status key, blocked): blocked = the lab may not collect yet."""
 	if line.get("request"):
@@ -322,8 +327,11 @@ def worklist(
 	if tab not in TABS:
 		frappe.throw(_("Unknown tab {0}.").format(tab))
 	from_date, to_date = _range(from_date, to_date)
-	groups = {}
+	groups, awaiting = {}, set()
 	for line in _lines(from_date, to_date, company):
+		if _awaiting_payment(line):
+			awaiting.add(line.key)
+			continue
 		g = groups.get(line.key)
 		if not g:
 			g = groups[line.key] = frappe._dict(
@@ -384,6 +392,8 @@ def worklist(
 	return {
 		"rows": rows,
 		"tab_counts": {t: sum(1 for g in groups.values() if not s or g.counts[s]) for t, s in TABS.items()},
+		# patients whose requested tests wait for payment at the Cashier (not listed)
+		"awaiting_payment": len(awaiting),
 	}
 
 
@@ -393,7 +403,11 @@ def order(key: str, from_date: str | None = None, to_date: str | None = None):
 	frappe.has_permission("Lab Test", "read", throw=True)
 	patient = _patient_of(key)
 	from_date, to_date = _range(from_date, to_date)
-	lines = [line for line in _lines(from_date, to_date, patient=patient) if line.key == key]
+	lines = [
+		line
+		for line in _lines(from_date, to_date, patient=patient)
+		if line.key == key and not _awaiting_payment(line)
+	]
 	out = []
 	for line in sorted(lines, key=lambda x: (STAGES.index(x.stage), x.test)):
 		row = {

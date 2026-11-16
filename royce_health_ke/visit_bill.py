@@ -27,8 +27,14 @@ from frappe.utils import flt, get_datetime, nowdate
 from royce_health_ke import coverage
 from royce_health_ke.visits import open_visit_for
 
-LAB, RADIOLOGY, PHARMACY = "lab", "radiology", "pharmacy"
-SETTING = {LAB: "pay_before_lab", RADIOLOGY: "pay_before_radiology", PHARMACY: "pay_before_pharmacy"}
+LAB, RADIOLOGY, PHARMACY, TRIAGE = "lab", "radiology", "pharmacy", "triage"
+SETTING = {
+	LAB: "pay_before_lab",
+	RADIOLOGY: "pay_before_radiology",
+	PHARMACY: "pay_before_pharmacy",
+	TRIAGE: "pay_before_triage",
+}
+FEE_VISIT_TYPES = ("Outpatient", "Review")
 CREDIT_ROLES = ("System Manager", "Healthcare Administrator", "Accounts Manager")
 INPATIENT_STATUSES = ("Admission Scheduled", "Admitted", "Discharge Scheduled")
 
@@ -87,6 +93,9 @@ def unbilled_lines(visit):
 	customer = frappe.db.get_value("Patient", visit.patient, "customer")
 	window = _window(visit)
 	lines = []
+	fee = visit_fee_line(visit)
+	if fee:
+		lines.append(fee)
 	with _as_administrator():
 		for s in get_healthcare_services_to_invoice(visit.patient, customer, visit.company) or []:
 			if not _belongs(visit, window, s["reference_type"], s["reference_name"]):
@@ -129,6 +138,101 @@ def unbilled_lines(visit):
 				)
 				lines.extend(coverage.drug_lines(line, cover))
 	return lines
+
+
+# The consultation fee before triage (Kenya Health Settings > Consultation fee
+# before triage). A walk-in's fee is billed on the visit itself, the way
+# Marley bills an appointment: from the doctor's consultation charge when the
+# doctor is already chosen, else from the Service Type's charge for the
+# department. The visit's first consultation is then not billed again
+# (visits.link_encounter). A booked appointment carries its own fee.
+
+
+def consultation_fee(visit):
+	"""(item, rate) of the visit's consultation fee; rate 0 when none is set."""
+	from healthcare.healthcare.utils import get_appointment_billing_item_and_rate
+
+	pseudo = frappe._dict(
+		doctype="Patient Appointment",
+		practitioner=visit.get("practitioner"),
+		appointment_type=visit.get("appointment_type"),
+		department=visit.get("department"),
+		service_unit=visit.get("consultation_room"),
+		inpatient_record=None,
+	)
+	try:
+		details = get_appointment_billing_item_and_rate(pseudo)
+	except frappe.ValidationError:
+		frappe.clear_last_message()
+		return None, 0
+	item, rate = details.get("service_item"), flt(details.get("practitioner_charge"))
+	if item and not rate:
+		rate = flt(frappe.db.get_value("Item Price", {"item_code": item, "selling": 1}, "price_list_rate"))
+	return item, rate
+
+
+def fee_reference(visit):
+	"""Where the consultation fee is billed: the booked appointment, or the visit."""
+	if visit.get("appointment"):
+		return "Patient Appointment", visit.appointment
+	return "Patient Visit", visit.name
+
+
+def visit_fee_line(visit):
+	if not visit.get("fee_first") or visit.get("appointment") or visit.get("invoiced"):
+		return None
+	item, rate = consultation_fee(visit)
+	if not item or not rate:
+		return None
+	return {
+		"dt": "Patient Visit",
+		"dn": visit.name,
+		"item": item,
+		"qty": 1,
+		"rate": rate,
+		"income_account": False,
+		"description": _("Consultation fee"),
+	}
+
+
+def needs_fee_first(visit):
+	"""A cash consultation pays its fee before triage."""
+	if (
+		visit.get("payment_method") != "Cash"
+		or visit.get("visit_type") not in FEE_VISIT_TYPES
+		or visit.get("allow_credit")
+		or not enforced(TRIAGE)
+	):
+		return False
+	if visit.get("appointment"):
+		return not is_paid("Patient Appointment", visit.appointment)
+	_item, rate = consultation_fee(visit)
+	return rate > 0
+
+
+def fee_due(visit):
+	"""The patient has a consultation fee to pay before triage or the doctor."""
+	return bool(
+		visit.get("fee_first")
+		and not visit.get("fee_paid")
+		and not visit.get("allow_credit")
+		and not is_paid(*fee_reference(visit))
+	)
+
+
+def _fee_paid(visit):
+	"""Once the fee is paid, the patient waiting at the Cashier joins the triage list."""
+	if not visit.get("fee_first") or visit.get("fee_paid") or not is_paid(*fee_reference(visit)):
+		return
+	from royce_health_ke.visits import FIRST_STATION, _move
+
+	visit.fee_paid = 1
+	if visit.status == "Open" and visit.current_station == "Cashier":
+		_move(
+			visit, "Cashier", FIRST_STATION.get(visit.visit_type, "Triage"), note=_("Consultation fee paid")
+		)
+	visit.flags.ignore_permissions = True
+	visit.save()
 
 
 def _invoice(visit, lines, bill_for=None):
@@ -290,6 +394,11 @@ def refresh_bill_status(visit_name):
 	visit = frappe.get_doc("Patient Visit", visit_name)
 	auto_bill(visit)
 	try:
+		_fee_paid(visit)
+	except Exception:
+		# Moving the patient on must never stop the payment.
+		frappe.log_error(title=f"Consultation fee of {visit_name}")
+	try:
 		status = bill_status(unbilled_lines(visit), invoices(visit_name))
 	except Exception:
 		# A bill status must never stop the lab, the pharmacy or the cashier.
@@ -414,8 +523,16 @@ def finalize_insured_bill(visit):
 
 
 @frappe.whitelist()
-def make_bill(visit: str):
-	"""A draft invoice of the visit's unbilled charges, for the cashier."""
+def make_bill(visit: str, lines: str | list | None = None):
+	"""A draft invoice of the visit's unbilled charges, for the cashier.
+	`lines`: the charges ticked, as [reference doctype, reference name] pairs
+	(all of them when not given). What isn't ticked stays to bill later, and
+	a request not paid stays off its service point's worklist."""
+	ticked = None
+	if lines is not None:
+		ticked = {tuple(x) for x in (frappe.parse_json(lines) if isinstance(lines, str) else lines)}
+		if not ticked:
+			frappe.throw(_("Tick at least one charge to bill."))
 	frappe.has_permission("Sales Invoice", "create", throw=True)
 	doc = frappe.get_doc("Patient Visit", visit)
 	doc.check_permission("read")
@@ -426,6 +543,8 @@ def make_bill(visit: str):
 	if not frappe.db.get_value("Patient", doc.patient, "customer"):
 		frappe.throw(_("Link a customer to patient {0} first.").format(doc.patient_name))
 	lines = unbilled_lines(doc)
+	if ticked is not None:
+		lines = [line for line in lines if (line["dt"], line["dn"]) in ticked]
 	if split:
 		# the covered charges are on the insurer's bill, submitted when the visit closes
 		lines = [line for line in lines if not _covered(line)]
@@ -599,6 +718,25 @@ def _request_gate(kind, request, what):
 			insured=insured,
 			uncovered=uncovered,
 		)
+
+
+def request_awaiting_payment(kind, request):
+	"""A service point's worklist leaves out a cash request not paid yet
+	(the patient is at the Cashier): it is listed once paid."""
+	if not enforced(kind):
+		return False
+	r = frappe.db.get_value(
+		"Service Request",
+		request,
+		["patient", "inpatient_record", "insurance_policy", "insurance_coverage"],
+		as_dict=True,
+	)
+	if not r:
+		return False
+	insured, _uncovered = _cover(r.insurance_policy, r.insurance_coverage)
+	if exemption(r.patient, visit_of_request(request), r.inpatient_record, insured):
+		return False
+	return not is_paid("Service Request", request)
 
 
 def lab_test_before_insert(doc, method=None):

@@ -41,6 +41,9 @@
   "insurance_remarks",
   "bill_section",
   "bill_status",
+  "fee_first",
+  "fee_paid",
+  "invoiced",
   "bill_cb",
   "allow_credit",
   "credit_reason",
@@ -327,6 +330,31 @@
    "description": "To Bill: charges not yet on an invoice. Unpaid: an invoice has a balance. Paid: everything billed is paid."
   },
   {
+   "fieldname": "fee_first",
+   "fieldtype": "Check",
+   "label": "Consultation Fee First",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "A cash consultation: the fee is paid at the Cashier before triage."
+  },
+  {
+   "fieldname": "fee_paid",
+   "fieldtype": "Check",
+   "label": "Consultation Fee Paid",
+   "read_only": 1,
+   "no_copy": 1,
+   "depends_on": "fee_first"
+  },
+  {
+   "fieldname": "invoiced",
+   "fieldtype": "Check",
+   "label": "Consultation Fee Invoiced",
+   "read_only": 1,
+   "no_copy": 1,
+   "hidden": 1,
+   "description": "Set by the invoice that bills the consultation fee on this visit."
+  },
+  {
    "fieldname": "bill_cb",
    "fieldtype": "Column Break"
   },
@@ -479,7 +507,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-16 10:00:00.000000",
+ "modified": "2026-11-16 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Patient Visit",

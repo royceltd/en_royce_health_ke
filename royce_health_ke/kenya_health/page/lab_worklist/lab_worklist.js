@@ -125,7 +125,19 @@ class LabWorklist {
 				const data = r.message || { rows: [], tab_counts: {} };
 				this.render_tabs(data.tab_counts);
 				this.render(data.rows);
+				this.render_awaiting(data.awaiting_payment || 0);
 			});
+	}
+
+	// Cash requests not paid yet are not listed: just how many wait at the Cashier.
+	render_awaiting(n) {
+		const $t = this.$body.find(".ke-lab-table");
+		$t.find(".ke-lab-awaiting").remove();
+		if (!n) return;
+		$(`<div class="ke-lab-awaiting text-muted small" style="margin-top:8px">${__(
+			"{0} more patient(s) have tests requested and are paying at the Cashier. They appear here once paid.",
+			[n],
+		)}</div>`).appendTo($t);
 	}
 
 	render(rows) {

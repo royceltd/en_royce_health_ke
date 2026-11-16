@@ -91,17 +91,20 @@ class TestLab(IntegrationTestCase):
 		key = f"visit:{visit.name}"
 		self.assertEqual(frappe.db.get_value("Service Request", request, "ke_patient_visit"), visit.name)
 
-		row = self.row("requests", key)
-		self.assertTrue(row, "the order is on the Requests tab, grouped by visit")
-		self.assertEqual((row.count, row.unpaid), (1, 1))
-		test = lab.order(key, today(), today())["tests"][0]
-		self.assertEqual((test["stage"], test["pay"], test["blocked"]), (lab.REQUESTED, "unpaid", True))
-
-		# Not paid: the sample isn't taken.
+		# Not paid: off the worklist (the patient is at the Cashier), and the sample isn't taken.
+		self.assertIsNone(self.row("requests", key))
+		self.assertGreaterEqual(
+			lab.worklist("requests", today(), today(), self.company)["awaiting_payment"], 1
+		)
 		result = lab.collect(requests=[request])
 		self.assertEqual((result["done"], len(result["refused"])), ([], 1))
 
 		visit_bill.approve_credit(visit.name, "Staff member")
+		row = self.row("requests", key)
+		self.assertTrue(row, "the order is on the Requests tab, grouped by visit")
+		self.assertEqual((row.count, row.unpaid), (1, 0))
+		test = lab.order(key, today(), today())["tests"][0]
+		self.assertEqual((test["stage"], test["pay"], test["blocked"]), (lab.REQUESTED, "approved", False))
 		result = lab.collect(requests=[request])
 		self.assertEqual(len(result["done"]), 1)
 		lab_test = frappe.get_doc("Lab Test", result["done"][0])
@@ -185,8 +188,11 @@ class TestLab(IntegrationTestCase):
 			(request.docstatus, request.practitioner, request.ke_patient_visit, request.source),
 			(1, self.practitioner, visit.name, "External Referral"),
 		)
+		# A cash walk-in waits off the worklist until paid at the Cashier.
+		self.assertIsNone(self.row("requests", made["key"]))
+		visit_bill.approve_credit(visit.name, "Paying at month end")
 		row = self.row("requests", made["key"])
-		self.assertEqual((row.priority, row.count, row.unpaid), ("Urgent", 1, 1))
+		self.assertEqual((row.priority, row.count, row.unpaid), ("Urgent", 1, 0))
 		# The cashier's bill for the visit picks the request up.
 		self.assertIn(request.name, [c["reference_dn"] for c in visit_bill.visit_bill(visit.name)["charges"]])
 
