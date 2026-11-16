@@ -15,10 +15,10 @@
   .pr-kv { width: 100%; border-collapse: collapse; }
   .pr-kv td { padding: 1px 0; vertical-align: top; }
   .pr-kv td.k { width: 30mm; color: #374151; }
-  .pr-items { width: 100%; border-collapse: collapse; }
+  .pr-items { width: 100%; border-collapse: collapse; table-layout: fixed; }
   .pr-items th { text-align: left; font-size: 7.5pt; border-bottom: 1px solid #111827; padding: 1px 0; }
-  .pr-items td { padding: 2px 0; vertical-align: top; }
-  .pr-items .n { text-align: right; white-space: nowrap; }
+  .pr-items td { padding: 2px 0; vertical-align: top; word-wrap: break-word; }
+  .pr-items .n { text-align: right; white-space: nowrap; padding-left: 3px; }
   .pr-total td { padding: 1px 0; }
   .pr-total td.k { text-align: right; padding-right: 6px; }
   .pr-total td.v { text-align: right; width: 24mm; white-space: nowrap; }
@@ -53,11 +53,12 @@
   </table>
   <div class="pr-rule"></div>
   <table class="pr-items">
+    <colgroup><col><col style="width:7mm"><col style="width:17mm"><col style="width:18mm"></colgroup>
     <tr><th>{{ _("Description") }}</th><th class="n">{{ _("Qty") }}</th><th class="n">{{ _("Unit Cost") }}</th><th class="n">{{ _("Amount") }}</th></tr>
     {%- for row in doc.items %}
     <tr>
       <td>{{ row.item_name or row.item_code }}</td>
-      <td class="n">{{ frappe.utils.fmt_money(row.qty, precision=0) if row.qty == row.qty|int else row.qty }}</td>
+      <td class="n">{{ row.qty|int if row.qty == row.qty|int else row.qty }}</td>
       <td class="n">{{ frappe.utils.fmt_money(row.rate, currency=None) }}</td>
       <td class="n">{{ frappe.utils.fmt_money(row.amount, currency=None) }}</td>
     </tr>

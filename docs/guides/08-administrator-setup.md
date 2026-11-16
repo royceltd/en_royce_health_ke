@@ -78,6 +78,26 @@ Demo record: Dr Amina Achieng, Medical Officer, KMPDC, licence expiring 26 May 2
 
 Demo prices: general consultation KES 1,500, haemoglobin KES 400, general ward bed KES 4,500 per night.
 
+### The consultation fee
+
+The consultation fee is an **item** (for example *General Consultation*), and its price comes from the **price list**, like every other service. Which item applies, the first that is set:
+
+| Order | Where | Example |
+| --- | --- | --- |
+| 1 | The doctor: Healthcare › Practitioner › Charges › *Out Patient Consulting Charge Item* and its amount | A consultant gynaecologist → *Specialist Consultation*, 1,000 |
+| 2 | The Service Type: Healthcare › Appointment Type › Billing, a row for the department (or one row for every department) | *Review* → *Review Consultation*; *Gynae clinic* → *Gynae Consultation* |
+| 3 | The hospital default: Kenya Health Settings › **Default Consultation Item** | *General Consultation* |
+
+What it costs:
+
+- the item's price on the patient's price list: the cash price list (*Standard Selling*) for a cash patient, the scheme's pricebook for an insured patient;
+- unless an amount is typed next to the item: a doctor's own item always has one (the form asks for it), and that amount is used. On a Service Type's row, leave the amount at 0 to use the price list;
+- a price of **0** means no fee: for example a free review within a week. Those patients don't stop at the Cashier.
+
+A hospital with one fee for everyone needs only the default item and its price, and leaves the doctors' consultation item empty. To change the fee, change the item's price once (Item Price), not each doctor. Add a clinic fee by giving the Service Type its own item, or a doctor's own fee by giving that doctor an item and amount.
+
+The same rule prices the fee before triage, the visit's bill, **Get Items From › Healthcare Services** on an invoice, and an insured patient's consultation cover. When a cash patient is checked in and no fee can be found, reception sees *No consultation fee* with what is missing, and the patient goes straight to triage. (Inpatient visit charges are set as before, on the doctor and in Healthcare Settings.)
+
 ![Item prices](images/admin/03-item-price.png)
 
 *Item Price on the Standard Selling price list.*
@@ -140,13 +160,22 @@ Demo record: GW Bed 03 in the General Ward, type General Ward Bed, warehouse GW 
 | Fetal heart rate alert limit | 110 (WHO) or 120 if your form says so |
 | Patient record access log | On |
 | Require full registration details | On |
-| Payment before service: laboratory, radiology, pharmacy | On (cash patients pay first; insured, inpatient and casualty are served first) |
+| Payment before service: consultation fee before triage | On (a cash outpatient pays the consultation fee at the Cashier, then joins the triage list) |
+| Default Consultation Item | *General Consultation*, priced on the cash price list (see Step 3) |
+| Payment before service: laboratory, radiology, pharmacy | On (cash patients pay first and their requests reach the worklists once paid; insured, inpatient and casualty are served first) |
 | Payment: waiver account | An expense account such as "Patient Waivers" (blank: the company's write-off account) |
 | Pharmacy: customer for walk-in counter sales | Blank (a customer named *Walk-in Customer* is made the first time) |
 | Laboratory: requesting doctor for walk-ins | The lab's medical officer in charge |
 | Laboratory: a second person validates results | Off (whoever entered the results validates them), until the lab wants a second check |
 
-Save the page once after installation, even if you change nothing, so every default is stored.
+Save the page once after installation, even if you change nothing, so every default is stored. Since v0.35.1 an update no longer switches back on a setting you turned off.
+
+**Forms laid out for the hospital** (set once at installation; Customize Form can change them afterwards, and an update leaves your changes alone):
+
+- **Patient:** one contact number (*Mobile*); *Phone* is hidden.
+- **Vital Signs:** height is entered in centimetres.
+- **Consultation:** tabs in the order *Patient, Observation, Requests, Results, Diagnosis, Prescription, Complete*; symptoms, appointment type and source are hidden (taken at reception).
+- **Sales Invoice payments:** *Reference No* (the M-Pesa or card code) is a column of the payments table.
 
 ![Kenya Health Settings](images/admin/08-kenya-health-settings.png)
 

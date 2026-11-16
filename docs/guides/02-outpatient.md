@@ -2,7 +2,7 @@
 
 How a walk-in patient moves through RoyceERP Health from registration to consultation, lab, payment and medicine, shown on the demo hospital at hospital.royceltd.com.
 
-Since v0.21 each arrival is also a **Patient Visit**: reception checks the patient in, stations pass them on through waiting lists, the visit shows its running bill, and cash patients pay before the lab, radiology and pharmacy serve them. That part is in the [Reception, queue and billing guide](12-reception-queue-billing.md); this guide covers the clinical records and invoices.
+Since v0.21 each arrival is also a **Patient Visit**: reception checks the patient in, stations pass them on through waiting lists, the visit shows its running bill, and cash patients pay before the lab, radiology and pharmacy serve them. Since v0.35 a cash outpatient also pays the consultation fee at the Cashier before triage, and since v0.36 the consultation is one record in tabs that stays open while the tests are done. That part is in the [Reception, queue and billing guide](12-reception-queue-billing.md); this guide covers the clinical records and invoices.
 
 ## At a glance
 
@@ -14,8 +14,8 @@ The highlighted steps are the two payments. Each step below says who does it, wh
 
 **Who:** reception. **Where:** Healthcare › Patient › *+ Add Patient*.
 
-1. Enter first, middle and last name, sex, date of birth and mobile number (saved as +254).
-2. Fill the Kenyan identifiers: ID type and number, SHA member number, county and sub-county.
+1. Enter first, middle and last name, sex, date of birth and **Mobile** number (saved as +254). The form has one contact number.
+2. Fill the Kenyan identifiers: ID type and number, SHA member number, county, then the sub-county (start typing and pick from the county's list).
 3. Add next of kin, blood group and allergies (write *No known drug allergies* if none).
 4. Save. A second patient with the same ID number is refused and the existing record is named, so returning patients are found rather than duplicated.
 
@@ -49,7 +49,7 @@ Demo record: HLC-APP-2026-00004, Dr Amina Achieng, OPD Room 1, 09:00.
 **Who:** triage nurse. **Where:** Outpatient › Vital Signs › *+ Add*, or **Create › Vital Signs** on the appointment.
 
 1. Choose the patient and link the appointment.
-2. Record temperature, pulse, respiratory rate, blood pressure, height and weight; BMI is worked out on the form.
+2. Record temperature, pulse, respiratory rate, blood pressure, height **in centimetres** and weight; BMI is worked out on the form.
 3. Add a triage note (for example *Priority. Febrile, alert.*) and submit. Readings out of range for the patient's age are flagged **Abnormal** and shown in red.
 
 The doctor sees these vitals when opening the consultation.
@@ -62,15 +62,26 @@ Demo record: HLC-VTS-2026-00005, temperature 38.6 °C, pulse 98.
 
 ## Step 4 — Consultation and lab orders
 
-**Who:** doctor. **Where:** Outpatient › Consultation › *+ Add*, or **Create › Consultation** on the appointment. (The system calls it *Consultation*; Marley's documentation says *Patient Encounter*, the same record.)
+**Who:** doctor. **Where:** on the visit, **Record › Consultation**; or Outpatient › Consultation › *+ Add*, or **Create › Consultation** on the appointment. (The system calls it *Consultation*; Marley's documentation says *Patient Encounter*, the same record.)
 
-1. Link the appointment; patient, doctor and department fill in from it.
-2. Under **Presenting Complaint**, write the **Chief Complaint** (in the patient's words, with how long), the **History of Presenting Illness**, **Review of Systems** and **Physical Examination**. Pick coded **Symptoms** as well if you use them for reports.
-3. **Medical History** shows the patient's allergies, current medication, past medical and surgical history, family and social history from the patient's record. Correct or add to them here: when you save, the patient's record is updated, and the patient shows a note naming this consultation. The next clinician starts from the updated history. To clear a line, write *None* rather than leaving it blank (a blank field is refilled from the record).
-4. In **Lab Prescription**, add the tests (for example malaria slide, Hb, WBC).
-5. Submit. Each test becomes an order that the cashier can bill and the lab can work on.
+The consultation has tabs in the order the doctor works: **Patient → Observation → Requests → Results → Diagnosis → Prescription → Complete**, then Marley's *Consultation Details* and *Notes*.
 
-If the diagnosis is already clear, add it and the drug prescription now and skip to Step 8.
+![The consultation tabs](images/outpatient/15-consultation-tabs.png)
+
+*The Observation tab: presenting complaint and examination, then the medical history.*
+
+1. **Patient:** the patient, doctor, department and insurance fill in from the visit or the appointment. Symptoms, appointment type and source are taken at reception and are not on the consultation.
+2. **Observation:** under **Presenting Complaint**, write the **Chief Complaint** (in the patient's words, with how long), the **History of Presenting Illness**, **Review of Systems** and **Physical Examination**.
+3. **Medical History** (same tab) shows the patient's allergies, current medication, past medical and surgical history, family and social history from the patient's record. Correct or add to them here: when you save, the patient's record is updated, and the patient shows a note naming this consultation. The next clinician starts from the updated history. To clear a line, write *None* rather than leaving it blank (a blank field is refilled from the record).
+4. For a woman, **Obstetric and Gynaecological History** has an **OBS/Gynae** box: LMP, gravida/para, contraception, menstrual and gynaecological history. It is not shown for male patients.
+5. **Requests:** add the lab tests (for example malaria slide, Hb, WBC), imaging exams and procedures, then press **Send Requests**. Each request goes on the visit's bill and to its service point, and **the consultation stays open** for the results.
+6. A box asks **Where does the patient go next?** For a cash patient whose requests aren't paid, the **Cashier** is suggested first (the requests reach the lab only once paid); otherwise the Laboratory or Radiology. Add a note if useful and **Send**, or choose *Stay with me* to keep the patient.
+
+![Where does the patient go next?](images/outpatient/16-next-station.png)
+
+*After Send Requests: the test is paid first, so the Cashier is suggested.*
+
+If the diagnosis is already clear, go straight to **Diagnosis** and **Prescription**, then **Complete Consultation** (Step 7).
 
 Demo record: consultation HLC-ENC-2026-00009 orders BS for MPS, Hb and WBC.
 
@@ -84,12 +95,18 @@ Demo record: consultation HLC-ENC-2026-00009 orders BS for MPS, Hb and WBC.
 
 ## Step 5 — Pay for consultation and tests
 
-**Who:** cashier. **Where:** Outpatient › Sales Invoice › *+ Add*.
+**Who:** cashier. **Where:** the patient's visit, **Bill** (Kenya Health › Patient Visit, Station = Cashier).
 
-1. On the patient's visit, **Bill › Create Bill**: the consultation and the ordered tests come in, linked to the visit. (Or, on a new invoice, choose the patient, then **Get Items From › Healthcare Services**.)
-2. Check the lines and submit.
-3. **Create › Payment**: M-Pesa with its transaction code, or cash.
-4. The invoice is sent to KRA eTIMS and comes back *Sent*, with a KRA receipt number and QR code on the receipt.
+A cash outpatient pays twice at the Cashier: the **consultation fee before triage** (on check-in, the patient waits at the Cashier first), then the **requests** after the doctor sends them. Insured patients don't stop at the Cashier. See the [Reception, queue and billing guide](12-reception-queue-billing.md), Steps 2 and 6.
+
+1. On the patient's visit, **Bill › Create Bill**: the charges not billed yet are listed and ticked (the fee, or the tests the doctor requested). Untick anything the patient is not paying for now; it stays on the visit. **Create Invoice** opens the invoice with the ticked lines, linked to the visit. (Or, on a new invoice, choose the patient, then **Get Items From › Healthcare Services**.)
+2. Take the payment on the invoice (**Include Payment**), or submit and use **Create › Payment**. For M-Pesa, card or bank, type the transaction code in **Reference No**: a non-cash payment without it is refused.
+3. The invoice is sent to KRA eTIMS and comes back *Sent*, with a KRA receipt number and QR code.
+4. Press **Patient Receipt** on the paid invoice and print it on the 80 mm receipt printer.
+
+![Patient Receipt](images/outpatient/18-patient-receipt.png)
+
+*The Patient Receipt for the receipt printer: patient details, the invoice, the M-Pesa code, items and totals.*
 
 | Bill ACC-SINV-2026-00008 | KES |
 | --- | --- |
@@ -158,16 +175,23 @@ Demo records: HLC-LAB-2026-00006 (malaria slide, positive), HLC-LAB-2026-00005 (
 
 ## Step 7 — Review results and prescribe
 
-**Who:** doctor. **Where:** a new encounter on the same appointment (Outpatient › Consultation).
+**Who:** doctor. **Where:** the same consultation, still open from Step 4 (from your waiting list or **My Patients**).
 
-1. Link the same appointment, so the review is not charged as a second consultation.
-2. Read the results in Kenya Health › Laboratory › **Results Inbox**: your patients' validated lab tests and reported imaging exams, newest first, marked *New* until you open them, with *Abnormal* on lab results outside their normal range. Untick *Unread only* to see the ones you have read; clear the *Consultant* box to see every consultant's. (The inbox opens on your own results when your login is set as the **User** on your Healthcare Practitioner record.) Then record the diagnosis.
+1. Open the **Results** tab. Each request shows where it has got to: *Awaiting payment at the Cashier*, *Waiting at the lab*, *Sample collected*, *Results entered, awaiting validation*, then **Validated** with each result, its unit and normal range; abnormal results are in red. Imaging shows its findings and impression once reported. **Mark Seen** records that you have read it (it also leaves your Results Inbox).
+
+   ![The Results tab](images/outpatient/17-results-tab.png)
+
+   *The Results tab: the white cell count is still awaiting payment at the Cashier.*
+2. You can also read results in Kenya Health › Laboratory › **Results Inbox**: your patients' validated lab tests and reported imaging exams, newest first, marked *New* until you open them, with *Abnormal* on lab results outside their normal range. Untick *Unread only* to see the ones you have read; clear the *Consultant* box to see every consultant's. (The inbox opens on your own results when your login is set as the **User** on your Healthcare Practitioner record.) Then record the diagnosis.
 
    ![Results Inbox](images/outpatient/14-results-inbox.png)
 
    *Dr Amina's Results Inbox: David's new results, his Hb marked Abnormal.*
-3. In **Drug Prescription**, add each drug with dosage, period and interval. The quantity to dispense is worked out from them: *4-0-4* for 3 days is 24 tablets, *1-1-1* for 3 days is 9.
-4. Submit. Each drug becomes a medication request for the cashier and pharmacy.
+3. **Diagnosis** tab: record the diagnosis.
+4. **Prescription** tab: in **Drug Prescription**, add each drug with dosage, period and interval. The quantity to dispense is worked out from them: *4-0-4* for 3 days is 24 tablets, *1-1-1* for 3 days is 9. If the pharmacy sent a drug back, an orange note at the top of the consultation and a box on this tab show the drug and the pharmacist's note.
+5. **Complete** tab: review notes and, if needed, **Referral** (*Referred to Another Facility* and where). Press **Complete Consultation** (on the tab, or the button at the top) and confirm. The consultation is submitted: each drug becomes a medication request for the pharmacy, and any request not sent yet is placed. The **Where does the patient go next?** box suggests **Pharmacy** when drugs are prescribed, or *Finish visit (patient goes home)*.
+
+(Without **Send Requests** the older way still works: submit the first consultation with the tests, and record the review in a new consultation linked to the same appointment, so it is not charged twice.)
 
 Demo record: review HLC-ENC-2026-00010: uncomplicated malaria; artemether-lumefantrine 4 tablets twice daily for 3 days, paracetamol 500 mg three times daily for 3 days.
 
@@ -185,7 +209,7 @@ A dosage's quantity comes from the tablets per dose set in Setup › Prescriptio
 2. **Bill Drugs** puts the drugs on the patient's bill. The patient pays at the Cashier (the visit's bill, M-Pesa or cash); the bill is signed by KRA eTIMS.
 3. Back at the pharmacy the drugs now show *Paid*. Tick them and press **Dispense**: the drugs leave the store and the medicine labels print.
 
-If a drug is out of stock, dispense what there is (the rest waits), let the patient **Buy Outside**, or **Send Back to Doctor** for a substitute. Details: [Pharmacy and stock](06-pharmacy-and-stock.md), Step 4.
+If a drug is out of stock, dispense what there is (the rest waits), let the patient **Buy Outside**, or **Send Back to Doctor** for a substitute. The pharmacist can't swap the medicine: a bill or dispensing record with a different drug from the one prescribed is refused, for everyone. Details: [Pharmacy and stock](06-pharmacy-and-stock.md), Step 4.
 
 The cashier can still bill the drugs with **Update Stock** ticked and take the payment on the spot (the older way); the worklist then shows them as dispensed.
 

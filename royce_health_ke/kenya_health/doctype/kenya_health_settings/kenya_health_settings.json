@@ -42,6 +42,7 @@
   "pay_before_radiology",
   "payment_cb",
   "pay_before_pharmacy",
+  "default_consultation_item",
   "auto_bill_insured",
   "insured_pay_uncovered",
   "waiver_account",
@@ -302,6 +303,13 @@
    "description": "Drugs leave the store only on a paid invoice: take payment on the invoice, or dispense with a Delivery Note once it is paid."
   },
   {
+   "fieldname": "default_consultation_item",
+   "fieldtype": "Link",
+   "options": "Item",
+   "label": "Default Consultation Item",
+   "description": "The consultation fee when neither the doctor nor the Service Type names one (e.g. General Consultation). Its price comes from the patient's price list: the cash price list, or the scheme's pricebook. A price of 0 means no fee."
+  },
+  {
    "fieldname": "cashier_section",
    "fieldtype": "Section Break",
    "label": "Cashiers",
@@ -428,7 +436,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-16 12:00:00.000000",
+ "modified": "2026-11-16 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

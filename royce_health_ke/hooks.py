@@ -380,6 +380,16 @@ app_include_js = "/assets/royce_health_ke/js/desk.js"
 # Overriding Methods
 # ------------------------------
 #
+# Marley's consultation pricing, with the hospital's fee rule (fees.py)
+override_whitelisted_methods = {
+	"healthcare.healthcare.utils.get_healthcare_services_to_invoice": (
+		"royce_health_ke.fees.get_healthcare_services_to_invoice"
+	),
+	"healthcare.healthcare.utils.get_appointment_billing_item_and_rate": (
+		"royce_health_ke.fees.get_appointment_billing_item_and_rate"
+	),
+}
+
 # override_whitelisted_methods = {
 # 	"frappe.desk.doctype.event.event.get_events": "royce_health_ke.event.get_events"
 # }

@@ -122,6 +122,8 @@ Open a row to see each drug with the doctor's instructions, the quantity prescri
 
 A drug already on a bill can't be bought outside or sent back: the Cashier takes it off the bill first.
 
+**No substitution without the doctor.** The drug the doctor prescribed is the drug billed and dispensed. Changing it to another medicine on the bill (Sales Invoice) or on a Delivery Note is refused, for everyone: *"… was prescribed by Dr …, not …. A prescribed medicine is not changed on the bill or at dispensing … use Send back to the doctor"*. To give something else (out of stock, allergy, cheaper alternative), use **Send Back to Doctor**: the doctor sees your note at the top of the consultation and on its **Prescription** tab, and prescribes the substitute. Counter sales have no prescription and are not affected.
+
 ![Pharmacy Worklist](images/pharmacy/10-pharmacy-worklist.png)
 
 *The Pharmacy Worklist for today: prescriptions waiting (paid or not), one drug sent back and one bought outside, and two counter sales.*

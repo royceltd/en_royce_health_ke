@@ -7,12 +7,12 @@ How a patient is registered, checked in, sent from station to station, billed as
 | Step | Who | What happens |
 | --- | --- | --- |
 | 1. Register | Reception | Full details are required; phone and ID numbers are hidden from other staff |
-| 2. Check in | Reception | A **Patient Visit** opens, cash or insurance, and the patient joins the first waiting list |
+| 2. Check in | Reception | A **Patient Visit** opens, cash or insurance. A cash outpatient goes to the **Cashier** first for the consultation fee, then to triage |
 | 3. Waiting lists | Every station | Each station sees who is waiting and for how long, marks them **Seen** and sends them on |
-| 4. Triage | Nurse | Vital signs are flagged **Normal** or **Abnormal** |
-| 5. Consultation | Doctor | The consultation takes the doctor and service type from the visit |
-| 6. Bill and pay | Cashier | The visit's bill shows what is not billed yet; **Create Bill** makes the invoice |
-| 7. Lab and radiology | Lab, radiographer | A cash patient's test or exam starts once it is paid |
+| 4. Triage | Nurse | Vital signs (height in cm) are flagged **Normal** or **Abnormal** |
+| 5. Consultation | Doctor | Tabs in order: Observation, Requests, Results, Diagnosis, Prescription, Complete. **Send Requests** sends tests to the bill and the lab while the consultation stays open |
+| 6. Bill and pay | Cashier | The visit's bill shows what is not billed yet; **Create Bill** lists the charges to tick and makes the invoice; the **Patient Receipt** prints on the receipt printer |
+| 7. Lab and radiology | Lab, radiographer | A cash patient's test or exam reaches the worklist once it is paid |
 | 8. Pharmacy | Pharmacist | Drugs leave the store once paid |
 | 9. Close | Any station | **Complete Visit** takes the patient off every list |
 
@@ -26,11 +26,15 @@ A new patient can't be saved without:
 
 - sex and date of birth
 - an ID type and number (national ID, passport, birth certificate…). A child under 18 may be registered with ID type *None*
-- a mobile number. For a child, the next of kin's phone is enough
+- a mobile number (the form has one contact number, **Mobile**). For a child, the next of kin's phone is enough
 - nationality, and the county for Kenyans
 - residence (estate, town or village), picked from the list
 
 The form marks these fields as required. Emergency patients registered as *unidentified* (ER- numbers) and newborns registered from a delivery are exempt. An older patient with missing details still saves, with a reminder to complete them.
+
+**Sub-county:** once the county is chosen, start typing in **Sub-county** and pick from that county's sub-counties (constituencies).
+
+Green "saved" and "done" messages close by themselves after 5 seconds; warnings and errors stay until you close them.
 
 **Residence list:** choose the patient's estate, town or village from the list; its county and sub-county fill in. With a county chosen first, the list shows that county's places. A place that isn't listed yet: type it and choose **Create a new Residence**, give its type (estate, town or village), and save. The list lives in Kenya Health › Residence, where an administrator can fix spellings and merge duplicates (rename one onto the other, ticking *Merge*). The report **Patients by Residence** shows, for any period, how many patients each place sent and how many were registered, busiest first, so you can see where to strengthen marketing. Importing patients? Import the Residence list first: a patient with a residence that isn't on the list is refused.
 
@@ -49,9 +53,12 @@ The form marks these fields as required. Emergency patients registered as *unide
 3. Tick **Referred In** and name the facility if the patient brought a referral.
 4. **Payment Method:** *Cash*, or *Insurance*:
    - Choose the **Payer** and **Scheme**. If the patient already has a policy with that payer it fills in by itself, with the member number.
+   - Type the **Member / Policy No.** (it is typed, not picked from a list). If the patient already has a policy with that payer, the member number and **Cover Valid Until** fill in; typing a later *Cover Valid Until* renews the policy when you save.
    - For a new member, type the **Member / Policy No.** and **Cover Valid Until**, the relation to the principal member (and the principal's name and number for a dependant), the **Limit** and the **Authorisation Code**. The policy is created when you save.
    - Expired cover is refused: renew it, or check the patient in as cash.
 5. Save. The patient is now waiting at the first station.
+
+**Consultation fee before triage** (Kenya Health Settings › Payment Before Service › *Consultation fee before triage*, on by default): a **cash** patient checked in as *Outpatient* or *Review* waits at the **Cashier** first, and the top of the visit says the fee is to be paid. The fee is the doctor's consultation item, else the Service Type's, else the hospital's default consultation item, priced from the cash price list (see the [Administrator setup guide](08-administrator-setup.md), Step 3). If no fee is set up, reception sees *No consultation fee* when saving, and the patient goes straight to triage. Once it is paid the patient moves to the **Triage** list by themselves. Until then **Send To** › *Triage* or *Consultation* is refused. The consultation is not billed again later. Insured patients, *Casualty* and the *Lab / Radiology / Pharmacy only* visits go straight to their first station, and a manager can let a patient through (Step 9). A fee priced at 0 (for example a free review) is not asked.
 
 A patient can have one open visit a day. Checking them in twice names the visit that is already open.
 
@@ -89,7 +96,7 @@ Every move is kept under **Movements**, with who sent the patient, when, and whe
 
 **Who:** triage nurse. **Where:** on the visit, **Record › Vital Signs**.
 
-1. Record temperature, pulse, respiratory rate, blood pressure, **SpO2**, height and weight. BMI is worked out.
+1. Record temperature, pulse, respiratory rate, blood pressure, **SpO2**, **height in centimetres** (for example 165) and weight. BMI is worked out. Heights below 20 or above 250 cm are refused, as they are usually metres typed by mistake.
 2. Save. The record is flagged **Normal** or **Abnormal**. Abnormal readings turn red, and the top of the form lists them, for example *Temperature 38.7 °C (high)*.
 3. Send the patient to Consultation.
 
@@ -107,7 +114,15 @@ Demo record: *Lucy Wairimu Ndung'u*, visit VIS-2026-00001, vital signs **HLC-VTS
 
 **Who:** doctor. **Where:** on the visit, **Record › Consultation**.
 
-The consultation opens with the patient, doctor, department and service type from the visit, and opening it marks the patient seen at Consultation. Write the chief complaint, history and examination, and check the patient's medical history shown on the form: changes there are saved to the patient's record (see the [Outpatient guide](02-outpatient.md), Step 4). Order lab tests, imaging and drugs as usual (see the [Outpatient guide](02-outpatient.md), Steps 4 and 7), then **Send To** the Cashier.
+The consultation opens with the patient, doctor, department and service type from the visit, and opening it marks the patient seen at Consultation. Symptoms, appointment type and source are taken at reception and are not on the consultation.
+
+The consultation has tabs, in the order the doctor works: **Patient**, **Observation**, **Requests**, **Results**, **Diagnosis**, **Prescription**, **Complete** (details in the [Outpatient guide](02-outpatient.md), Steps 4 and 7):
+
+1. **Observation:** chief complaint, history and examination, the patient's medical history (saved back to the patient) and, for women, **OBS/Gynae**.
+2. **Requests:** lab tests, imaging and procedures, then **Send Requests**. They go on the bill and to the lab or radiology, and the consultation stays open. A box asks **Where does the patient go next?**: the **Cashier** is suggested while the requests are unpaid.
+3. **Results:** each request with its progress (*Awaiting payment at the Cashier*, *Waiting at the lab*, *Sample collected*…) and, once validated, the results.
+4. **Diagnosis**, then **Prescription**.
+5. **Complete:** **Complete Consultation** submits the consultation and suggests where the patient goes: Pharmacy when drugs are prescribed, a service point, the Cashier for unpaid requests, or *Finish visit*.
 
 ## Step 6 — The visit's bill, and the cashier
 
@@ -131,10 +146,11 @@ Demo record: *Joseph Kamau Njoroge*, **VIS-2026-00002**, a review with a white c
 
 To bill:
 
-1. On the visit, **Bill › Create Bill**. A draft invoice opens with the unbilled lines, linked to the visit.
-2. Check the lines and submit. The invoice is signed by KRA eTIMS as usual.
-3. **Create › Payment**: M-Pesa with its code, or cash.
-4. Send the patient on to the lab, radiology or pharmacy.
+1. On the visit, **Bill › Create Bill**. A box lists the charges not billed yet (the consultation fee, each test, exam or drug, with what kind of charge it is), all ticked, with the total. Untick what the patient is not paying for now: the total goes down, and unticked charges stay on the visit for later. **Create Invoice** opens the invoice with the ticked lines, linked to the visit.
+2. Take the payment on the invoice (**Include Payment**: the mode of payment and amount), or submit and use **Create › Payment**. The invoice is signed by KRA eTIMS as usual.
+3. **M-Pesa, card or bank:** type the transaction code (for example the M-Pesa code *UKF8I2ECFD*) in **Reference No**: it is a column of the invoice's payments table, and a field on the Payment Entry. A non-cash payment without the code is refused. Cash needs no code.
+4. On the paid invoice, press **Patient Receipt**: the receipt opens for the 80 mm receipt printer (choose the receipt printer, paper 80 mm, margins *None*). It shows the hospital, the patient's name, number, date of birth, gender and phone, the invoice, the payment mode with the M-Pesa code, the items, discount, amount tendered and change, and who served.
+5. Send the patient on to the lab, radiology or pharmacy. Paid requests now appear on their worklist.
 
 **Only the cashier takes money** when *Only cashiers take payments* is on (Kenya Health Settings › Cashiers): other service points can create the bill but don't see **Create › Payment** or *Include Payment*, and a payment they try anyway is refused. With shifts on, the cashier opens their **Cashier Shift** at the start of the day and closes it with the count (see the [Cashier Day-End guide](07-cashier-day-end.md)).
 
@@ -158,6 +174,7 @@ Demo record: Joseph's bill **ACC-SINV-2026-00016** (consultation 1,500 and white
 
 For a cash patient:
 
+- **The worklists show a cash patient's requests only once paid.** The Lab and Radiology worklists leave out unpaid requests, with a line below the list, for example *"1 more patient(s) have tests requested and are paying at the Cashier. They appear here once paid."* The request appears as soon as the invoice is paid. The doctor sees *Awaiting payment at the Cashier* on the consultation's **Results** tab.
 - **Lab:** a test is started from the doctor's order only once the order is on an invoice that is fully paid. Before that the system refuses with *Payment required … Send the patient to the Cashier*. A test entered without an order can be worked on, but its results are released only once paid.
 - **Radiology:** an exam can't be marked **Performed** until it is paid.
 
@@ -186,7 +203,7 @@ The same exemptions apply as for the lab. Drugs for an insured patient are cover
 
 **Who:** Healthcare Administrator or Accounts Manager. **Where:** on the visit, **Bill › Allow Services Before Payment**.
 
-For a patient who will pay later (a staff member, a waiver, a family that is raising the money), give the reason and confirm. The lab, radiology and pharmacy then serve the visit before payment. The reason and who approved it show at the top of the visit, and in the Bill column as *(credit approved)*.
+For a patient who will pay later (a staff member, a waiver, a family that is raising the money), give the reason and confirm. Triage, the lab, radiology and pharmacy then serve the visit before payment. The reason and who approved it show at the top of the visit, and in the Bill column as *(credit approved)*.
 
 ## Step 9a — Discounts, waivers and pay-later: ask a manager
 
@@ -219,12 +236,14 @@ The patient leaves every waiting list. **Status › Cancel Visit** (with a reaso
 | Section | Setting | Default |
 | --- | --- | --- |
 | Patient Registration | Require full registration details | On |
-| Payment Before Service | Laboratory | On |
+| Payment Before Service | Consultation fee before triage | On |
+| | Default Consultation Item | The general consultation item |
+| | Laboratory | On |
 | | Radiology | On |
 | | Pharmacy | On |
 | | Waiver Account | The company's write-off account; set your own (for example "Patient Waivers") |
 
-Each consulting doctor needs a **consultation charge** (Healthcare › Practitioner › Charges). Without it the visit's bill can't price the consultation and says so.
+Set the **Default Consultation Item** and its price on the cash price list; give a doctor or a Service Type its own item only where the fee differs. Without any consultation item there is no fee to take before triage, and the visit's bill says the consultation can't be priced.
 
 Give reception staff the **Receptionist** role: it registers patients, checks them in, records insurance policies and appointments, and sees phone and ID numbers. See the [Administrator setup guide](08-administrator-setup.md).
 

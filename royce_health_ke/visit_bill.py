@@ -96,7 +96,9 @@ def unbilled_lines(visit):
 	fee = visit_fee_line(visit)
 	if fee:
 		lines.append(fee)
-	with _as_administrator():
+	from royce_health_ke.fees import marley_rule
+
+	with _as_administrator(), marley_rule():
 		for s in get_healthcare_services_to_invoice(visit.patient, customer, visit.company) or []:
 			if not _belongs(visit, window, s["reference_type"], s["reference_name"]):
 				continue
@@ -149,26 +151,21 @@ def unbilled_lines(visit):
 
 
 def consultation_fee(visit):
-	"""(item, rate) of the visit's consultation fee; rate 0 when none is set."""
-	from healthcare.healthcare.utils import get_appointment_billing_item_and_rate
+	"""(item, rate) of the visit's consultation fee; rate 0 when none is set
+	(the hospital's fee rule: royce_health_ke.fees)."""
+	from royce_health_ke import fees
 
-	pseudo = frappe._dict(
-		doctype="Patient Appointment",
-		practitioner=visit.get("practitioner"),
-		appointment_type=visit.get("appointment_type"),
-		department=visit.get("department"),
-		service_unit=visit.get("consultation_room"),
-		inpatient_record=None,
+	return fees.consultation_fee(
+		frappe._dict(
+			practitioner=visit.get("practitioner"),
+			appointment_type=visit.get("appointment_type"),
+			department=visit.get("department"),
+			service_unit=visit.get("consultation_room"),
+			company=visit.get("company"),
+			payment_method=visit.get("payment_method"),
+			insurance_policy=visit.get("insurance_policy"),
+		)
 	)
-	try:
-		details = get_appointment_billing_item_and_rate(pseudo)
-	except frappe.ValidationError:
-		frappe.clear_last_message()
-		return None, 0
-	item, rate = details.get("service_item"), flt(details.get("practitioner_charge"))
-	if item and not rate:
-		rate = flt(frappe.db.get_value("Item Price", {"item_code": item, "selling": 1}, "price_list_rate"))
-	return item, rate
 
 
 def fee_reference(visit):

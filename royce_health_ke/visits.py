@@ -128,7 +128,40 @@ def before_insert_visit(doc):
 		doc.fee_first = 1
 		_move(doc, _("Reception"), "Cashier", note=_("Consultation fee before triage"))
 		return
+	_warn_no_fee(doc)
 	_move(doc, _("Reception"), station)
+
+
+def _warn_no_fee(doc):
+	"""A cash consultation that should pay first but has no fee set up: say
+	why, instead of sending the patient on without a word."""
+	from royce_health_ke import fees
+	from royce_health_ke.visit_bill import FEE_VISIT_TYPES, TRIAGE, enforced
+
+	if (
+		doc.get("payment_method") != "Cash"
+		or doc.get("visit_type") not in FEE_VISIT_TYPES
+		or doc.get("appointment")
+		or doc.get("allow_credit")
+		or not enforced(TRIAGE)
+	):
+		return
+	reason = fees.explain(
+		frappe._dict(
+			practitioner=doc.get("practitioner"),
+			appointment_type=doc.get("appointment_type"),
+			department=doc.get("department"),
+			company=doc.get("company"),
+		)
+	)
+	if reason:
+		frappe.msgprint(
+			reason
+			+ " "
+			+ _("The patient goes straight to triage, without paying the consultation fee first."),
+			title=_("No consultation fee"),
+			indicator="orange",
+		)
 
 
 def after_insert_visit(doc):

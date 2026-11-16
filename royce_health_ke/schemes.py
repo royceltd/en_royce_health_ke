@@ -68,7 +68,8 @@ def cover_consultation(doc, method=None):
 	from healthcare.healthcare.doctype.patient_insurance_coverage.patient_insurance_coverage import (
 		make_insurance_coverage,
 	)
-	from healthcare.healthcare.utils import get_appointment_billing_item_and_rate
+
+	from royce_health_ke import fees
 
 	if not doc.get("insurance_policy") or doc.get("insurance_coverage") or doc.get("appointment"):
 		return
@@ -77,7 +78,11 @@ def cover_consultation(doc, method=None):
 	):
 		return
 	try:
-		billing = get_appointment_billing_item_and_rate(doc)
+		billing = fees.billing_item_and_rate(doc)
+		if not billing.get("practitioner_charge"):
+			billing["practitioner_charge"] = fees.price(
+				billing.get("service_item"), doc.company, doc.insurance_policy
+			)
 		cover = make_insurance_coverage(
 			patient=doc.patient,
 			policy=doc.insurance_policy,
