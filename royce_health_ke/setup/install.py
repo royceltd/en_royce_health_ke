@@ -154,5 +154,9 @@ def default_settings():
 		("auto_bill_insured", 1),
 		("clinical_alerts", 1),
 	):
-		if not frappe.db.exists("Singles", {"doctype": "Kenya Health Settings", "field": field}):
+		# tabSingles directly: frappe.db.exists("Singles", ...) always says no, which
+		# reset these switches on every migrate (fixed in v0.35.1)
+		if not frappe.db.sql(
+			"select 1 from `tabSingles` where doctype = 'Kenya Health Settings' and field = %s", field
+		):
 			frappe.db.set_single_value("Kenya Health Settings", field, value)

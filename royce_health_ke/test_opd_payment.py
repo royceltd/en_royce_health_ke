@@ -163,3 +163,20 @@ class TestOutpatientPayment(IntegrationTestCase):
 		visit = self.check_in()
 		with self.assertRaises(frappe.ValidationError):
 			visit_bill.make_bill(visit.name, [])
+
+
+class TestSettingsKeptOnUpdate(IntegrationTestCase):
+	def test_migrate_keeps_a_switch_turned_off(self):
+		from royce_health_ke.setup.install import default_settings
+
+		frappe.db.set_single_value("Kenya Health Settings", "clinical_alerts", 0)
+		frappe.db.set_single_value("Kenya Health Settings", "pay_before_triage", 0)
+		default_settings()
+		self.assertEqual(frappe.db.get_single_value("Kenya Health Settings", "clinical_alerts"), 0)
+		self.assertEqual(frappe.db.get_single_value("Kenya Health Settings", "pay_before_triage"), 0)
+		# a field never saved gets its default
+		frappe.db.sql(
+			"delete from `tabSingles` where doctype = 'Kenya Health Settings' and field = 'pay_before_triage'"
+		)
+		default_settings()
+		self.assertEqual(frappe.db.get_single_value("Kenya Health Settings", "pay_before_triage"), 1)
