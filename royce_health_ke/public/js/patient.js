@@ -48,16 +48,58 @@ frappe.ui.form.on("Patient", {
 				}
 			});
 	},
+	dob(frm) {
+		ke_contact_required(frm);
+	},
+	ke_nationality(frm) {
+		ke_contact_required(frm);
+	},
 	refresh(frm) {
 		if (frappe.boot.ke_require_registration && frm.is_new()) {
 			for (const f of KE_REQUIRED) frm.toggle_reqd(f, true);
 		}
+		ke_contact_required(frm);
 		if (frm.is_new()) return;
+		// Today's open visit: close it from the patient's record (visit_close.py)
+		frappe.db
+			.get_list("Patient Visit", {
+				filters: { patient: frm.doc.name, status: "Open" },
+				fields: ["name"],
+				order_by: "creation desc",
+				limit: 1,
+			})
+			.then((rows) => {
+				if (!rows.length || !frappe.model.can_write("Patient Visit")) return;
+				frm.add_custom_button(__("Close Visit"), () =>
+					royce_health_ke.close_visit(rows[0].name, () => frm.reload_doc())
+				);
+			});
 		if (frappe.model.can_create("Patient Visit")) {
 			frm.add_custom_button(
 				__("Check In (New Visit)"),
 				() => frappe.new_doc("Patient Visit", { patient: frm.doc.name }),
 				__("Create")
+			);
+		}
+		// The patient file: the whole record, clinicians only (printing.patient_file)
+		if (
+			frappe.user.has_role([
+				"Physician",
+				"Nursing User",
+				"Healthcare Administrator",
+				"System Manager",
+			])
+		) {
+			frm.add_custom_button(
+				__("Patient File"),
+				() =>
+					window.open(
+						`/printview?doctype=Patient&name=${encodeURIComponent(
+							frm.doc.name
+						)}&format=Patient%20File`,
+						"_blank"
+					),
+				__("View")
 			);
 		}
 		if (frappe.model.can_read("Patient Record Access")) {
@@ -332,6 +374,20 @@ function growth_svg(data) {
 	)}</h5>${svg}<p class="text-muted small">${__(
 		"WHO Child Growth Standards. Green: median; orange: -2 / +2 SD; red: -3 / +3 SD."
 	)}</p>${table}`;
+}
+
+// The contact number the server requires (identity.missing_registration_details),
+// marked with an asterisk: an adult's own mobile; for a child under 18, the
+// next of kin's phone (IT demo, 18 Nov 2026). County too for Kenyans.
+function ke_contact_required(frm) {
+	// new registrations only: an older record missing them is only warned about (as on the server)
+	if (!frappe.boot.ke_require_registration || !frm.is_new()) return;
+	const age = frm.doc.dob ? moment().diff(moment(frm.doc.dob), "years") : null;
+	const child = age !== null && age < 18;
+	frm.toggle_reqd("mobile", !child);
+	if (frm.fields_dict.ke_nok_phone) frm.toggle_reqd("ke_nok_phone", child && !frm.doc.mobile);
+	if (frm.fields_dict.ke_county)
+		frm.toggle_reqd("ke_county", frm.doc.ke_nationality === "Kenya");
 }
 
 // The chosen county's sub-counties, offered as suggestions in the Sub-County

@@ -58,6 +58,9 @@
   "consultation_section",
   "observation_before_requests",
   "vitals_send_to_doctor",
+  "save_sends_requests",
+  "diagnosis_required",
+  "auto_close_visits",
   "consultation_cb",
   "obs_need_complaint",
   "obs_need_hpi",
@@ -423,6 +426,27 @@
    "description": "The patient is marked seen at Triage when the vital signs are first saved, and goes to the doctor's queue (the visit's doctor, else the next on duty) when they are submitted. The payment rules still apply."
   },
   {
+   "fieldname": "save_sends_requests",
+   "fieldtype": "Check",
+   "default": "1",
+   "label": "Saving the consultation sends its requests",
+   "description": "New lab, imaging and procedure requests and prescriptions are sent when the doctor saves: cash ones go on the visit's draft bill, insured ones straight to their service point. Deleting the row of a request not started cancels it."
+  },
+  {
+   "fieldname": "diagnosis_required",
+   "fieldtype": "Check",
+   "default": "1",
+   "label": "Diagnosis before prescribing and completing",
+   "description": "A diagnosis (a provisional one will do) is entered before medicines are prescribed and before the consultation is completed. Lab and imaging can come first. Not for casualty visits or inpatients. A consultation is completed only once its lab and imaging results are in."
+  },
+  {
+   "fieldname": "auto_close_visits",
+   "fieldtype": "Check",
+   "default": "1",
+   "label": "Close visits automatically when finished",
+   "description": "A visit closes by itself once every consultation is completed, every lab and imaging result is in, every medicine is dispensed (or bought outside) and the patient owes nothing. Complete Visit is refused while anything is open; a Healthcare Administrator can close it anyway with a reason."
+  },
+  {
    "fieldname": "consultation_cb",
    "fieldtype": "Column Break"
   },
@@ -538,7 +562,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-17 23:34:41.453282",
+ "modified": "2026-11-18 02:00:25.477014",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

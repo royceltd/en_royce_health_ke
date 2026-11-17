@@ -153,8 +153,11 @@ class IntegrationTestAssign(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True)
 		self.assertEqual(assign.on_duty(self.company, facility(empty.name), self.department), [])
-		with self.assertRaisesRegex(frappe.ValidationError, "Choose the doctor"):
-			self.send(self.visit(facility=facility(empty.name)))
+		# nobody on duty: the Doctor's Queue without a doctor (any doctor takes the patient)
+		v = self.send(self.visit(facility=facility(empty.name)))
+		self.assertEqual(
+			(v.current_station, v.queue_status, v.practitioner), ("Consultation", "Waiting", None)
+		)
 
 		on_duty = {c.practitioner for c in assign.on_duty(self.company, facility(parent), self.department)}
 		self.assertIn(self.doctors[0], on_duty)  # its room is in the facility's group

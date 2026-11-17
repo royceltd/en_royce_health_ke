@@ -401,6 +401,19 @@ def order(key: str, from_date: str | None = None, to_date: str | None = None, wa
 		"sex": first.sex,
 		"visit": first.visit,
 		"encounters": encounters,
+		# one Print Prescription button: each consultation with its time and doctor, newest first
+		"prescriptions": [
+			{
+				"name": e.name,
+				"label": f"{frappe.utils.format_datetime(e.creation, 'dd-MM HH:mm')} · {e.practitioner_name or ''}",
+			}
+			for e in frappe.get_all(
+				"Patient Encounter",
+				filters={"name": ["in", encounters or [""]]},
+				fields=["name", "creation", "practitioner_name"],
+				order_by="creation desc",
+			)
+		],
 		"lines": out,
 		"can_bill": bool(first.visit) and any(r.get("pay") == "not_billed" for r in out),
 	}
@@ -870,6 +883,34 @@ def walk_in_customer():
 	return customer.name
 
 
+def drug_groups():
+	"""The pharmacy's drug item group (Kenya Health Settings > Pharmacy) and its sub-groups."""
+	from frappe.utils.nestedset import get_descendants_of
+
+	group = frappe.db.get_single_value("Kenya Health Settings", "pharmacy_item_group") or "Drug"
+	if not frappe.db.exists("Item Group", group):
+		return []
+	return [group, *get_descendants_of("Item Group", group)]
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def drug_query(doctype, txt, searchfield, start, page_len, filters):
+	"""Counter Sale: only the pharmacy's drugs (IT demo, 18 Nov 2026: cement was offered)."""
+	_check_access()
+	groups = drug_groups()
+	if not groups:
+		return []
+	like = f"%{txt}%"
+	return frappe.db.sql(
+		"""select name, item_name, item_group from `tabItem`
+		where disabled = 0 and is_stock_item = 1 and is_sales_item = 1 and has_variants = 0
+			and item_group in %(groups)s and (name like %(like)s or item_name like %(like)s)
+		order by item_name limit %(start)s, %(page_len)s""",
+		{"groups": tuple(groups), "like": like, "start": int(start), "page_len": int(page_len)},
+	)
+
+
 @frappe.whitelist()
 def counter_sale(
 	items: str | list,
@@ -885,6 +926,14 @@ def counter_sale(
 	items = [i for i in _list(items) if i.get("item_code") and flt(i.get("qty")) > 0]
 	if not items:
 		frappe.throw(_("Add the drugs and their quantities."))
+	groups = set(drug_groups())
+	not_drugs = [
+		i["item_code"]
+		for i in items
+		if frappe.db.get_value("Item", i["item_code"], "item_group") not in groups
+	]
+	if groups and not_drugs:
+		frappe.throw(_("Only drugs are sold at the pharmacy counter: {0}.").format(", ".join(not_drugs)))
 	company = (
 		company
 		or frappe.defaults.get_user_default("Company")

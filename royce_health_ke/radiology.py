@@ -109,7 +109,17 @@ def report(observation: str, findings: str, impression: str, radiologist: str):
 		}
 	)
 	doc.save()
+	_maybe_finish_visit(doc)
 	return doc.ke_exam_status
+
+
+def _maybe_finish_visit(doc):
+	"""The report may be the visit's last step (visit_close)."""
+	from royce_health_ke.visit_bill import visit_of_request
+	from royce_health_ke.visit_close import maybe_finish
+
+	if doc.get("service_request"):
+		maybe_finish(visit_of_request(doc.service_request))
 
 
 @frappe.whitelist()

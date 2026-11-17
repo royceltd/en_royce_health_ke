@@ -639,6 +639,15 @@ SERVICE_REQUEST = [
 		"hidden": 1,
 		"no_copy": 1,
 	},
+	{
+		"fieldname": "ke_cancel_reason",
+		"fieldtype": "Data",
+		"label": "Cancelled Because",
+		"insert_after": "ke_auto_billed",
+		"read_only": 1,
+		"no_copy": 1,
+		"depends_on": "ke_cancel_reason",
+	},
 ]
 
 LAB_TEST_TEMPLATE = [

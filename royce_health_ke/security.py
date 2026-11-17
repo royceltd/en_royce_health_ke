@@ -108,11 +108,30 @@ def idle_lock_minutes():
 	return cint(frappe.db.get_single_value(SETTINGS, "idle_lock_minutes"))
 
 
+# The lock is also kept on the server for the login (session), so reloading
+# the page or opening a new tab doesn't get past it (IT demo, 18 Nov 2026).
+LOCK_SECONDS = 24 * 3600
+
+
+def _lock_key():
+	return f"ke_screen_locked|{frappe.session.sid}"
+
+
 def extend_bootinfo(bootinfo):
 	try:
 		bootinfo.ke_idle_lock_minutes = idle_lock_minutes()
+		bootinfo.ke_screen_locked = bool(
+			bootinfo.ke_idle_lock_minutes and frappe.cache.get_value(_lock_key(), expires=True)
+		)
 	except Exception:
 		bootinfo.ke_idle_lock_minutes = 0
+
+
+@frappe.whitelist(methods=["POST"])
+def lock():
+	"""The screen locked itself: remembered for this login until the password is typed."""
+	if frappe.session.user != "Guest":
+		frappe.cache.set_value(_lock_key(), 1, expires_in_sec=LOCK_SECONDS)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -126,4 +145,5 @@ def unlock(password: str) -> bool:
 	except frappe.AuthenticationError:
 		frappe.clear_last_message()
 		return False
+	frappe.cache.delete_value(_lock_key())
 	return True

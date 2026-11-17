@@ -52,6 +52,54 @@
 // the patient hands over; the bill is paid (or part of it) and the change shows.
 // Change is given only for cash. After paying, the receipt prints.
 frappe.provide("royce_health_ke");
+// Complete Visit (visit and patient record, visit_close.py): nothing open, a
+// confirm; something open, the list, and a manager may close anyway with a reason.
+royce_health_ke.close_visit = (visit, on_closed) => {
+	const esc = frappe.utils.escape_html;
+	const done = () => {
+		frappe.show_alert({ message: __("Visit completed"), indicator: "green" });
+		on_closed && on_closed();
+	};
+	frappe.xcall("royce_health_ke.visit_close.visit_open_items", { visit }).then((r) => {
+		if (!r.items.length) {
+			frappe.confirm(__("Complete this visit? The patient leaves every waiting list."), () =>
+				frappe.xcall("royce_health_ke.visits.complete", { visit }).then(done),
+			);
+			return;
+		}
+		const list = `<p>${__("This visit still has open items:")}</p><ul>${r.items
+			.map((i) => `<li>${esc(i)}</li>`)
+			.join("")}</ul>`;
+		if (!r.can_override) {
+			frappe.msgprint({
+				title: __("Visit not finished"),
+				indicator: "orange",
+				message: list + `<p>${__("Finish them first, or ask a manager to close the visit.")}</p>`,
+			});
+			return;
+		}
+		const d = new frappe.ui.Dialog({
+			title: __("Close the visit with open items?"),
+			fields: [
+				{ fieldtype: "HTML", options: list },
+				{
+					fieldname: "reason",
+					fieldtype: "Small Text",
+					label: __("Reason (kept on the visit)"),
+					reqd: 1,
+					description: __("For example: patient absconded. Any balance stays owed."),
+				},
+			],
+			primary_action_label: __("Close Anyway"),
+			primary_action(v) {
+				d.hide();
+				frappe.xcall("royce_health_ke.visits.complete", { visit, reason: v.reason }).then(done);
+			},
+		});
+		d.show();
+	});
+};
+
 royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) => {
 	const money = (v) => format_currency(v || 0, currency);
 	Promise.all([
@@ -327,8 +375,14 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 		}
 	}
 
-	function lock() {
+	// Log out at once: Frappe's "Are you sure?" box would open behind the lock.
+	function logout_now() {
+		frappe.call({ method: "logout" }).always(() => frappe.app.redirect_to_login());
+	}
+
+	function lock(from_server) {
 		if (overlay || !frappe.session || frappe.session.user === "Guest") return;
+		if (!from_server) frappe.call({ method: "royce_health_ke.security.lock", type: "POST" });
 		const name = frappe.utils.escape_html(frappe.session.user_fullname || frappe.session.user);
 		overlay = $(`
 			<div class="ke-idle-lock" style="position:fixed;inset:0;z-index:2147483000;display:flex;
@@ -355,7 +409,7 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 		setTimeout(() => input.trigger("focus"), 50);
 		overlay.find(".ke-idle-logout").on("click", (e) => {
 			e.preventDefault();
-			frappe.app.logout();
+			logout_now();
 		});
 		overlay.find("form").on("submit", (e) => {
 			e.preventDefault();
@@ -376,7 +430,7 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 					failures += 1;
 					input.val("").trigger("focus");
 					if (failures >= 5) {
-						frappe.app.logout();
+						logout_now();
 						return;
 					}
 					error.text(__("Wrong password ({0} of 5).", [failures]));
@@ -412,4 +466,6 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 		if (e.key === UNLOCKED && overlay) unlock();
 	});
 	setInterval(check, 15000);
+	// locked before a reload or in another tab: still locked
+	$(() => frappe.boot && frappe.boot.ke_screen_locked && lock(true));
 })();

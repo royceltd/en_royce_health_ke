@@ -18,7 +18,10 @@ doctor, the visit goes to a doctor on duty now, shared out evenly:
   waited longest for a new patient.
 
 A doctor named by hand, or the doctor of the visit's appointment, is kept.
-Nobody on duty: the sender is asked to choose the doctor."""
+Nobody on duty (a night, a gap in the roster): the patient joins the
+Doctor's Queue without a doctor, and the first doctor who opens their
+consultation takes them (visits.encounter_saved). Reassign Doctor still asks
+for one."""
 
 import frappe
 from frappe import _
@@ -137,8 +140,10 @@ def next_consultant(company=None, facility=None, department=None, exclude=()):
 	return min(candidates, key=key)
 
 
-def assign(doc, exclude=()):
-	"""Give the visit the next consultant and their room, or ask for one."""
+def assign(doc, exclude=(), unassigned_ok=False):
+	"""Give the visit the next consultant and their room. Nobody on duty:
+	None with a warning when `unassigned_ok` (any doctor takes the patient),
+	else the sender is asked to choose the doctor."""
 	department = doc.get("department")
 	chosen = next_consultant(doc.company, doc.get("facility"), department, exclude)
 	if not chosen and department:
@@ -151,6 +156,17 @@ def assign(doc, exclude=()):
 				indicator="orange",
 				alert=True,
 			)
+	if not chosen and unassigned_ok:
+		doc.practitioner = doc.practitioner_name = doc.consultation_room = None
+		frappe.msgprint(
+			_(
+				"No doctor {0}is on duty now (Practitioner Schedules): {1} waits in the Doctor's Queue "
+				"for the first doctor who opens the consultation."
+			).format(_("at {0} ").format(doc.facility) if doc.get("facility") else "", doc.patient_name),
+			indicator="orange",
+			alert=True,
+		)
+		return None
 	if not chosen:
 		frappe.throw(
 			_("No doctor {0}is on duty now (Practitioner Schedules). Choose the doctor.").format(

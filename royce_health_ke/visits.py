@@ -269,19 +269,20 @@ def _acknowledge(doc):
 
 
 @frappe.whitelist()
-def complete(visit: str):
-	doc = _open_visit(visit)
-	_acknowledge(doc)
-	doc.status = "Completed"
-	doc.save()
+def complete(visit: str, reason: str | None = None):
+	"""Complete Visit: refused while anything is open (visit_close), unless a
+	manager gives a reason."""
+	from royce_health_ke import visit_close
+
+	visit_close.close(_open_visit(visit), reason)
 
 
 @frappe.whitelist()
 def cancel(visit: str, reason: str):
-	doc = _open_visit(visit)
-	doc.status = "Cancelled"
-	doc.status_reason = reason
-	doc.save()
+	"""Cancel Visit: only while nothing has been done on it (visit_close)."""
+	from royce_health_ke import visit_close
+
+	visit_close.cancel(_open_visit(visit), reason)
 
 
 def open_visit_for(patient, on=None):
@@ -397,6 +398,16 @@ def open_station(visit: str) -> dict:
 			"doctype": "Vital Signs",
 			"new": {"patient": doc.patient, "company": doc.company, "ke_patient_visit": doc.name},
 		}
+	if doc.current_station == "Cashier" and frappe.has_permission("Sales Invoice", "create"):
+		# the Cashier Queue opens the bill to pay: the draft, else an unpaid one
+		for filters in (
+			{"ke_patient_visit": doc.name, "docstatus": 0, "is_return": 0},
+			{"ke_patient_visit": doc.name, "docstatus": 1, "outstanding_amount": [">", 0], "is_return": 0},
+		):
+			bill = frappe.db.get_value("Sales Invoice", filters, "name", order_by="creation desc")
+			if bill:
+				return {"doctype": "Sales Invoice", "name": bill}
+		return stay
 	if doc.current_station == "Consultation" and frappe.has_permission("Patient Encounter", "create"):
 		draft = frappe.db.get_value(
 			"Patient Encounter",
@@ -487,6 +498,12 @@ def encounter_saved(doc, method=None):
 	visit.encounter = doc.name
 	if visit.current_station == "Consultation":
 		_acknowledge(visit)
+		# a patient sent while nobody was on duty: the doctor who opens the consultation takes them
+		if not visit.practitioner and doc.get("practitioner"):
+			from royce_health_ke.assign import room_of
+
+			visit.practitioner = doc.practitioner
+			visit.consultation_room = room_of(doc.practitioner, visit.company, visit.get("facility"))
 	visit.flags.ignore_permissions = True
 	visit.save()
 

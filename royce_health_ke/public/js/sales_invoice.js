@@ -19,6 +19,12 @@ frappe.ui.form.on("Sales Invoice", {
 				window.open(`/printview?${params}`, "_blank");
 			});
 		}
+		// From the Cashier Queue the bill opens first; its visit is a click away.
+		if (frm.doc.ke_patient_visit && !frm.is_new()) {
+			frm.add_custom_button(__("Open Visit"), () =>
+				frappe.set_route("Form", "Patient Visit", frm.doc.ke_patient_visit),
+			);
+		}
 		// Take Payment: amount received and the change (Bethesda, 17 Nov 2026).
 		const due = frm.doc.docstatus === 0 ? ke_patient_share(frm.doc) : frm.doc.outstanding_amount;
 		if (

@@ -10,11 +10,11 @@ How a patient is registered, checked in, sent from station to station, billed as
 | 2. Check in | Reception | A **Patient Visit** opens, cash or insurance. A cash outpatient goes to the **Cashier** first for the consultation fee, then to triage |
 | 3. Waiting lists | Every station | Each station sees who is waiting and for how long, marks them **Seen** and sends them on |
 | 4. Triage | Nurse | Vital signs (height in cm) are flagged **Normal** or **Abnormal** |
-| 5. Consultation | Doctor | Tabs in order: Observation, Requests, Results, Diagnosis, Prescription, Complete. **Send Requests** sends tests to the bill and the lab while the consultation stays open |
+| 5. Consultation | Doctor | Tabs in order: Observation, Requests, Results, Diagnosis, Prescription, Complete. Saving (or **Send Requests**) sends tests to the bill and the lab while the consultation stays open; completing needs a diagnosis and every result in |
 | 6. Bill and pay | Cashier | The visit's bill shows what is not billed yet; **Create Bill** lists the charges to tick and makes the invoice; the **Patient Receipt** prints on the receipt printer |
 | 7. Lab and radiology | Lab, radiographer | A cash patient's test or exam reaches the worklist once it is paid |
 | 8. Pharmacy | Pharmacist | Drugs leave the store once paid |
-| 9. Close | Any station | **Complete Visit** takes the patient off every list |
+| 9. Close | By itself | The visit closes when everything is done and paid; **Complete Visit** is refused while anything is open |
 
 The visit is the patient's file for the day: every move, the vitals flag, the consultation and the bill are on it.
 
@@ -227,7 +227,7 @@ One row per visit for the dates chosen: what was billed, paid, discounted or wai
 
 **Who:** the last station. **Where:** on the visit, **Status › Complete Visit**.
 
-The patient leaves every waiting list. **Status › Cancel Visit** (with a reason) is for a patient who left without being seen, or a visit opened by mistake.
+The visit closes by itself once everything is done and paid. **Complete Visit** lists anything still open and is refused until it's done; a Healthcare Administrator can close it anyway with a reason. **Status › Cancel Visit** (with a reason) is only for a visit where nothing has been done yet (a wrong check-in); its draft bill is deleted.
 
 ## Settings
 

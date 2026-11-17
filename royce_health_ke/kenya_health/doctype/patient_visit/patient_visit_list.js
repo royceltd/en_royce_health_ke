@@ -8,12 +8,13 @@
 frappe.listview_settings["Patient Visit"] = {
 	add_fields: ["practitioner_name", "consultation_room", "status", "queue_status", "current_station", "sent_at", "vitals_status", "bill_status", "payment_method", "allow_credit"],
 	filters: [["status", "=", "Open"]],
-	// From the Triage and Doctor's queues a click opens the vital signs or the
-	// consultation (kenya_health/page/visit_station).
+	// From the Triage, Doctor's and Cashier queues a click opens the vital signs,
+	// the consultation or the bill to pay (kenya_health/page/visit_station).
 	get_form_link(doc) {
 		const station =
 			doc.status === "Open" &&
 			((doc.current_station === "Triage" && frappe.model.can_create("Vital Signs")) ||
+				(doc.current_station === "Cashier" && frappe.model.can_create("Sales Invoice")) ||
 				(doc.current_station === "Consultation" && frappe.model.can_create("Patient Encounter")));
 		return station
 			? `/desk/visit-station/${encodeURIComponent(doc.name)}`

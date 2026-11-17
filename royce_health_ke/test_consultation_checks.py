@@ -42,6 +42,15 @@ class TestLabRows(ConsultationCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "not an imaging exam"):
 			enc.save(ignore_permissions=True)
 
+	def test_lab_test_and_imaging_on_one_row_is_refused(self):
+		imaging = frappe.db.get_value("Observation Template", {"observation_category": "Imaging"}, "name")
+		if not imaging:
+			self.skipTest("needs the demo's imaging exams")
+		enc = self.encounter(lab=False)
+		enc.append("lab_test_prescription", {"lab_test_code": self.template, "observation_template": imaging})
+		with self.assertRaisesRegex(frappe.ValidationError, "both a lab test"):
+			enc.save(ignore_permissions=True)
+
 	def test_imaging_exam_is_allowed(self):
 		imaging = frappe.db.get_value("Observation Template", {"observation_category": "Imaging"}, "name")
 		if not imaging:
@@ -61,6 +70,9 @@ class TestObservationFirst(ConsultationCase):
 			obs_need_hpi=1,
 			obs_need_ros=0,
 			obs_need_examination=1,
+			# the diagnosis and saving-sends rules have their own tests (test_consultation_rules)
+			diagnosis_required=0,
+			save_sends_requests=0,
 		)
 
 	def tearDown(self):

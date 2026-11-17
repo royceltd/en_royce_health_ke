@@ -23,7 +23,9 @@ frappe.ui.form.on("Patient Visit", {
 	},
 
 	refresh(frm) {
-		if (!frm.is_new()) render_bill(frm);
+		// a new visit has no bill: clear what the last visit opened left in the form (IT demo, 18 Nov 2026)
+		if (frm.is_new()) frm.get_field("bill_html").$wrapper.empty();
+		else render_bill(frm);
 		if (frm.is_new() || frm.doc.status !== "Open") return;
 		const call = (method, args, message) =>
 			frappe.call({ method: `royce_health_ke.visits.${method}`, args, freeze: true }).then(() => {
@@ -61,17 +63,13 @@ frappe.ui.form.on("Patient Visit", {
 		if (frm.doc.encounter) {
 			frm.add_custom_button(__("Latest Consultation"), () => frappe.set_route("Form", "Patient Encounter", frm.doc.encounter), __("View"));
 		}
-		frm.add_custom_button(__("Complete Visit"), () =>
-			frappe.confirm(__("Complete this visit? The patient leaves every waiting list."), () =>
-				call("complete", { visit: frm.doc.name }, __("Visit completed")),
-			),
-		__("Status"));
+		frm.add_custom_button(__("Complete Visit"), () => royce_health_ke.close_visit(frm.doc.name, () => frm.reload_doc()), __("Status"));
 		if (frappe.user.has_role(["Receptionist", "Healthcare Administrator", "System Manager"]))
-		frm.add_custom_button(__("Cancel Visit"), () =>
-			frappe.prompt({ fieldname: "reason", fieldtype: "Small Text", label: __("Reason"), reqd: 1 }, (v) =>
-				call("cancel", { visit: frm.doc.name, reason: v.reason }, __("Visit cancelled")),
-			),
-		__("Status"));
+			frm.add_custom_button(__("Cancel Visit"), () =>
+				frappe.prompt({ fieldname: "reason", fieldtype: "Small Text", label: __("Reason"), reqd: 1 }, (v) =>
+					call("cancel", { visit: frm.doc.name, reason: v.reason }, __("Visit cancelled")),
+				),
+			__("Status"));
 
 		if (frm.doc.current_station === "Consultation" && frm.doc.practitioner) {
 			const where = [frm.doc.practitioner_name || frm.doc.practitioner, frm.doc.consultation_room, frm.doc.appointment_type]

@@ -1,0 +1,95 @@
+{#- Patient: the whole record, newest visit first, for clinicians (printing.patient_file). -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, medicines_table, footer as page_footer -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set f = health_patient_file(doc) -%}
+{{ styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Patient File", letter_head, no_letterhead, [
+      ("Patient No.", doc.name),
+      ("Printed", frappe.utils.format_datetime(frappe.utils.now_datetime(), "d MMM yyyy HH:mm")),
+  ]) }}
+  {{ patient_band(ctx.patient, [("Mobile", doc.mobile), ("Blood group", doc.blood_group)]) }}
+
+  {% if not f.allowed %}
+  <div class="hx-section"><b>{{ _("The patient file is for clinicians only (doctors, nurses and administrators).") }}</b></div>
+  {% else %}
+
+  {% if f.history %}
+  <div class="hx-section">
+    {{ section_title("Medical history") }}
+    <div class="hx-lines">{% for label, text in f.history %}<div><b>{{ label }}:</b> {{ text }}</div>{% endfor %}</div>
+  </div>
+  {% endif %}
+
+  {% if f.admissions %}
+  <div class="hx-section">
+    {{ section_title("Admissions") }}
+    <table class="hx-table"><tbody>
+    {% for a in f.admissions %}
+      <tr><td>{{ a.name }}</td><td>{{ frappe.utils.format_datetime(a.admitted_datetime, "d MMM yyyy") if a.admitted_datetime else "" }} – {{ frappe.utils.format_datetime(a.discharge_datetime, "d MMM yyyy") if a.discharge_datetime else _("not discharged") }}</td><td>{{ _(a.status) }}</td></tr>
+    {% endfor %}
+    </tbody></table>
+  </div>
+  {% endif %}
+
+  {% for v in f.visits %}
+  <div class="hx-section" style="page-break-inside: avoid; border-top: 2px solid var(--hx-accent, #333); padding-top: 6px;">
+    {{ section_title(frappe.utils.formatdate(v.visit.visit_date, "d MMM yyyy") ~ " · " ~ _(v.visit.visit_type) ~ " · " ~ v.visit.name) }}
+    {{ chips([
+        ("Payment", v.visit.payment_method ~ ((" · " ~ v.visit.insurance_payor) if v.visit.insurance_payor else "")),
+        ("Doctor", v.visit.practitioner_name),
+        ("Visit", _(v.visit.status)),
+    ]) }}
+
+    {% for s in v.vitals %}
+    <div class="hx-sub" style="margin-top:4px"><b>{{ _("Vital signs") }}</b> {{ frappe.utils.formatdate(s.signs_date, "d MMM") }} {{ (s.signs_time|string)[:5] }}:
+      {% if s.temperature %}{{ _("Temp") }} {{ s.temperature }} °C · {% endif %}{% if s.pulse %}{{ _("Pulse") }} {{ s.pulse }} · {% endif %}{% if s.respiratory_rate %}{{ _("Resp") }} {{ s.respiratory_rate }} · {% endif %}{% if s.bp %}{{ _("BP") }} {{ s.bp }} · {% endif %}{% if s.ke_spo2 %}SpO2 {{ s.ke_spo2 }}% · {% endif %}{% if s.weight %}{{ _("Weight") }} {{ s.weight }} kg{% endif %}
+      {% if s.ke_vitals_flags %}<span style="color:#c0392b"> · {{ s.ke_vitals_flags }}</span>{% endif %}
+    </div>
+    {% endfor %}
+
+    {% for e in v.encounters %}
+    {% set c = e.doc %}
+    <div style="margin-top:8px">
+      <div><b>{{ _("Consultation") }}</b> {{ c.name }} · {{ e.doctor.name }}{% if c.docstatus == 0 %} <i>({{ _("not completed") }})</i>{% endif %}</div>
+      {% for field, title in [
+          ("ke_chief_complaint", "Chief complaint"),
+          ("ke_hpi", "History of presenting illness"),
+          ("ke_review_of_systems", "Review of systems"),
+          ("ke_examination", "Physical examination"),
+          ("encounter_comment", "Clinical notes"),
+      ] %}
+      {% if c.get(field) %}<div class="hx-sub"><b>{{ _(title) }}:</b> {{ c.get(field) }}</div>{% endif %}
+      {% endfor %}
+      {% if c.diagnosis %}<div class="hx-sub"><b>{{ _("Diagnosis") }}:</b> {{ c.diagnosis | map(attribute="diagnosis") | join(", ") }}</div>{% endif %}
+      {% if e.medicines %}<div style="margin-top:4px">{{ medicines_table(e.medicines) }}</div>{% endif %}
+    </div>
+    {% endfor %}
+
+    {% for l in v.labs %}
+    <div style="margin-top:8px">
+      <div><b>{{ _("Lab") }}</b> {{ l.doc.lab_test_name or l.doc.template }} · {{ l.doc.name }}</div>
+      <table class="hx-table"><tbody>
+      {% for r in l.rows %}
+        {% if r.heading %}<tr><td colspan="4"><b>{{ r.name }}</b></td></tr>
+        {% else %}<tr><td>{{ r.name }}</td><td><b>{{ r.result }}</b>{% if r.flag %} <span style="color:#c0392b">{{ r.flag }}</span>{% endif %}</td><td>{{ r.unit or "" }}</td><td class="hx-muted">{{ r.range or "" }}</td></tr>{% endif %}
+      {% endfor %}
+      </tbody></table>
+    </div>
+    {% endfor %}
+
+    {% for o in v.imaging %}
+    <div style="margin-top:8px">
+      <div><b>{{ _("Imaging") }}</b> {{ o.observation_template }} · {{ o.name }}</div>
+      {% if o.result %}<div class="hx-sub"><b>{{ _("Findings") }}:</b> {{ o.result }}</div>{% endif %}
+      {% if o.get("ke_impression") %}<div class="hx-sub"><b>{{ _("Impression") }}:</b> {{ o.ke_impression }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="hx-section hx-muted">{{ _("No visits recorded.") }}</div>
+  {% endfor %}
+  {% endif %}
+
+  {{ page_footer(_("Confidential medical information. Share only with those caring for the patient."), footer, no_letterhead, ctx) }}
+</div>

@@ -36,6 +36,11 @@ frappe.ui.form.on("Patient Encounter", {
 	ke_complete_consultation(frm) {
 		ke_complete_consultation(frm);
 	},
+	before_submit(frm) {
+		// Submit (or its shortcut) goes through Complete Consultation and its checks
+		frappe.validated = false;
+		ke_complete_consultation(frm);
+	},
 });
 
 // Requests added but not sent: they reach the Cashier and the lab only once
@@ -149,10 +154,12 @@ function ke_consultation_refresh(frm) {
 		pharmacy && pharmacy.$wrapper.empty();
 		return;
 	}
-	if (frm.doc.docstatus === 0) {
-		frm.add_custom_button(__("Complete Consultation"), () =>
+	// One way to complete: the main button is Complete Consultation, not Marley's Submit
+	// (IT demo, 18 Nov 2026: a consultation was locked by Submit before the diagnosis).
+	if (frm.doc.docstatus === 0 && !frm.is_dirty()) {
+		frm.page.set_primary_action(__("Complete Consultation"), () =>
 			ke_complete_consultation(frm)
-		).addClass("btn-primary");
+		);
 	}
 	frappe.call({
 		method: "royce_health_ke.consultation.panel",
@@ -160,6 +167,25 @@ function ke_consultation_refresh(frm) {
 		callback: (r) => {
 			const data = r.message || {};
 			results.$wrapper.html(ke_results_html(data.results || []));
+			results.$wrapper.find(".ke-cancel-request").on("click", (e) => {
+				const request = $(e.currentTarget).data("request");
+				frappe.prompt(
+					{ fieldname: "reason", fieldtype: "Small Text", label: __("Reason"), reqd: 1 },
+					(v) =>
+						frappe
+							.xcall("royce_health_ke.consultation.cancel_request", {
+								request,
+								reason: v.reason,
+							})
+							.then((r) => {
+								if (r && r.note)
+									frappe.msgprint({ message: r.note, indicator: "orange" });
+								frm.reload_doc();
+							}),
+					__("Cancel this request?"),
+					__("Cancel Request")
+				);
+			});
 			results.$wrapper.find(".ke-mark-seen").on("click", (e) => {
 				const $b = $(e.currentTarget);
 				frappe.call({
@@ -198,7 +224,9 @@ function ke_results_html(rows) {
 						r.name
 				  )}" target="_blank">${esc(r.name)}</a>`
 				: "";
-			const colour = r.awaiting_payment
+			const colour = r.cancelled
+				? "gray"
+				: r.awaiting_payment
 				? "orange"
 				: r.rows || r.impression
 				? "green"
@@ -235,7 +263,13 @@ function ke_results_html(rows) {
 			return `<div class="mb-3 p-3" style="border:1px solid var(--border-color);border-radius:8px">
 				<div class="d-flex justify-content-between align-items-center">
 					<div><b>${esc(r.test || "")}</b> <span class="text-muted small ml-2">${link}</span></div>
-					<div><span class="indicator-pill ${colour}">${esc(r.status || "")}</span> ${seen}</div>
+					<div><span class="indicator-pill ${colour}">${esc(r.status || "")}</span> ${seen}${
+				r.cancellable
+					? ` <button class="btn btn-xs btn-default ke-cancel-request" data-request="${esc(
+							r.request
+					  )}">${__("Cancel Request")}</button>`
+					: ""
+			}</div>
 				</div>${body}</div>`;
 		})
 		.join("");
@@ -276,7 +310,7 @@ async function ke_complete_consultation(frm) {
 	await ke_save_first(frm);
 	frappe.confirm(
 		__(
-			"Complete this consultation? Orders not sent yet are placed, and the consultation can no longer be edited."
+			"Complete this consultation? It is then locked: no more requests, diagnosis or prescriptions. To wait for results, use Send Requests instead."
 		),
 		() =>
 			frappe.call({

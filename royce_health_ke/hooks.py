@@ -80,7 +80,10 @@ doc_events = {
 	"Delivery Note": {
 		"validate": "royce_health_ke.pharmacy.lock_substitution",
 		"before_submit": "royce_health_ke.visit_bill.delivery_before_submit",
-		"on_submit": "royce_health_ke.pharmacy.delivery_changed",
+		"on_submit": [
+			"royce_health_ke.pharmacy.delivery_changed",
+			"royce_health_ke.visit_close.delivery_done",
+		],
 		"on_cancel": "royce_health_ke.pharmacy.delivery_changed",
 	},
 	"Journal Entry": {
@@ -106,6 +109,7 @@ doc_events = {
 		"on_submit": [
 			"royce_health_ke.tat.lab_test_submitted",
 			"royce_health_ke.sms.lab_test_submitted",
+			"royce_health_ke.visit_close.lab_test_done",
 		],
 	},
 	"Vital Signs": {
@@ -129,6 +133,7 @@ doc_events = {
 	"Kenya Health Settings": {"on_update": "royce_health_ke.payment_status.settings_changed"},
 	"Patient Encounter": {
 		"before_validate": "royce_health_ke.consultation.before_validate",
+		"after_insert": "royce_health_ke.consultation.after_insert",
 		"validate": [
 			"royce_health_ke.visits.link_encounter",
 			"royce_health_ke.flow.consultation_gate",
@@ -167,6 +172,7 @@ jinja = {
 	"methods": [
 		"royce_health_ke.lcg.labour_care_guide_html",
 		"royce_health_ke.printing.health_print_context",
+		"royce_health_ke.printing.health_patient_file",
 		"royce_health_ke.printing.health_lab_results",
 		"royce_health_ke.printing.health_lab_people",
 		"royce_health_ke.printing.health_clinician",
@@ -207,6 +213,7 @@ scheduler_events = {
 		"royce_health_ke.identity.remind_licence_expiry",
 		"royce_health_ke.security.disable_expired_users",
 		"royce_health_ke.surveillance.weekly_job",
+		"royce_health_ke.kenya_health.report.visits_to_close.visits_to_close.notify_managers",
 	],
 	"hourly": [
 		"royce_health_ke.sms.send_appointment_reminders",

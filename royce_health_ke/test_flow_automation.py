@@ -85,6 +85,15 @@ class TestOpenStation(FlowCase):
 			visits.open_station(self.visit.name), {"doctype": "Patient Encounter", "name": enc.name}
 		)
 
+	def test_unassigned_patient_taken_by_the_doctor_who_opens_them(self):
+		visits.send_to(self.visit.name, "Consultation", self.practitioner)
+		frappe.db.set_value(
+			"Patient Visit", self.visit.name, {"practitioner": None, "consultation_room": None}
+		)
+		self.encounter(lab=False)
+		self.visit.reload()
+		self.assertEqual((self.visit.practitioner, self.visit.queue_status), (self.practitioner, "Seen"))
+
 	def test_other_stations_open_the_visit(self):
 		visits.send_to(self.visit.name, "Pharmacy")
 		self.assertEqual(

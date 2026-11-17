@@ -263,7 +263,7 @@ def _to_consultation(doc, practitioner, note, reason=SENT):
 	# One assignment at a time, committed before the next is worked out, so
 	# two nurses sending at once don't both pick the same doctor.
 	with filelock("ke_next_consultant", timeout=20):
-		assign.assign(doc)
+		assign.assign(doc, unassigned_ok=True)
 		move(doc, "Consultation", reason, doc.practitioner, note, doc.consultation_room)
 		doc.save()
 		if not frappe.flags.in_test:

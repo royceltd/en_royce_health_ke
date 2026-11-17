@@ -80,6 +80,21 @@
     {%- endif %}
     {%- if r.balance %}<tr class="pr-strong"><td class="k">{{ _("Balance Due") }}</td><td class="v">{{ frappe.utils.fmt_money(r.balance, currency=doc.currency) }}</td></tr>{% endif %}
   </table>
+  {%- if r.etims %}
+  <div class="pr-rule"></div>
+  <div class="pr-etims" style="text-align:center">
+    <div style="font-weight:600">{{ _("KRA eTIMS") }}</div>
+    <table class="pr-kv" style="text-align:left">
+      {%- if r.company_pin %}<tr><td class="k">{{ _("PIN") }}</td><td>{{ r.company_pin }}</td></tr>{% endif %}
+      {%- if r.etims.invoice_number %}<tr><td class="k">{{ _("CU Invoice No") }}</td><td>{{ r.etims.invoice_number }}</td></tr>{% endif %}
+      {%- if r.etims.receipt_number %}<tr><td class="k">{{ _("Receipt No") }}</td><td>{{ r.etims.receipt_number }}</td></tr>{% endif %}
+      {%- if r.etims.cu_datetime %}<tr><td class="k">{{ _("CU Date") }}</td><td>{{ r.etims.cu_datetime }}</td></tr>{% endif %}
+      {%- if r.etims.internal_data %}<tr><td class="k">{{ _("Internal Data") }}</td><td style="word-break:break-all">{{ r.etims.internal_data }}</td></tr>{% endif %}
+      <tr><td class="k">{{ _("Signature") }}</td><td style="word-break:break-all">{{ r.etims.signature }}</td></tr>
+    </table>
+    {%- if r.etims.qr %}<img src="{{ r.etims.qr }}" style="width:28mm;height:28mm;margin-top:4px" alt="{{ _('eTIMS QR code') }}">{% endif %}
+  </div>
+  {%- endif %}
   <div class="pr-rule"></div>
   <table class="pr-kv"><tr><td class="k">{{ _("Served by") }}</td><td>{{ r.served_by }}</td></tr></table>
   <div class="pr-foot" style="margin-top:6px">{{ _("Get well soon") }}</div>

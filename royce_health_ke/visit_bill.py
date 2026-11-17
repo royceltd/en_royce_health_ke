@@ -444,6 +444,10 @@ def refresh_bill_status(visit_name):
 		return
 	if status != (visit.bill_status or ""):
 		frappe.db.set_value("Patient Visit", visit_name, "bill_status", status, update_modified=False)
+	from royce_health_ke.visit_close import maybe_finish
+
+	# a payment, a bill or a completed consultation may be the visit's last step
+	maybe_finish(visit_name)
 
 
 # Insured visits are billed automatically (Kenya Health Settings > Billing)

@@ -208,7 +208,8 @@ class PharmacyWorklist {
 							in_list_view: 1,
 							reqd: 1,
 							columns: 4,
-							get_query: () => ({ filters: { is_stock_item: 1, disabled: 0, is_sales_item: 1 } }),
+							// only the pharmacy's drugs (Kenya Health Settings > Pharmacy)
+							get_query: () => ({ query: PH + "drug_query" }),
 						},
 						{ fieldtype: "Float", fieldname: "qty", label: __("Quantity"), in_list_view: 1, reqd: 1, columns: 2 },
 						{
@@ -328,11 +329,31 @@ class PharmacyOrderDialog {
 			btn(__("Back to Waiting"), "btn-default", () => this.mark("back_to_waiting"));
 		}
 		if (o.lines.some((l) => l.returnable > 0)) btn(__("Return"), "btn-default", () => this.return_());
-		(o.encounters || []).forEach((enc) =>
-			$(`<a class="btn btn-default btn-sm" target="_blank" href="/printview?doctype=Patient%20Encounter&name=${encodeURIComponent(
-				enc,
-			)}&format=Prescription">${__("Print Prescription")}</a>`).appendTo($a),
-		);
+		// one button; a visit with several consultations asks which prescription
+		const scripts = o.prescriptions || [];
+		const print = (enc) =>
+			window.open(
+				`/printview?doctype=Patient%20Encounter&name=${encodeURIComponent(enc)}&format=Prescription`,
+				"_blank",
+			);
+		if (scripts.length) {
+			btn(__("Print Prescription"), "btn-default", () => {
+				if (scripts.length === 1) return print(scripts[0].name);
+				frappe.prompt(
+					{
+						fieldname: "encounter",
+						fieldtype: "Select",
+						label: __("Consultation"),
+						options: scripts.map((p) => ({ value: p.name, label: p.label })),
+						default: scripts[0].name,
+						reqd: 1,
+					},
+					(v) => print(v.encounter),
+					__("Which prescription?"),
+					__("Print"),
+				);
+			});
+		}
 		if (o.visit) {
 			$(`<a class="btn btn-default btn-sm" target="_blank" href="/app/patient-visit/${encodeURIComponent(
 				o.visit,

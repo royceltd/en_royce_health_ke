@@ -171,6 +171,9 @@ Demo record: GW Bed 03 in the General Ward, type General Ward Bed, warehouse GW 
 | Laboratory: a second person validates results | Off (whoever entered the results validates them), until the lab wants a second check |
 | Consultation: observation before requests | On: Chief Complaint, History of Presenting Illness and Physical Examination are filled before the doctor sends requests or prescribes (not for casualty or inpatients). Tick Review of Systems too if the hospital wants it |
 | Consultation: submitting triage vital signs sends the patient to the doctor | On: saving vital signs marks the patient seen at Triage; submitting them sends the patient to the Doctor's Queue |
+| Consultation: saving sends its requests | On: new requests and prescriptions are sent when the doctor saves; deleting the row of a request not started cancels it |
+| Consultation: diagnosis before prescribing and completing | On: a diagnosis before prescribing and before completing; a consultation completes only once its lab and imaging results are in (not for casualty or inpatients) |
+| Visits: close automatically when finished | On: the visit closes once everything is done and paid; Complete Visit is refused while anything is open (a Healthcare Administrator can override with a reason) |
 | Billing: draft bill for cash patients automatically | On: the consultation fee (at check-in) and the doctor's lab, imaging and procedure requests go on the visit's draft bill; the cashier checks it and takes the payment |
 
 Save the page once after installation, even if you change nothing, so every default is stored. Since v0.35.1 an update no longer switches back on a setting you turned off.

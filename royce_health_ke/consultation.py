@@ -161,6 +161,15 @@ def check_lab_rows(doc):
 	for row in doc.get("lab_test_prescription") or []:
 		if row.get("service_request") or not row.get("observation_template"):
 			continue
+		# Marley orders a row's imaging exam and drops its lab test: one per row
+		if row.get("lab_test_code"):
+			frappe.throw(
+				_(
+					"Row {0} of the lab requests has both a lab test ({1}) and an imaging exam ({2}). "
+					"Put each on its own row: one row orders one test or one exam."
+				).format(row.idx, frappe.bold(row.lab_test_code), frappe.bold(row.observation_template)),
+				title=_("One request per row"),
+			)
 		if not _is_imaging_template(row.observation_template):
 			frappe.throw(
 				_(
@@ -172,9 +181,12 @@ def check_lab_rows(doc):
 
 
 def observation_exempt(doc):
+	from royce_health_ke.visits import open_visit_for
+
 	if doc.get("inpatient_record"):
 		return True
-	visit = doc.get("ke_patient_visit")
+	# before_validate runs before the consultation is linked to its visit (visits.link_encounter)
+	visit = doc.get("ke_patient_visit") or open_visit_for(doc.get("patient"), doc.get("encounter_date"))
 	return bool(visit) and frappe.db.get_value("Patient Visit", visit, "visit_type") == "Casualty"
 
 
@@ -195,27 +207,281 @@ def missing_observation(doc):
 
 
 def _observation_gate_on():
+	"""The consultation's rules (observation first, diagnosis, pending
+	investigations, saving sends the requests) are on, except while installing,
+	importing or loading the demo; tests switch them on themselves
+	(ke_test_observation_gate), as flow.py's gates."""
 	if frappe.flags.in_import or frappe.flags.in_install or frappe.flags.in_migrate or frappe.flags.ke_demo:
 		return False
-	# tests switch it on themselves (ke_test_observation_gate), as flow.py's gates
 	return not frappe.flags.in_test or bool(frappe.flags.ke_test_observation_gate)
+
+
+_rules_on = _observation_gate_on
+
+# Diagnosis, pending investigations, saving sends the requests (IT demo, 18 Nov 2026)
+
+
+def has_diagnosis(doc):
+	return bool(
+		[d for d in doc.get("diagnosis") or [] if d.get("diagnosis")] or doc.get("codification_table")
+	)
+
+
+def _submitting(doc):
+	return doc.docstatus == 1 and getattr(doc, "_action", None) == "submit"
+
+
+def _setting(field):
+	from royce_health_ke.flow import setting
+
+	return setting(field)
+
+
+def new_drugs(doc):
+	return [
+		d
+		for d in doc.get("drug_prescription") or []
+		if (d.get("medication") or d.get("drug_code")) and not d.get("medication_request")
+	]
+
+
+def _closed(status):
+	from royce_health_ke.lab import CLOSED_REQUEST
+
+	return status in CLOSED_REQUEST
+
+
+def investigation_result(request):
+	"""(done, what it is waiting for) of a lab or imaging request."""
+	if request.template_dt == LAB_TEMPLATE:
+		tests = frappe.get_all(
+			"Lab Test", filters={"service_request": request.name, "docstatus": ["<", 2]}, pluck="docstatus"
+		)
+		return any(t == 1 for t in tests), _("lab result")
+	statuses = frappe.get_all(
+		"Observation",
+		filters={
+			"service_request": request.name,
+			"parent_observation": ["is", "not set"],
+			"docstatus": ["<", 2],
+		},
+		pluck="ke_exam_status",
+	)
+	return any(st in ("Reported", "Verified") for st in statuses), _("imaging report")
+
+
+def pending_investigations(doc):
+	"""Lab tests and imaging of this consultation without their result yet:
+	placed requests not resulted or cancelled, and rows not sent yet."""
+	pending = [
+		r.get("lab_test_code") or r.get("observation_template")
+		for r in doc.get("lab_test_prescription") or []
+		if not r.get("service_request") and (r.get("lab_test_code") or r.get("observation_template"))
+	]
+	if doc.is_new():
+		return pending
+	for request in frappe.get_all(
+		"Service Request",
+		filters={
+			"order_group": doc.name,
+			"docstatus": 1,
+			"template_dt": ["in", (LAB_TEMPLATE, OBS_TEMPLATE)],
+		},
+		fields=["name", "template_dt", "template_dn", "status"],
+	):
+		if _closed(request.status):
+			continue
+		done, _what = investigation_result(request)
+		if not done:
+			pending.append(request.template_dn)
+	return pending
+
+
+def check_diagnosis(doc, exempt):
+	"""Prescribing and completing need a diagnosis (a provisional one will do).
+	Lab and imaging may come first: they are often how the diagnosis is made."""
+	if exempt or not _setting("diagnosis_required") or has_diagnosis(doc):
+		return
+	if new_drugs(doc):
+		frappe.throw(
+			_("Enter the diagnosis on the Diagnosis tab before prescribing (a provisional one will do)."),
+			title=_("Diagnosis first"),
+		)
+	if _submitting(doc):
+		frappe.throw(
+			_("Enter the diagnosis on the Diagnosis tab before completing the consultation."),
+			title=_("Diagnosis first"),
+		)
+
+
+def check_nothing_pending(doc):
+	"""A consultation is completed once its lab and imaging results are in
+	(strict: cancel a request the patient won't do)."""
+	if not _submitting(doc) or doc.get("inpatient_record"):
+		return
+	pending = pending_investigations(doc)
+	if pending:
+		frappe.throw(
+			_(
+				"These requests have no result yet: {0}. Complete the consultation once their results are "
+				"in, or cancel a request the patient won't do (Requests tab, Cancel Request). To keep the "
+				"consultation open while you wait, use Send Requests."
+			).format(", ".join(frappe.bold(p) for p in pending)),
+			title=_("Results pending"),
+		)
+
+
+def saving_sends(doc, exempt):
+	"""Saving sends the new requests (Kenya Health Settings > Saving the
+	consultation sends its requests): cash ones go on the visit's draft bill,
+	insured ones straight to their service point. Without the observation, the
+	draft is saved and the requests wait."""
+	if _submitting(doc) or doc.docstatus != 0 or doc.is_new() or cint(doc.get("submit_orders_on_save")):
+		return
+	if not _setting("save_sends_requests") or not new_orders(doc):
+		return
+	missing = [] if exempt else missing_observation(doc)
+	if missing:
+		frappe.msgprint(
+			_("Saved, but the requests were not sent: record the observation first ({0}).").format(
+				", ".join(missing)
+			),
+			indicator="orange",
+			alert=True,
+		)
+		return
+	doc.submit_orders_on_save = 1
 
 
 def before_validate(doc, method=None):
 	"""Patient Encounter before_validate (before Marley places the orders)."""
 	check_lab_rows(doc)
-	if not _observation_gate_on() or not _placing_orders(doc) or not new_orders(doc):
+	if not _rules_on():
 		return
-	if observation_exempt(doc):
+	cancel_removed_requests(doc)
+	exempt = observation_exempt(doc)
+	# in the order of the tabs: observation, requests, diagnosis, complete
+	saving_sends(doc, exempt)
+	if _placing_orders(doc) and new_orders(doc) and not exempt:
+		missing = missing_observation(doc)
+		if missing:
+			frappe.throw(
+				_("Record the observation before requesting tests or prescribing. Still empty: {0}.").format(
+					", ".join(missing)
+				),
+				title=_("Observation first"),
+			)
+	check_diagnosis(doc, exempt)
+	check_nothing_pending(doc)
+
+
+def after_insert(doc, method=None):
+	"""A new consultation saved with requests: Marley places orders only on a
+	saved one, so save once more to send them (saving_sends)."""
+	if not _rules_on() or doc.flags.ke_sending or not _setting("save_sends_requests") or not new_orders(doc):
 		return
-	missing = missing_observation(doc)
-	if missing:
+	doc.flags.ke_sending = True
+	try:
+		doc.save()
+	finally:
+		doc.flags.ke_sending = False
+
+
+# Cancel Request: a lab, imaging or procedure request not started is
+# withdrawn (Marley's "revoked"): off its worklist and off a draft bill. A
+# paid one is noted on the visit for the Cashier (refund or credit).
+
+
+def request_started(request):
+	if frappe.db.exists("Lab Test", {"service_request": request, "docstatus": ["<", 2]}):
+		return True
+	if frappe.db.exists(
+		"Observation",
+		{
+			"service_request": request,
+			"docstatus": ["<", 2],
+			"ke_exam_status": ["in", ("Performed", "Reported", "Verified")],
+		},
+	):
+		return True
+	return bool(frappe.db.exists("Clinical Procedure", {"service_request": request, "docstatus": ["<", 2]}))
+
+
+def withdraw_request(name, reason):
+	"""Revoke a request not started; take it off a draft bill. Returns a note
+	for the Cashier when it was already paid or on a submitted bill."""
+	from royce_health_ke import payment_status
+
+	sr = frappe.get_doc("Service Request", name)
+	if _closed(sr.status):
+		return None
+	if request_started(name):
 		frappe.throw(
-			_("Record the observation before requesting tests or prescribing. Still empty: {0}.").format(
-				", ".join(missing)
+			_("{0} has already started (sample taken or exam done): it can't be cancelled.").format(
+				frappe.bold(sr.template_dn)
 			),
-			title=_("Observation first"),
+			title=_("Already started"),
 		)
+	note = None
+	for line in frappe.get_all(
+		"Sales Invoice Item",
+		filters={"reference_dt": "Service Request", "reference_dn": name, "docstatus": ["<", 2]},
+		fields=["name", "parent", "docstatus"],
+	):
+		if line.docstatus == 0:
+			si = frappe.get_doc("Sales Invoice", line.parent)
+			si.items = [r for r in si.items if r.name != line.name]
+			si.flags.ignore_permissions = True
+			if si.items:
+				si.save()
+			else:
+				si.delete()
+		else:
+			note = _(
+				"{0} was cancelled after it was billed on {1}: refund it or keep it as the patient's credit."
+			).format(sr.template_dn, line.parent)
+	frappe.db.set_value(
+		"Service Request",
+		name,
+		{"status": "revoked-Request Status", "ke_cancel_reason": (reason or "")[:140]},
+	)
+	payment_status.refresh("Service Request", name)
+	visit = sr.get("ke_patient_visit") or (
+		sr.order_group and frappe.db.get_value("Patient Encounter", sr.order_group, "ke_patient_visit")
+	)
+	if note and visit:
+		frappe.get_doc("Patient Visit", visit).add_comment("Comment", note)
+	return note
+
+
+def cancel_removed_requests(doc):
+	"""Rows deleted from a saved consultation: their requests are withdrawn
+	(refused when started)."""
+	if doc.is_new() or doc.docstatus != 0:
+		return
+	before = doc.get_doc_before_save()
+	if not before:
+		return
+	kept = {r.get("service_request") for t in ORDER_TABLES for r in doc.get(t) or []}
+	for table in ORDER_TABLES:
+		for row in before.get(table) or []:
+			request = row.get("service_request")
+			if request and request not in kept:
+				note = withdraw_request(request, _("Removed from the consultation"))
+				if note:
+					frappe.msgprint(note, indicator="orange", alert=True)
+
+
+@frappe.whitelist()
+def cancel_request(request: str, reason: str):
+	"""Cancel Request (Requests tab): withdraw a request the patient won't do."""
+	sr = frappe.get_doc("Service Request", request)
+	if not sr.order_group:
+		frappe.throw(_("This request is not from a consultation."))
+	frappe.get_doc(DT, sr.order_group).check_permission("write")
+	if not (reason or "").strip():
+		frappe.throw(_("Give a reason."))
+	return {"note": withdraw_request(request, reason.strip())}
 
 
 def unpriced(doc):
@@ -437,7 +703,15 @@ def panel(encounter: str):
 	requests = frappe.get_all(
 		"Service Request",
 		filters={"order_group": ["in", encounters], "docstatus": 1},
-		fields=["name", "template_dt", "template_dn", "order_description", "creation"],
+		fields=[
+			"name",
+			"template_dt",
+			"template_dn",
+			"order_description",
+			"creation",
+			"status",
+			"ke_cancel_reason",
+		],
 		order_by="creation",
 	)
 	results, seen_requests = [], set()
@@ -447,6 +721,13 @@ def panel(encounter: str):
 			continue
 		seen_requests.add(request.name)
 		row = {"request": request.name, "test": request.template_dn, "kind": kind}
+		if _closed(request.status):
+			row["status"] = _("Cancelled: {0}").format(request.ke_cancel_reason or "")
+			row["cancelled"] = 1
+			results.append(row)
+			continue
+		# not started yet: the doctor can cancel it (Cancel Request)
+		row["cancellable"] = int(doc.docstatus == 0 and not request_started(request.name))
 		test = frappe.db.get_value(
 			"Lab Test",
 			{"service_request": request.name, "docstatus": ["<", 2]},
