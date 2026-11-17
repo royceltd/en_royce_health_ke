@@ -134,3 +134,21 @@ class TestMemberNumberTyped(IntegrationTestCase):
 			str(frappe.db.get_value("Patient Insurance Policy", v.insurance_policy, "policy_expiry_date")),
 			str(add_days(today(), 300)),
 		)
+
+
+class TestFormsOnAFreshSite(IntegrationTestCase):
+	def test_hidden_field_made_optional_first(self):
+		"""A fresh site has none of our property setters: applying them must not
+		hide a field that is still mandatory (install failed on a new site)."""
+		frappe.db.delete(
+			"Property Setter",
+			{
+				"doc_type": "Patient Encounter",
+				"field_name": "appointment_type",
+				"property": ["in", ("hidden", "reqd")],
+			},
+		)
+		frappe.clear_cache(doctype="Patient Encounter")
+		forms.apply()
+		field = frappe.get_meta("Patient Encounter").get_field("appointment_type")
+		self.assertEqual((field.hidden, field.reqd), (1, 0))

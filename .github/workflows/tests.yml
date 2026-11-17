@@ -1,0 +1,121 @@
+# Every push to version-16 (and every pull request): a fresh Frappe bench with
+# the hospital's apps at their released versions, a new site, the demo hospital,
+# and all royce_health_ke tests. Red = don't release.
+#
+# The app pins below must match the hospital release manifest
+# (royce-erp-cloud: infrastructure/hospital/apps.health.json). Marley's version
+# is also checked by test_marley (royce_health_ke/marley.py SUPPORTED).
+# Secret ROYCE_APPS_TOKEN: fine-grained token, Contents read-only on the
+# royceltd app repos (the private apps are cloned with it).
+name: Tests
+
+on:
+  push:
+    branches: [version-16]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FRAPPE_REF: v16.52.0
+  ERPNEXT_REF: v16.52.1
+  HRMS_REF: v16.52.0
+  MARLEY_REF: v16.8.0
+  KENYAN_ACCOUNTANT_REF: v16.8.0
+  ROYCE_PAYROLL_KE_REF: v16.9.0
+  ROYCE_TALK_REF: v16.3.1
+  ROYCE_PAYMENTS_REF: v16.0.0
+  ROYCE_ETIMS_REF: v0.0.1
+
+jobs:
+  tests:
+    name: Server tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    services:
+      redis-cache:
+        image: redis:alpine
+        ports: ["13000:6379"]
+      redis-queue:
+        image: redis:alpine
+        ports: ["11000:6379"]
+      mariadb:
+        image: mariadb:11.8
+        env:
+          MARIADB_ROOT_PASSWORD: root
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mariadb-admin ping -proot" --health-interval=5s
+          --health-timeout=2s --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ env.FRAPPE_REF }}-${{ env.ERPNEXT_REF }}-${{ env.MARLEY_REF }}
+          restore-keys: pip-${{ runner.os }}-
+
+      - name: MariaDB client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq mariadb-client
+
+      - name: Bench
+        run: |
+          pip install -q frappe-bench
+          bench init --skip-redis-config-generation --skip-assets \
+            --frappe-branch "$FRAPPE_REF" --python "$(which python)" ~/frappe-bench
+
+      - name: Apps (released versions)
+        working-directory: /home/runner/frappe-bench
+        env:
+          TOKEN: ${{ secrets.ROYCE_APPS_TOKEN }}
+        run: |
+          get() { bench get-app --skip-assets --branch "$2" "$1" >/dev/null && echo "got $1 @ $2"; }
+          private() { echo "https://x-access-token:${TOKEN}@github.com/royceltd/$1"; }
+          get https://github.com/frappe/erpnext "$ERPNEXT_REF"
+          get https://github.com/frappe/hrms "$HRMS_REF"
+          get https://github.com/earthians/marley "$MARLEY_REF"
+          get "$(private en_kenyan_accountant)" "$KENYAN_ACCOUNTANT_REF"
+          get "$(private en_royce_payroll_ke)" "$ROYCE_PAYROLL_KE_REF"
+          get "$(private en_royce_talk)" "$ROYCE_TALK_REF"
+          get "$(private en_royce_payments)" "$ROYCE_PAYMENTS_REF"
+          get "$(private en_royce_etims)" "$ROYCE_ETIMS_REF"
+          bench get-app --skip-assets royce_health_ke "$GITHUB_WORKSPACE" >/dev/null && echo "got royce_health_ke @ ${GITHUB_SHA::8}"
+          bench setup requirements --dev >/dev/null
+
+      - name: Site with every hospital app
+        working-directory: /home/runner/frappe-bench
+        env:
+          CI: "Yes"
+        run: |
+          bench new-site --db-root-password root --admin-password admin test_site >/dev/null
+          for app in erpnext hrms healthcare kenyan_accountant royce_payroll_ke royce_talk royce_payments royce_etims royce_health_ke; do
+            bench --site test_site install-app "$app" >/dev/null && echo "installed $app"
+          done
+
+      - name: Demo hospital
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test_site set-config royce_health_demo 1
+          bench --site test_site set-config allow_tests true
+          bench --site test_site execute royce_health_ke.demo.load >/dev/null
+
+      - name: Tests
+        working-directory: /home/runner/frappe-bench
+        run: bench --site test_site run-tests --app royce_health_ke

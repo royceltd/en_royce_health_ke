@@ -31,9 +31,11 @@ IN_LIST = {"Sales Invoice Payment": ("reference_no",)}
 
 
 def apply():
+	# Optional before hidden: Frappe refuses a hidden field that is still
+	# mandatory (it failed installing on a fresh site, found by CI).
 	for prop, fields, value in (
-		("hidden", HIDDEN, "1"),
 		("reqd", NOT_REQUIRED, "0"),
+		("hidden", HIDDEN, "1"),
 		("in_list_view", NOT_IN_LIST, "0"),
 		("in_list_view", IN_LIST, "1"),
 	):
