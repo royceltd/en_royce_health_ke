@@ -1,0 +1,11 @@
+[
+ { "url": "https://github.com/frappe/erpnext", "branch": "v16.52.1" },
+ { "url": "https://github.com/frappe/hrms", "branch": "v16.52.0" },
+ { "url": "https://github.com/earthians/marley", "branch": "v16.8.0" },
+ { "url": "https://TOKEN@github.com/royceltd/en_kenyan_accountant", "branch": "v16.8.0" },
+ { "url": "https://TOKEN@github.com/royceltd/en_royce_etims", "branch": "v0.0.1" },
+ { "url": "https://TOKEN@github.com/royceltd/en_royce_payments", "branch": "v16.0.0" },
+ { "url": "https://TOKEN@github.com/royceltd/en_royce_payroll_ke", "branch": "v16.9.0" },
+ { "url": "https://TOKEN@github.com/royceltd/en_royce_health_ke", "branch": "v0.37.2" },
+ { "url": "https://TOKEN@github.com/royceltd/en_royce_talk", "branch": "v16.3.1" }
+]

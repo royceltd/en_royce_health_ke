@@ -2,9 +2,9 @@
 # the hospital's apps at their released versions, a new site, the demo hospital,
 # and all royce_health_ke tests. Red = don't release.
 #
-# The app pins below must match the hospital release manifest
-# (royce-erp-cloud: infrastructure/hospital/apps.health.json). Marley's version
-# is also checked by test_marley (royce_health_ke/marley.py SUPPORTED).
+# The app versions come from the hospital release file, deploy/apps.health.json
+# (the same pins the image is built from). Marley's version is also checked by
+# test_marley (royce_health_ke/marley.py SUPPORTED).
 # Secret ROYCE_APPS_TOKEN: fine-grained token, Contents read-only on the
 # royceltd app repos (the private apps are cloned with it).
 name: Tests
@@ -21,17 +21,6 @@ concurrency:
 
 permissions:
   contents: read
-
-env:
-  FRAPPE_REF: v16.52.0
-  ERPNEXT_REF: v16.52.1
-  HRMS_REF: v16.52.0
-  MARLEY_REF: v16.8.0
-  KENYAN_ACCOUNTANT_REF: v16.8.0
-  ROYCE_PAYROLL_KE_REF: v16.9.0
-  ROYCE_TALK_REF: v16.3.1
-  ROYCE_PAYMENTS_REF: v16.0.0
-  ROYCE_ETIMS_REF: v0.0.1
 
 jobs:
   tests:
@@ -58,6 +47,23 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Versions from the release file
+        run: |
+          set -euo pipefail
+          ref() { jq -r --arg r "$1" '.[] | select(.url | endswith("/" + $r)) | .branch' deploy/apps.health.json; }
+          {
+            echo "FRAPPE_REF=$(sed -n 's/^FRAPPE_BRANCH=//p' deploy/hospital.env.example)"
+            echo "ERPNEXT_REF=$(ref erpnext)"
+            echo "HRMS_REF=$(ref hrms)"
+            echo "MARLEY_REF=$(ref marley)"
+            echo "KENYAN_ACCOUNTANT_REF=$(ref en_kenyan_accountant)"
+            echo "ROYCE_PAYROLL_KE_REF=$(ref en_royce_payroll_ke)"
+            echo "ROYCE_TALK_REF=$(ref en_royce_talk)"
+            echo "ROYCE_PAYMENTS_REF=$(ref en_royce_payments)"
+            echo "ROYCE_ETIMS_REF=$(ref en_royce_etims)"
+          } | tee -a "$GITHUB_ENV"
+          grep -q '=$' "$GITHUB_ENV" && { echo "a version is missing from deploy/apps.health.json" >&2; exit 1; } || true
+
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
@@ -69,7 +75,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ env.FRAPPE_REF }}-${{ env.ERPNEXT_REF }}-${{ env.MARLEY_REF }}
+          key: pip-${{ runner.os }}-${{ hashFiles('deploy/apps.health.json') }}
           restore-keys: pip-${{ runner.os }}-
 
       - name: MariaDB client

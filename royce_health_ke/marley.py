@@ -4,10 +4,11 @@
 """Where royce_health_ke meets Marley Health (the `healthcare` app) beyond its
 doctypes: the Marley version we support, and the Marley rule we replace.
 
-Supported version: SUPPORTED, pinned in the image build (the hospital release
-manifest in royce-erp-cloud) and on developers' benches. test_marley checks it
-and the Marley functions we rely on, so a Marley upgrade is a planned change:
-move SUPPORTED, run the tests, read what failed.
+Supported version: SUPPORTED, pinned in the hospital release file
+(deploy/apps.health.json: the image build and CI use it) and on developers'
+benches. test_marley checks it and the Marley functions we rely on, so a
+Marley upgrade is a planned change: move SUPPORTED and the release file
+together, run the tests, read what failed.
 
 Replaced rule: the outpatient consultation fee (fees.py). Marley's invoice
 helpers (Get Items From > Healthcare Services and the visit bill) price a

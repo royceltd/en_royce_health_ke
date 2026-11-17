@@ -54,7 +54,7 @@ class TestMarleyContract(IntegrationTestCase):
 			marley.installed_version(),
 			marley.SUPPORTED,
 			"Marley version changed: run the tests, fix what they show, then move marley.SUPPORTED "
-			"and the hospital release manifest together.",
+			"and deploy/apps.health.json together.",
 		)
 
 	def test_everything_we_import_exists(self):
