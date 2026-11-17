@@ -152,6 +152,7 @@ def _requests(from_date, to_date, company=None, patient=None):
 			sr.template_dn, sr.order_date, sr.order_time, sr.creation, sr.priority,
 			sr.practitioner, sr.practitioner_name, sr.order_group, sr.inpatient_record,
 			sr.insurance_policy, sr.insurance_coverage, sr.status,
+			sr.ke_payment_status, sr.ke_payment_exemption,
 			coalesce(nullif(sr.ke_patient_visit, ''), enc.ke_patient_visit) as visit
 		from `tabService Request` sr
 		left join `tabPatient Encounter` enc on enc.name = sr.order_group
@@ -203,17 +204,27 @@ def _awaiting_payment(line):
 
 
 def _pay(line):
-	"""(status key, blocked): blocked = the lab may not collect yet."""
+	"""(status key, blocked): blocked = the lab may not collect yet. A request
+	reads its stored payment status (payment_status.py); a test made without a
+	request is worked out here."""
 	if line.get("request"):
-		insured, _uncovered = visit_bill._cover(line.insurance_policy, line.insurance_coverage)
-		dt, dn = "Service Request", line.request
-	else:
-		insured = coverage.pays_uncovered() and coverage.is_covered(line.insurance_coverage)
-		dt, dn = "Lab Test", line.lab_test
+		from royce_health_ke import payment_status
+
+		status, why = (
+			(line.payment_status, line.payment_exemption)
+			if line.get("payment_status")
+			else payment_status.stored(payment_status.SR, line.request)
+		)
+		if status == payment_status.EXEMPT:
+			return why, False
+		if status == payment_status.PAID:
+			return "paid", False
+		return "unpaid", visit_bill.enforced(visit_bill.LAB)
+	insured = coverage.pays_uncovered() and coverage.is_covered(line.insurance_coverage)
 	why = visit_bill.exemption(line.patient, line.visit, line.inpatient_record, insured)
 	if why:
 		return why, False
-	if visit_bill.is_paid(dt, dn):
+	if visit_bill.is_paid("Lab Test", line.lab_test):
 		return "paid", False
 	return "unpaid", visit_bill.enforced(visit_bill.LAB)
 
@@ -244,6 +255,8 @@ def _lines(from_date, to_date, company=None, patient=None):
 				inpatient_record=r.inpatient_record,
 				insurance_policy=r.insurance_policy,
 				insurance_coverage=r.insurance_coverage,
+				payment_status=r.ke_payment_status,
+				payment_exemption=r.ke_payment_exemption,
 				visit=r.visit or (t and t.visit),
 				lab_test_doc=t,
 			)

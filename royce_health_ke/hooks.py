@@ -47,20 +47,31 @@ doc_events = {
 			"royce_health_ke.cashier.require_payment_reference",
 		],
 		"before_submit": "royce_health_ke.visit_bill.invoice_before_submit",
+		# payment_status first: the visit's bill and routing read it
+		"on_update": "royce_health_ke.payment_status.invoice_changed",
 		"on_submit": [
+			"royce_health_ke.payment_status.invoice_changed",
 			"royce_health_ke.visit_bill.invoice_changed",
 			"royce_health_ke.pharmacy.invoice_changed",
 		],
 		"on_cancel": [
+			"royce_health_ke.payment_status.invoice_changed",
 			"royce_health_ke.visit_bill.invoice_changed",
 			"royce_health_ke.pharmacy.invoice_changed",
 		],
+		"after_delete": "royce_health_ke.payment_status.invoice_changed",
 	},
 	"Payment Entry": {
 		"before_validate": "royce_health_ke.cashier.payment_entry_before_validate",
 		"validate": "royce_health_ke.cashier.require_payment_reference",
-		"on_submit": "royce_health_ke.visit_bill.payment_changed",
-		"on_cancel": "royce_health_ke.visit_bill.payment_changed",
+		"on_submit": [
+			"royce_health_ke.payment_status.payment_changed",
+			"royce_health_ke.visit_bill.payment_changed",
+		],
+		"on_cancel": [
+			"royce_health_ke.payment_status.payment_changed",
+			"royce_health_ke.visit_bill.payment_changed",
+		],
 	},
 	"Delivery Note": {
 		"validate": "royce_health_ke.pharmacy.lock_substitution",
@@ -69,10 +80,12 @@ doc_events = {
 		"on_cancel": "royce_health_ke.pharmacy.delivery_changed",
 	},
 	"Journal Entry": {
+		"on_submit": "royce_health_ke.payment_status.journal_changed",
 		"on_cancel": [
 			"royce_health_ke.claims.on_settlement_cancel",
 			"royce_health_ke.approvals.journal_entry_cancelled",
-		]
+			"royce_health_ke.payment_status.journal_changed",
+		],
 	},
 	"Observation": {"before_insert": "royce_health_ke.radiology.before_insert_observation"},
 	"Lab Test": {
@@ -101,7 +114,14 @@ doc_events = {
 	},
 	"Patient Insurance Coverage": {
 		"before_validate": "royce_health_ke.schemes.price_consultation_cover",
+		"on_update": "royce_health_ke.payment_status.coverage_changed",
+		"on_submit": "royce_health_ke.payment_status.coverage_changed",
+		"on_cancel": "royce_health_ke.payment_status.coverage_changed",
+		"on_update_after_submit": "royce_health_ke.payment_status.coverage_changed",
 	},
+	"Patient Visit": {"on_update": "royce_health_ke.payment_status.visit_changed"},
+	"Inpatient Record": {"on_update": "royce_health_ke.payment_status.inpatient_changed"},
+	"Kenya Health Settings": {"on_update": "royce_health_ke.payment_status.settings_changed"},
 	"Patient Encounter": {
 		"validate": "royce_health_ke.visits.link_encounter",
 		"on_update": [
@@ -120,8 +140,16 @@ doc_events = {
 		],
 	},
 	"Public Health Event": {"after_insert": "royce_health_ke.surveillance.event_inserted"},
-	"Medication Request": {"on_submit": "royce_health_ke.coverage.cover_drug"},
-	"Service Request": {"before_insert": "royce_health_ke.lab.link_request_visit"},
+	"Medication Request": {
+		"on_submit": [
+			"royce_health_ke.coverage.cover_drug",
+			"royce_health_ke.payment_status.order_submitted",
+		]
+	},
+	"Service Request": {
+		"before_insert": "royce_health_ke.lab.link_request_visit",
+		"on_submit": "royce_health_ke.payment_status.order_submitted",
+	},
 }
 
 jinja = {
@@ -168,7 +196,10 @@ scheduler_events = {
 		"royce_health_ke.identity.remind_licence_expiry",
 		"royce_health_ke.surveillance.weekly_job",
 	],
-	"hourly": ["royce_health_ke.sms.send_appointment_reminders"],
+	"hourly": [
+		"royce_health_ke.sms.send_appointment_reminders",
+		"royce_health_ke.payment_status.reconcile",
+	],
 }
 
 # Apps

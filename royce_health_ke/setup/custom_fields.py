@@ -571,6 +571,35 @@ LAB_TEST = [
 	},
 ]
 
+
+# One payment status per order (payment_status.py): what the worklists read.
+def payment_fields(insert_after):
+	return [
+		{
+			"fieldname": "ke_payment_status",
+			"fieldtype": "Select",
+			"label": "Payment",
+			"options": "\nNot Billed\nBilled\nPaid\nExempt",
+			"insert_after": insert_after,
+			"read_only": 1,
+			"no_copy": 1,
+			"in_standard_filter": 1,
+			"search_index": 1,
+			"description": "Kept up to date when the order is billed or paid, or when the patient "
+			"is served before paying (insured, inpatient, casualty, approved).",
+		},
+		{
+			"fieldname": "ke_payment_exemption",
+			"fieldtype": "Data",
+			"label": "Served Before Payment Because",
+			"insert_after": "ke_payment_status",
+			"read_only": 1,
+			"no_copy": 1,
+			"depends_on": "eval:doc.ke_payment_status == 'Exempt'",
+		},
+	]
+
+
 SERVICE_REQUEST = [
 	{
 		"fieldname": "ke_patient_visit",
@@ -581,6 +610,7 @@ SERVICE_REQUEST = [
 		"read_only": 1,
 		"no_copy": 1,
 	},
+	*payment_fields("ke_patient_visit"),
 ]
 
 LAB_TEST_TEMPLATE = [
@@ -735,6 +765,7 @@ MEDICATION_REQUEST = [
 		"allow_on_submit": 1,
 		"description": "Why the drug is bought outside, or what the doctor is asked to change.",
 	},
+	*payment_fields("ke_pharmacy_note"),
 ]
 
 DELIVERY_NOTE = [

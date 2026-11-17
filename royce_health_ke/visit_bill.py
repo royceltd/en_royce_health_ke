@@ -243,23 +243,18 @@ SERVICE_STATIONS = {LAB: "Laboratory", RADIOLOGY: "Radiology", PHARMACY: "Pharma
 
 
 def drug_awaiting_payment(medication_request):
-	"""A cash patient's prescription not paid yet (drugs leave only once paid)."""
+	"""A cash patient's prescription not paid yet (drugs leave only once paid).
+	Reads the stored payment status (payment_status.py)."""
+	from royce_health_ke import payment_status
+
 	if not enforced(PHARMACY):
 		return False
-	m = frappe.db.get_value(
-		"Medication Request",
-		medication_request,
-		["patient", "order_group", "ke_insurance_coverage", "ke_pharmacy_status"],
-		as_dict=True,
-	)
-	if not m or m.ke_pharmacy_status in ("Buy Outside", "Sent Back"):
+	if frappe.db.get_value("Medication Request", medication_request, "ke_pharmacy_status") in (
+		"Buy Outside",
+		"Sent Back",
+	):
 		return False
-	visit = m.order_group and frappe.db.get_value("Patient Encounter", m.order_group, "ke_patient_visit")
-	cover = m.ke_insurance_coverage
-	insured = bool(cover) and (not coverage.pays_uncovered() or coverage.is_covered(cover))
-	if exemption(m.patient, visit or None, None, insured):
-		return False
-	return not is_paid("Medication Request", medication_request)
+	return payment_status.awaiting("Medication Request", medication_request)
 
 
 def awaiting_stations(visit_name):
@@ -782,6 +777,11 @@ def _cover(policy, cover):
 
 
 def _request_gate(kind, request, what):
+	"""Before the service point serves a request: checked live, and the stored
+	status corrected on the way (payment_status.py)."""
+	from royce_health_ke import payment_status
+
+	payment_status.refresh("Service Request", request)
 	r = frappe.db.get_value(
 		"Service Request",
 		request,
@@ -805,21 +805,13 @@ def _request_gate(kind, request, what):
 
 def request_awaiting_payment(kind, request):
 	"""A service point's worklist leaves out a cash request not paid yet
-	(the patient is at the Cashier): it is listed once paid."""
-	if not enforced(kind):
+	(the patient is at the Cashier): it is listed once paid. Reads the stored
+	payment status (payment_status.py)."""
+	from royce_health_ke import payment_status
+
+	if not enforced(kind) or not frappe.db.exists("Service Request", request):
 		return False
-	r = frappe.db.get_value(
-		"Service Request",
-		request,
-		["patient", "inpatient_record", "insurance_policy", "insurance_coverage"],
-		as_dict=True,
-	)
-	if not r:
-		return False
-	insured, _uncovered = _cover(r.insurance_policy, r.insurance_coverage)
-	if exemption(r.patient, visit_of_request(request), r.inpatient_record, insured):
-		return False
-	return not is_paid("Service Request", request)
+	return payment_status.awaiting("Service Request", request)
 
 
 def lab_test_before_insert(doc, method=None):

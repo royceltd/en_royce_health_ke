@@ -10,3 +10,4 @@ royce_health_ke.patches.v0_19.flag_existing_vitals
 royce_health_ke.patches.v0_22.residences_from_patients
 royce_health_ke.patches.v0_28.dispensed_by_invoice
 royce_health_ke.patches.v0_34.height_in_cm_one_phone
+royce_health_ke.patches.v0_38.payment_status_per_order

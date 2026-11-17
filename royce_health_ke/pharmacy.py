@@ -103,7 +103,8 @@ def _prescriptions(from_date, to_date, company=None):
 			mr.medication, mr.medication_item, mr.quantity, mr.dosage, mr.period, mr.comment,
 			mr.order_date, mr.order_time, mr.creation, mr.practitioner, mr.practitioner_name,
 			mr.order_group, mr.ke_insurance_coverage, mr.ke_pharmacy_status, mr.ke_dispensed_qty,
-			mr.ke_pharmacy_note, enc.ke_patient_visit as visit, i.item_name, i.stock_uom
+			mr.ke_pharmacy_note, mr.ke_payment_status, mr.ke_payment_exemption,
+			enc.ke_patient_visit as visit, i.item_name, i.stock_uom
 		from `tabMedication Request` mr
 		left join `tabPatient Encounter` enc on enc.name = mr.order_group
 		left join `tabItem` i on i.name = mr.medication_item
@@ -182,6 +183,8 @@ def _lines(from_date, to_date, company=None):
 				visit=m.visit,
 				encounter=m.order_group,
 				cover=m.ke_insurance_coverage,
+				payment_status=m.ke_payment_status,
+				payment_exemption=m.ke_payment_exemption,
 				stage=stage,
 				partly=stage == WAITING and dispensed > 0,
 			)
@@ -235,16 +238,21 @@ def _pay(line):
 			return "paid", False
 		why = line.patient and visit_bill.exemption(line.patient, line.visit)
 		return (why, False) if why else ("billed", enforced)
-	insured = bool(line.cover) and (not coverage.pays_uncovered() or coverage.is_covered(line.cover))
-	why = visit_bill.exemption(line.patient, line.visit, None, insured)
-	if why:
+	# A prescription: its stored payment status (payment_status.py); `live`
+	# (dispensing) works it out again and corrects the stored value.
+	from royce_health_ke import payment_status
+
+	if line.get("live"):
+		status, why = payment_status.refresh(MR, line.ref)
+	elif line.get("payment_status"):
+		status, why = line.payment_status, line.payment_exemption
+	else:
+		status, why = payment_status.stored(MR, line.ref)
+	if status == payment_status.EXEMPT:
 		return why, False
-	if visit_bill.is_paid(MR, line.ref):
+	if status == payment_status.PAID:
 		return "paid", False
-	billed = frappe.db.exists(
-		"Sales Invoice Item", {"reference_dt": MR, "reference_dn": line.ref, "docstatus": ["<", 2]}
-	)
-	return ("billed" if billed else "not_billed"), enforced
+	return ("billed" if status == payment_status.BILLED else "not_billed"), enforced
 
 
 def _stock(items, warehouse):
@@ -505,7 +513,9 @@ def _mr_row(ref, qty):
 			)
 		)
 	visit = m.order_group and frappe.db.get_value("Patient Encounter", m.order_group, "ke_patient_visit")
-	line = frappe._dict(kind="mr", ref=ref, patient=m.patient, visit=visit, cover=m.ke_insurance_coverage)
+	line = frappe._dict(
+		kind="mr", ref=ref, patient=m.patient, visit=visit, cover=m.ke_insurance_coverage, live=True
+	)
 	status, blocked = _pay(line)
 	if blocked:
 		frappe.throw(
