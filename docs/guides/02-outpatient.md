@@ -47,13 +47,13 @@ Demo record: HLC-APP-2026-00004, Dr Amina Achieng, OPD Room 1, 09:00.
 
 ## Step 3 — Triage and vital signs
 
-**Who:** triage nurse. **Where:** Outpatient › Vital Signs › *+ Add*, or **Create › Vital Signs** on the appointment.
+**Who:** triage nurse. **Where:** Kenya Health › Triage › **Triage Queue**: click the patient and their Vital Signs form opens, already linked to the visit. (Or Outpatient › Vital Signs › *+ Add*.)
 
-1. Choose the patient and link the appointment.
-2. Record temperature, pulse, respiratory rate, blood pressure, height **in centimetres** and weight; BMI is worked out on the form.
-3. Add a triage note (for example *Priority. Febrile, alert.*) and submit. Readings out of range for the patient's age are flagged **Abnormal** and shown in red.
+1. Record temperature, pulse, respiratory rate, blood pressure, height **in centimetres** and weight; BMI is worked out on the form.
+2. Add a triage note (for example *Priority. Febrile, alert.*). **Save**: the patient is marked *seen* at Triage, with no extra button.
+3. **Submit**: the patient goes to the **Doctor's Queue** by themselves (the visit's doctor, else the next doctor on duty, with the room). A patient whose consultation fee is due goes to the Cashier first. Readings out of range for the patient's age are flagged **Abnormal** and shown in red.
 
-The doctor sees these vitals when opening the consultation.
+The doctor sees these vitals at the top of the consultation. (Kenya Health Settings › Consultation › *Submitting triage vital signs sends the patient to the doctor* switches the automatic move off.)
 
 Demo record: HLC-VTS-2026-00005, temperature 38.6 °C, pulse 98.
 
@@ -63,7 +63,9 @@ Demo record: HLC-VTS-2026-00005, temperature 38.6 °C, pulse 98.
 
 ## Step 4 — Consultation and lab orders
 
-**Who:** doctor. **Where:** on the visit, **Record › Consultation**; or Outpatient › Consultation › *+ Add*, or **Create › Consultation** on the appointment. (The system calls it *Consultation*; Marley's documentation says *Patient Encounter*, the same record.)
+**Who:** doctor. **Where:** Kenya Health › Consultation › **Doctor's Queue** (**My Patients** for yours): click the patient and their consultation opens, filled from the visit (or the one already started). Also on the visit, **Record › Consultation**, or Outpatient › Consultation › *+ Add*.
+
+The **Latest Vital Signs** (temperature, pulse, respiration, blood pressure, SpO2, weight, height, BMI, abnormal ones in red) show at the top of every tab. (The system calls it *Consultation*; Marley's documentation says *Patient Encounter*, the same record.)
 
 The consultation has tabs in the order the doctor works: **Patient → Observation → Requests → Results → Diagnosis → Prescription → Complete**, then Marley's *Consultation Details* and *Notes*.
 
@@ -98,12 +100,12 @@ Demo record: consultation HLC-ENC-2026-00009 orders BS for MPS, Hb and WBC.
 
 **Who:** cashier. **Where:** the patient's visit, **Bill** (Kenya Health › Patient Visit, Station = Cashier). Everything for billing is under **Kenya Health › Billing**: Patient Bills, Sales Invoice, Payment Entry, Cashier Shift and Bill Approval Request. Taking money needs the **Cashier** role and, if the hospital requires it, an open Cashier Shift.
 
-A cash outpatient pays twice at the Cashier: the **consultation fee before triage** (on check-in, the patient waits at the Cashier first), then the **requests** after the doctor sends them. Insured patients don't stop at the Cashier. See the [Reception, queue and billing guide](12-reception-queue-billing.md), Steps 2 and 6.
+A cash outpatient pays twice at the Cashier: the **consultation fee before triage** (on check-in, the patient waits at the Cashier first), then the **requests** after the doctor sends them. The bill is ready before the patient arrives: the fee goes on the visit's **draft bill** at check-in, and each lab, imaging or procedure request joins it when the doctor sends it. The cashier only checks it, takes off what the patient isn't paying for now, and takes the payment. (Medicines are added by the pharmacy, Step 8. Kenya Health Settings › *Draft bill for cash patients automatically* switches this off.) Insured patients don't stop at the Cashier. See the [Reception, queue and billing guide](12-reception-queue-billing.md), Steps 2 and 6.
 
 A cash patient with lab tests, imaging or medicines not paid goes to the Cashier first, whichever station the doctor sends them to: the visit shows **After Paying, Goes To** (for example *Laboratory*). As soon as the payment is taken, the patient joins that service point's list by themselves.
 
-1. On the patient's visit, **Bill › Create Bill**: the charges not billed yet are listed and ticked (the fee, or the tests the doctor requested). Untick anything the patient is not paying for now; it stays on the visit. **Create Invoice** opens the invoice with the ticked lines, linked to the visit. (Or, on a new invoice, choose the patient, then **Get Items From › Healthcare Services**.)
-2. Save the invoice and press **Take Payment** (on the invoice, or on the visit under **Bill**). Choose how the patient pays and type the **Amount Received**: for cash, the **change to give** shows at once; less than the total is a part payment, and the rest stays owed. For M-Pesa, card or bank, type the transaction code: a non-cash payment without it is refused, and it can't be more than the bill (change is given only in cash). Take Payment submits the invoice and records the payment. (Paying on the invoice with **Include Payment**, or **Create › Payment**, still works.)
+1. Open the patient's visit from the **Cashier Queue**. The **draft bill** is listed under the visit's bill: open it to take off a line the patient isn't paying for now (it stays on the visit to bill later), or go straight to **Take Payment**. Charges not on a draft yet are under **Bill › Create Bill**: the charges not billed yet are listed and ticked (the fee, or the tests the doctor requested). Untick anything the patient is not paying for now; it stays on the visit. **Create Invoice** opens the invoice with the ticked lines, linked to the visit. (Or, on a new invoice, choose the patient, then **Get Items From › Healthcare Services**.)
+2. Save the invoice and press **Take Payment** (on the invoice, or on the visit under **Bill**). Choose how the patient pays and type the **Amount Received**: for cash, the **change to give** shows at once; less than the total is a part payment, and the rest stays owed. For M-Pesa, card or bank, type the transaction code: a non-cash payment without it is refused. Paid more than the bill by M-Pesa, card or bank, the extra stays on the patient's account as **credit**; at their next bill, Take Payment offers **Use the patient's credit** (ticked) and only the rest is collected. Paid less, the rest stays owed and the lab, radiology and pharmacy wait until it is paid. With M-Pesa prompts set up (royce_payments, Daraja Account), **Send M-Pesa Prompt** sends the payment request to the patient's phone; once they enter their PIN, the payment is recorded on the bill by itself. Take Payment submits the invoice and records the payment. (Paying on the invoice with **Include Payment**, or **Create › Payment**, still works.)
 3. The invoice is sent to KRA eTIMS and comes back *Sent*, with a KRA receipt number and QR code.
 4. Press **Patient Receipt** on the paid invoice and print it on the 80 mm receipt printer.
 

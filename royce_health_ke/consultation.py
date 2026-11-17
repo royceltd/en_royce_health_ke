@@ -335,6 +335,49 @@ def next_stations(doc):
 	}
 
 
+# Latest vital signs, at the top of the consultation (IT demo, 17 Nov 2026)
+
+VITALS = (
+	"name",
+	"signs_date",
+	"signs_time",
+	"docstatus",
+	"temperature",
+	"pulse",
+	"respiratory_rate",
+	"bp",
+	"bp_systolic",
+	"bp_diastolic",
+	"ke_spo2",
+	"weight",
+	"ke_height_cm",
+	"bmi",
+	"ke_vitals_status",
+	"ke_vitals_flags",
+)
+
+
+@frappe.whitelist()
+def latest_vitals(patient: str, visit: str | None = None) -> dict | None:
+	"""The visit's latest vital signs, else the patient's within the last day."""
+	if not frappe.has_permission("Vital Signs", "read"):
+		return None
+	frappe.has_permission("Patient", "read", patient, throw=True)
+	filters = {"patient": patient, "docstatus": ["<", 2]}
+	if visit and frappe.db.exists("Vital Signs", {**filters, "ke_patient_visit": visit}):
+		filters["ke_patient_visit"] = visit
+	else:
+		filters["signs_date"] = [">=", frappe.utils.add_days(frappe.utils.nowdate(), -1)]
+	rows = frappe.get_all(
+		"Vital Signs",
+		filters=filters,
+		fields=list(VITALS),
+		order_by="signs_date desc, signs_time desc, creation desc",
+		limit=1,
+	)
+	return rows[0] if rows else None
+
+
 # Results panel
 
 

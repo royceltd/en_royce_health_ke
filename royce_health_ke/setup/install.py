@@ -160,6 +160,8 @@ def default_settings():
 		("auto_bill_insured", 1),
 		("clinical_alerts", 1),
 		("observation_before_requests", 1),
+		("vitals_send_to_doctor", 1),
+		("auto_bill_cash", 1),
 		("obs_need_complaint", 1),
 		("obs_need_hpi", 1),
 		("obs_need_examination", 1),

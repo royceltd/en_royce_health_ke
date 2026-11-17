@@ -19,6 +19,7 @@ frappe.ui.form.on("Patient Encounter", {
 		ke_consultation_refresh(frm);
 		ke_may_consult(frm);
 		ke_unsent_requests(frm);
+		ke_latest_vitals(frm);
 	},
 	patient(frm) {
 		ke_may_consult(frm);
@@ -58,6 +59,52 @@ function ke_unsent_requests(frm) {
 			true
 		);
 	}
+}
+
+// The latest vital signs at the top of every tab, abnormal readings in red.
+function ke_latest_vitals(frm) {
+	if (!frm.doc.patient) return;
+	frappe
+		.xcall("royce_health_ke.consultation.latest_vitals", {
+			patient: frm.doc.patient,
+			visit: frm.doc.ke_patient_visit || null,
+		})
+		.then((v) => {
+			if (frm.__ke_vitals_section)
+				frm.__ke_vitals_section.closest(".form-dashboard-section").remove();
+			frm.__ke_vitals_section = null;
+			if (!v) return;
+			const esc = frappe.utils.escape_html;
+			const flags = (v.ke_vitals_flags || "").toLowerCase();
+			const item = (label, value, unit, key) =>
+				value || value === 0
+					? `<div class="mr-4 mb-1"><span class="text-muted small">${label}</span><br><b${
+							key && flags.includes(key) ? ' style="color:var(--red-600)"' : ""
+					  }>${esc(String(value))}${unit ? " " + unit : ""}</b></div>`
+					: "";
+			const bp = v.bp || (v.bp_systolic ? `${v.bp_systolic}/${v.bp_diastolic || "?"}` : "");
+			const html = `<div class="d-flex flex-wrap align-items-start">
+				${item(__("Temp"), v.temperature, "°C", "temp")}
+				${item(__("Pulse"), v.pulse, "/min", "pulse")}
+				${item(__("Resp"), v.respiratory_rate, "/min", "resp")}
+				${item(__("BP"), bp, "mmHg", "bp")}
+				${item(__("SpO2"), v.ke_spo2, "%", "spo2")}
+				${item(__("Weight"), v.weight, "kg")}
+				${item(__("Height"), v.ke_height_cm, "cm")}
+				${item(__("BMI"), v.bmi ? flt(v.bmi, 1) : "", "")}
+				<div class="ml-auto small text-muted">${esc(frappe.datetime.str_to_user(v.signs_date))} ${esc(
+				(v.signs_time || "").slice(0, 5)
+			)} ·
+					<a href="/desk/vital-signs/${encodeURIComponent(v.name)}">${esc(v.name)}</a>
+					${
+						v.ke_vitals_status === "Abnormal"
+							? `<span class="indicator-pill red ml-2">${__("Abnormal")}</span>`
+							: ""
+					}</div>
+			</div>`;
+			frm.__ke_vitals_section = frm.dashboard.add_section(html, __("Latest Vital Signs"));
+			frm.dashboard.show();
+		});
 }
 
 // Requests the bill can't charge: no price for this patient.

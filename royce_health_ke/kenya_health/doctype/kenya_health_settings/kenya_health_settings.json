@@ -48,6 +48,7 @@
   "consultation_needs_check_in",
   "default_consultation_item",
   "auto_bill_insured",
+  "auto_bill_cash",
   "insured_pay_uncovered",
   "waiver_account",
   "cashier_section",
@@ -56,6 +57,7 @@
   "require_cashier_shift",
   "consultation_section",
   "observation_before_requests",
+  "vitals_send_to_doctor",
   "consultation_cb",
   "obs_need_complaint",
   "obs_need_hpi",
@@ -381,6 +383,13 @@
    "description": "An insured visit's charges go on its draft invoice as they are ordered, and the invoice is submitted (insurer's share to the claim, signed by KRA) when the visit is closed. A copay stays on the invoice for the cashier."
   },
   {
+   "fieldname": "auto_bill_cash",
+   "fieldtype": "Check",
+   "default": "1",
+   "label": "Draft bill for cash patients automatically",
+   "description": "A cash visit's consultation fee, and the requests and medicines the doctor sends, go on the visit's draft bill by themselves. The cashier removes what the patient isn't paying for now, then submits and takes the payment."
+  },
+  {
    "fieldname": "insured_pay_uncovered",
    "fieldtype": "Check",
    "label": "Insured: uncovered items paid first",
@@ -405,6 +414,13 @@
    "default": "1",
    "label": "Observation before requests",
    "description": "The doctor fills the Observation tab before requesting tests or prescribing. Not for casualty visits or inpatients."
+  },
+  {
+   "fieldname": "vitals_send_to_doctor",
+   "fieldtype": "Check",
+   "default": "1",
+   "label": "Submitting triage vital signs sends the patient to the doctor",
+   "description": "The patient is marked seen at Triage when the vital signs are first saved, and goes to the doctor's queue (the visit's doctor, else the next on duty) when they are submitted. The payment rules still apply."
   },
   {
    "fieldname": "consultation_cb",
@@ -522,7 +538,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-17 23:21:44.016299",
+ "modified": "2026-11-17 23:34:41.453282",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

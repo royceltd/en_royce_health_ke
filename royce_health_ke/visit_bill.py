@@ -525,6 +525,94 @@ def auto_bill(visit, closing=False):
 		frappe.flags.ke_auto_billing = False
 
 
+# Cash visits: a draft bill made for the cashier (Kenya Health Settings >
+# Draft bill for cash patients automatically; IT demo, 17 Nov 2026: "create
+# the invoice in draft so the cashier just submits, or removes items"). The
+# consultation fee goes on it at check-in, and each lab, imaging or procedure
+# request when the doctor sends it. Each charge is put on once: one the
+# cashier takes off stays to bill later (Create Bill). Medicines are billed
+# by the pharmacy, which confirms what it can give first (pharmacy.py).
+
+
+def auto_bills_cash():
+	f = frappe.flags
+	if f.in_import or f.in_install or f.in_migrate or f.ke_demo:
+		return False
+	# tests of other areas bill by hand; these tests switch it on (ke_test_cash_draft)
+	if f.in_test and not f.ke_test_cash_draft:
+		return False
+	return bool(frappe.db.get_single_value("Kenya Health Settings", "auto_bill_cash"))
+
+
+def draft_cash_bill(visit, refs):
+	"""Put these charges ((reference doctype, name) pairs) of a cash visit on
+	its draft bill, made if there is none. Never stops the work that
+	triggered it. Returns the draft's name, or None."""
+	if frappe.flags.ke_auto_billing or not auto_bills_cash() or not refs:
+		return None
+	if visit.status != "Open" or visit.payment_method != "Cash" or visit.get("inpatient_record"):
+		return None
+	if not frappe.db.get_value("Patient", visit.patient, "customer"):
+		return None
+	refs = {tuple(r) for r in refs}
+	frappe.flags.ke_auto_billing = True
+	frappe.db.savepoint("ke_cash_draft")
+	try:
+		with _as_administrator():
+			drafted = on_drafts(visit.name)
+			lines = [
+				line
+				for line in unbilled_lines(visit)
+				if (line["dt"], line["dn"]) in refs and (line["dt"], line["dn"]) not in drafted
+			]
+			if not lines:
+				return None
+			draft = _draft(visit.name)
+			if draft:
+				si = frappe.get_doc("Sales Invoice", draft)
+				si.set_healthcare_services(lines)
+				si.flags.ignore_permissions = True
+				si.save()
+			else:
+				si = _invoice(visit, lines)
+				si.flags.ignore_permissions = True
+				si.insert()
+			for line in lines:
+				if line["dt"] == "Service Request":
+					frappe.db.set_value(
+						"Service Request", line["dn"], "ke_auto_billed", 1, update_modified=False
+					)
+		return si.name
+	except Exception:
+		frappe.db.rollback(save_point="ke_cash_draft")
+		frappe.log_error(title=f"Draft bill of {visit.name}")
+		return None
+	finally:
+		frappe.flags.ke_auto_billing = False
+
+
+def draft_visit_fee(visit):
+	"""Check-in: the consultation fee on the cash visit's draft bill."""
+	if visit.get("fee_first"):
+		draft_cash_bill(visit, [fee_reference(visit)])
+
+
+def draft_encounter_orders(doc, method=None):
+	"""Patient Encounter saved or submitted: the requests it has placed, not
+	put on a draft bill before, go on the cash visit's draft bill."""
+	visit_name = doc.get("ke_patient_visit")
+	if not visit_name or doc.docstatus == 2 or not auto_bills_cash():
+		return
+	requests = frappe.get_all(
+		"Service Request",
+		filters={"order_group": doc.name, "docstatus": 1, "ke_auto_billed": 0},
+		pluck="name",
+	)
+	if requests:
+		visit = frappe.get_doc("Patient Visit", visit_name)
+		draft_cash_bill(visit, [("Service Request", r) for r in requests])
+
+
 def finalize_insured_bill(visit):
 	"""Patient Visit closed: bring the insured visit's draft invoice up to date
 	and submit it, so the insurer's share goes to its claim and KRA signs it.

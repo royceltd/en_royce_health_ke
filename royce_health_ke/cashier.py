@@ -235,63 +235,138 @@ def payment_modes(company: str) -> list[dict]:
 	return sorted(modes, key=lambda m: (m.type != "Cash", m.name))
 
 
-@frappe.whitelist()
-def take_payment(
-	invoice: str, mode_of_payment: str, amount_received: float, reference_no: str | None = None
-) -> dict:
-	"""Pay a patient's bill: submits a draft bill first, records the payment
-	(the outstanding amount at most) and returns the change for cash."""
-	from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
-	from frappe.utils import nowdate
+# Patient credit (IT demo, 17 Nov 2026: "someone pays more on M-Pesa"): what
+# a patient paid over the bill by M-Pesa, card or bank stays on their account
+# (an unallocated payment, ERPNext's customer advance), and Take Payment
+# offers it on their next bill. Cash over the bill is change, as before.
 
+
+def patient_credit(customer, company):
+	"""The patient's credit: payments received and not yet set against a bill."""
+	if not customer:
+		return 0
+	rows = frappe.get_all(
+		"Payment Entry",
+		filters={
+			"party_type": "Customer",
+			"party": customer,
+			"company": company,
+			"payment_type": "Receive",
+			"docstatus": 1,
+			"unallocated_amount": [">", 0],
+		},
+		pluck="unallocated_amount",
+	)
+	return flt(sum(rows), 2)
+
+
+def _mpesa_prompt_ready(company):
+	"""STK push through royce_payments (optional app) with an enabled Daraja Account."""
+	if "royce_payments" not in frappe.get_installed_apps():
+		return False
+	return bool(frappe.db.exists("Daraja Account", {"company": company, "enabled": 1}))
+
+
+@frappe.whitelist()
+def payment_context(invoice: str) -> dict:
+	"""For the Take Payment box: the patient's credit (offered on a draft bill)
+	and whether an M-Pesa prompt can be sent, with the patient's mobile."""
+	si = frappe.get_doc("Sales Invoice", invoice)
+	si.check_permission("read")
+	credit = patient_credit(si.customer, si.company) if si.docstatus == 0 else 0
+	mobile = si.get("patient") and frappe.db.get_value("Patient", si.patient, "mobile")
+	return {"credit": credit, "mpesa_prompt": _mpesa_prompt_ready(si.company), "mobile": mobile or ""}
+
+
+def _bill_to_pay(invoice, use_credit):
+	"""The bill, submitted (a draft first takes the patient's credit when asked)."""
 	si = frappe.get_doc("Sales Invoice", invoice)
 	si.check_permission("read")
 	if si.docstatus == 2 or si.get("is_return"):
 		frappe.throw(_("Bill {0} is cancelled or a return.").format(si.name))
+	if si.docstatus == 0:
+		si.check_permission("submit")
+		if cint(use_credit) and patient_credit(si.customer, si.company):
+			si.allocate_advances_automatically = 1
+		si.submit()
+	return si
+
+
+@frappe.whitelist()
+def take_payment(
+	invoice: str,
+	mode_of_payment: str | None = None,
+	amount_received: float = 0,
+	reference_no: str | None = None,
+	use_credit: int = 0,
+) -> dict:
+	"""Pay a patient's bill: a draft bill is submitted first (with the patient's
+	credit, when asked), then the payment is recorded. Cash over the bill is
+	change; M-Pesa, card or bank over the bill stays as the patient's credit."""
+	from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+	from frappe.utils import nowdate
+
 	received = flt(amount_received, 2)
-	if received <= 0:
+	if received < 0 or (received == 0 and not cint(use_credit)):
 		frappe.throw(_("Enter the amount received."))
 	cash = _is_cash(mode_of_payment)
 	reference_no = (reference_no or "").strip()
-	if not cash and not reference_no:
-		frappe.throw(
-			_("Enter the transaction code (e.g. the M-Pesa code) for the {0} payment.").format(
-				mode_of_payment
-			),
-			title=_("Transaction code required"),
-		)
-	account = frappe.db.get_value(
-		"Mode of Payment Account",
-		{"parent": mode_of_payment, "company": si.company},
-		"default_account",
-	)
-	if not account:
-		frappe.throw(
-			_("{0} has no account for {1}: set it on the Mode of Payment.").format(
-				mode_of_payment, si.company
+	account = None
+	si = frappe.get_doc("Sales Invoice", invoice)
+	if received > 0:
+		if not mode_of_payment:
+			frappe.throw(_("Choose how the patient paid."))
+		if not cash and not reference_no:
+			frappe.throw(
+				_("Enter the transaction code (e.g. the M-Pesa code) for the {0} payment.").format(
+					mode_of_payment
+				),
+				title=_("Transaction code required"),
 			)
+		account = frappe.db.get_value(
+			"Mode of Payment Account",
+			{"parent": mode_of_payment, "company": si.company},
+			"default_account",
 		)
-	if si.docstatus == 0:
-		si.check_permission("submit")
-		si.submit()
+		if not account:
+			frappe.throw(
+				_("{0} has no account for {1}: set it on the Mode of Payment.").format(
+					mode_of_payment, si.company
+				)
+			)
+	was_draft = si.docstatus == 0
+	si = _bill_to_pay(invoice, use_credit)
+	credit_used = flt(sum(flt(a.allocated_amount) for a in si.get("advances") or []), 2) if was_draft else 0
 	due = flt(si.outstanding_amount, 2)
+	money = lambda v: frappe.format_value(v, {"fieldtype": "Currency", "options": si.currency})  # noqa: E731
 	if due <= 0:
+		if credit_used and received <= 0:
+			return {
+				"invoice": si.name,
+				"payment": None,
+				"paid": 0,
+				"change": 0,
+				"credit_used": credit_used,
+				"credit_added": 0,
+				"balance": 0,
+				"currency": si.currency,
+			}
 		frappe.throw(_("Bill {0} is already paid.").format(si.name))
-	if not cash and received > due:
+	if received <= 0:
 		frappe.throw(
-			_("{0} payment of {1} is more than the {2} owed: change is given only for cash.").format(
-				mode_of_payment,
-				frappe.format_value(received, {"fieldtype": "Currency", "options": si.currency}),
-				frappe.format_value(due, {"fieldtype": "Currency", "options": si.currency}),
+			_("The credit paid {0}; {1} is still owed. Enter the amount received.").format(
+				money(credit_used), money(due)
 			)
 		)
 	paid = min(received, due)
+	# cash over the bill is change; any other payment over it is the patient's credit
+	taken = paid if cash else received
 	frappe.has_permission("Payment Entry", "create", throw=True)
 	pe = get_payment_entry("Sales Invoice", si.name, party_amount=paid)
 	pe.mode_of_payment = mode_of_payment
 	pe.paid_to = account
 	pe.paid_to_account_currency = frappe.db.get_value("Account", account, "account_currency")
-	pe.paid_amount = pe.received_amount = paid
+	pe.paid_amount = pe.received_amount = taken
 	for ref in pe.references:
 		ref.allocated_amount = paid
 	pe.reference_no = reference_no or None
@@ -305,6 +380,25 @@ def take_payment(
 		"payment": pe.name,
 		"paid": paid,
 		"change": pe.ke_change,
+		"credit_used": credit_used,
+		"credit_added": flt(taken - paid, 2),
 		"balance": flt(due - paid, 2),
 		"currency": si.currency,
 	}
+
+
+@frappe.whitelist(methods=["POST"])
+def mpesa_prompt(invoice: str, phone: str, amount: float, use_credit: int = 0) -> dict:
+	"""Send an M-Pesa payment prompt (STK push) to the patient's phone for this
+	bill. A draft bill is submitted first (with the credit, when asked), so the
+	confirmed payment is recorded against it (royce_payments posts it)."""
+	si = frappe.get_doc("Sales Invoice", invoice)
+	if not _mpesa_prompt_ready(si.company):
+		frappe.throw(_("M-Pesa prompts are not set up for {0}.").format(si.company))
+	_check(si.company, _("M-Pesa prompt"))
+	si = _bill_to_pay(invoice, use_credit)
+	due = flt(si.outstanding_amount, 2)
+	if due <= 0:
+		frappe.throw(_("Bill {0} is already paid.").format(si.name))
+	request = frappe.get_attr("royce_payments.daraja.stk.request_payment")
+	return {**request("Sales Invoice", si.name, phone, min(flt(amount), due) or due), "invoice": si.name}

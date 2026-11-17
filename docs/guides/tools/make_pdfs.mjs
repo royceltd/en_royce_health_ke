@@ -62,7 +62,7 @@ const temporaryGuides = [
   ["v0.37-testing.md", "Version 0.37 Take Payment, Cashier Before Service Points and Billing Menu Testing Guide", "17 November 2026"],
   ["v0.41-testing.md", "Version 0.41 No Consultation or Triage Before Payment Testing Guide", "18 November 2026"],
   ["v0.42-it-feedback-guide.md", "Your Feedback of 17 November: Payment Before Service, Queues, Service Prices and Categories", "18 November 2026"],
-  ["v0.43.1-testing.md", "Version 0.43.1 Fixes from the 17 November Demo Testing Guide", "18 November 2026"],
+  ["v0.44-testing.md", "Version 0.44 Changes from the 17 November Demo Testing Guide", "18 November 2026"],
   ["v0.43-testing.md", "Version 0.43 Security Basics: Logins, Users, Screen Lock and the Compliance Check Testing Guide", "18 November 2026"],
   ["demo-script-bethesda.md", "Demo Script for Bethesda", "15 November 2026",
     "Written 15 November 2026 for the demo of RoyceERP Health to Bethesda Healthcare Services, on hospital.royceltd.com (v0.28.1). All patients, staff and records shown are fictional."],

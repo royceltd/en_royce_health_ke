@@ -14,7 +14,7 @@ import frappe
 
 from royce_health_ke.privacy import RECEPTIONIST, ensure_role
 
-VERSION = 3
+VERSION = 4
 
 READ = ("read", "select", "report")
 RECEPTIONIST_ACCESS = {
@@ -77,6 +77,22 @@ PHARMACIST_ACCESS = {
 }
 
 
+# v4 (18 Nov 2026, role_access.py): only reception and administrators edit a
+# patient's registration; every other role keeps reading it.
+PATIENT_EDITORS = ("Receptionist", "Healthcare Administrator", "System Manager", "Administrator")
+
+
+def patient_registration_to_reception():
+	from frappe.permissions import get_valid_perms, update_permission_property
+
+	for rule in get_valid_perms("Patient", roles=frappe.get_all("Role", pluck="name")):
+		if rule.role in PATIENT_EDITORS or rule.get("permlevel"):
+			continue
+		for right in ("write", "create", "delete"):
+			if rule.get(right):
+				update_permission_property("Patient", rule.role, 0, right, 0, validate=False)
+
+
 def apply_defaults():
 	done = frappe.db.get_single_value("Kenya Health Settings", "role_defaults_version") or 0
 	if done >= VERSION:
@@ -86,6 +102,8 @@ def apply_defaults():
 	from royce_health_ke.cashier import CASHIER
 	from royce_health_ke.pharmacy import PHARMACIST
 
+	if done < 4:
+		patient_registration_to_reception()
 	for role, access in (
 		(RECEPTIONIST, RECEPTIONIST_ACCESS),
 		(CASHIER, CASHIER_ACCESS),

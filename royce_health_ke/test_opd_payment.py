@@ -262,13 +262,11 @@ class TestCashierBetweenDoctorAndServices(IntegrationTestCase):
 		si.insert(ignore_permissions=True)
 		due = si.rounded_total or si.grand_total
 
-		# a non-cash payment needs its code, and gives no change
+		# a non-cash payment needs its code (over the bill it is credit: test_patient_credit)
 		other = next((m.name for m in cashier.payment_modes(self.company) if m.type != "Cash"), None)
 		if other:
 			with self.assertRaises(frappe.ValidationError):
 				cashier.take_payment(si.name, other, due)
-			with self.assertRaises(frappe.ValidationError):
-				cashier.take_payment(si.name, other, due + 100, "QAZ123")
 
 		r = cashier.take_payment(si.name, "Cash", due + 300)
 		self.assertEqual((r["paid"], r["change"], r["balance"]), (due, 300, 0))
@@ -278,6 +276,42 @@ class TestCashierBetweenDoctorAndServices(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Patient Visit", visit.name, "current_station"), "Triage")
 		with self.assertRaises(frappe.ValidationError):
 			cashier.take_payment(si.name, "Cash", 10)
+
+	def test_patient_credit(self):
+		"""M-Pesa over the bill stays as credit; the next bill uses it."""
+		from royce_health_ke import cashier
+
+		other = next(
+			(
+				m.name
+				for m in cashier.payment_modes(self.company)
+				if m.type != "Cash"
+				and frappe.db.get_value(
+					"Mode of Payment Account", {"parent": m.name, "company": self.company}, "default_account"
+				)
+			),
+			None,
+		)
+		if not other:
+			self.skipTest("needs a non-cash mode of payment with an account for the company")
+		visit = self.check_in()
+		si = frappe.get_doc(visit_bill.make_bill(visit.name))
+		si.insert(ignore_permissions=True)
+		due = si.rounded_total or si.grand_total
+		r = cashier.take_payment(si.name, other, due + 250, "QAZ123")
+		self.assertEqual((r["paid"], r["change"], r["credit_added"], r["balance"]), (due, 0, 250, 0))
+		customer = frappe.db.get_value("Patient", visit.patient, "customer")
+		self.assertEqual(cashier.patient_credit(customer, self.company), 250)
+
+		# the next bill: the credit pays first, the rest is taken
+		self.order_lab_test()
+		bill = frappe.get_doc(visit_bill.make_bill(visit.name))
+		bill.insert(ignore_permissions=True)
+		owed = bill.rounded_total or bill.grand_total
+		self.assertEqual(cashier.payment_context(bill.name)["credit"], 250)
+		r = cashier.take_payment(bill.name, "Cash", owed - 250, use_credit=1)
+		self.assertEqual((r["credit_used"], r["paid"], r["balance"]), (250, owed - 250, 0))
+		self.assertEqual(cashier.patient_credit(customer, self.company), 0)
 
 	def test_part_payment(self):
 		from royce_health_ke import cashier

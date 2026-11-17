@@ -32,6 +32,7 @@ whitelisted methods keep their old paths (`override_whitelisted_methods`).
 | Marley's version is the one we support | Tests run against what hospitals run | `test_marley.test_supported_version` |
 | Every Marley function we use exists with the arguments we pass | An upgrade that breaks us fails a test, not a hospital | `test_marley.test_everything_we_use_exists`, `test_signatures_we_call` |
 | Upgrades come first: every Marley, ERPNext or Frappe version bump goes through one checklist | Customisations never hold back an upgrade; the risky places are named | [marley-upgrade-checklist.md](marley-upgrade-checklist.md) |
+| Each role's access is one matrix (`role_access.py`) | A loosened role is caught by a test before release and by the Compliance Check on a live site | `test_role_access`, Compliance Check › Access |
 | Lists read the stored payment status; serving a patient checks it live | Fast worklists that agree, and no unpaid service from a stale value | `test_payment_status` |
 | A new site installs cleanly | The next hospital's first day | CI (fresh site, all apps, the demo, every test) |
 

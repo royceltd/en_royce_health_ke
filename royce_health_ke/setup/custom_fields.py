@@ -628,6 +628,17 @@ SERVICE_REQUEST = [
 		"no_copy": 1,
 	},
 	*payment_fields("ke_patient_visit"),
+	{
+		# put on the cash visit's draft bill once (visit_bill.draft_cash_bill); a
+		# line the cashier then takes off is not put back
+		"fieldname": "ke_auto_billed",
+		"fieldtype": "Check",
+		"label": "Put on the Draft Bill",
+		"insert_after": "ke_patient_visit",
+		"read_only": 1,
+		"hidden": 1,
+		"no_copy": 1,
+	},
 ]
 
 LAB_TEST_TEMPLATE = [

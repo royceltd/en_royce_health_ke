@@ -10,20 +10,22 @@
   "patient_name",
   "sex",
   "age",
-  "company",
-  "facility",
   "visit_cb",
-  "visit_date",
-  "arrival",
   "visit_type",
   "appointment_type",
+  "department",
   "visit_cb2",
+  "is_referral",
+  "referred_from",
+  "more_section",
+  "company",
+  "facility",
+  "visit_date",
+  "arrival",
+  "more_cb",
   "practitioner",
   "practitioner_name",
   "consultation_room",
-  "department",
-  "is_referral",
-  "referred_from",
   "appointment",
   "payment_section",
   "payment_method",
@@ -116,40 +118,8 @@
    "read_only": 1
   },
   {
-   "fieldname": "company",
-   "fieldtype": "Link",
-   "label": "Company",
-   "options": "Company",
-   "reqd": 1,
-   "remember_last_selected_value": 1
-  },
-  {
-   "fieldname": "facility",
-   "fieldtype": "Link",
-   "label": "Facility",
-   "options": "Health Facility",
-   "in_standard_filter": 1,
-   "description": "Where the patient checked in: the user's default facility, or the company's only one. Doctors are assigned from this facility's rooms."
-  },
-  {
    "fieldname": "visit_cb",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "visit_date",
-   "fieldtype": "Date",
-   "label": "Visit Date",
-   "default": "Today",
-   "reqd": 1,
-   "in_standard_filter": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "arrival",
-   "fieldtype": "Datetime",
-   "label": "Arrived",
-   "default": "now",
-   "read_only": 1
   },
   {
    "fieldname": "visit_type",
@@ -168,7 +138,70 @@
    "description": "The consultation the patient came for, e.g. General Consultation."
   },
   {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Medical Department",
+   "fetch_from": "practitioner.department",
+   "fetch_if_empty": 1
+  },
+  {
    "fieldname": "visit_cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "is_referral",
+   "fieldtype": "Check",
+   "label": "Referred In"
+  },
+  {
+   "fieldname": "referred_from",
+   "fieldtype": "Data",
+   "label": "Referred From",
+   "depends_on": "is_referral",
+   "mandatory_depends_on": "is_referral"
+  },
+  {
+   "fieldname": "more_section",
+   "fieldtype": "Section Break",
+   "label": "More Details",
+   "collapsible": 1,
+   "description": "Filled in by themselves: the company and facility, today's date, and the doctor (the next on duty when none is chosen)."
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "facility",
+   "fieldtype": "Link",
+   "label": "Facility",
+   "options": "Health Facility",
+   "in_standard_filter": 1,
+   "description": "Where the patient checked in: the user's default facility, or the company's only one. Doctors are assigned from this facility's rooms."
+  },
+  {
+   "fieldname": "visit_date",
+   "fieldtype": "Date",
+   "label": "Visit Date",
+   "default": "Today",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "arrival",
+   "fieldtype": "Datetime",
+   "label": "Arrived",
+   "default": "now",
+   "read_only": 1
+  },
+  {
+   "fieldname": "more_cb",
    "fieldtype": "Column Break"
   },
   {
@@ -193,26 +226,6 @@
    "options": "Healthcare Service Unit",
    "read_only": 1,
    "description": "The doctor's room from their Practitioner Schedule, set when the patient is sent to Consultation."
-  },
-  {
-   "fieldname": "department",
-   "fieldtype": "Link",
-   "label": "Department",
-   "options": "Medical Department",
-   "fetch_from": "practitioner.department",
-   "fetch_if_empty": 1
-  },
-  {
-   "fieldname": "is_referral",
-   "fieldtype": "Check",
-   "label": "Referred In"
-  },
-  {
-   "fieldname": "referred_from",
-   "fieldtype": "Data",
-   "label": "Referred From",
-   "depends_on": "is_referral",
-   "mandatory_depends_on": "is_referral"
   },
   {
    "fieldname": "appointment",
@@ -517,7 +530,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-17 14:00:00.000000",
+ "modified": "2026-11-17 23:35:57.338009",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Patient Visit",

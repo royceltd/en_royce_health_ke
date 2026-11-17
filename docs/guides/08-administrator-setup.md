@@ -170,6 +170,8 @@ Demo record: GW Bed 03 in the General Ward, type General Ward Bed, warehouse GW 
 | Laboratory: requesting doctor for walk-ins | The lab's medical officer in charge |
 | Laboratory: a second person validates results | Off (whoever entered the results validates them), until the lab wants a second check |
 | Consultation: observation before requests | On: Chief Complaint, History of Presenting Illness and Physical Examination are filled before the doctor sends requests or prescribes (not for casualty or inpatients). Tick Review of Systems too if the hospital wants it |
+| Consultation: submitting triage vital signs sends the patient to the doctor | On: saving vital signs marks the patient seen at Triage; submitting them sends the patient to the Doctor's Queue |
+| Billing: draft bill for cash patients automatically | On: the consultation fee (at check-in) and the doctor's lab, imaging and procedure requests go on the visit's draft bill; the cashier checks it and takes the payment |
 
 Save the page once after installation, even if you change nothing, so every default is stored. Since v0.35.1 an update no longer switches back on a setting you turned off.
 
@@ -181,6 +183,8 @@ Save the page once after installation, even if you change nothing, so every defa
 - **Sales Invoice payments:** *Reference No* (the M-Pesa or card code) is a column of the payments table.
 - **Consultation requests:** the lab requests table shows a **Lab Test** column and an **Imaging** column (imaging exams only). Lab tests are set up as *Lab Test Templates*; an *Observation Template* is for imaging (category *Imaging*). A lab test set up as an Observation Template is refused when ordered, because no worklist picks it up.
 - **Patient:** *Invite as User* (a patient portal login) starts unticked.
+- **Patient Visit:** company, facility, date, arrival time, doctor, room and appointment are under **More Details** (collapsed): they fill in by themselves.
+- **Who may do what:** each role's access is fixed in a role matrix (`royce_health_ke/role_access.py`). Only Reception and the Healthcare Administrator edit a patient's registration; doctors, nurses, the lab and the pharmacy read it. Reception and the Cashier see no consultation, diagnosis or result. The **Compliance Check** row *Each role has only the access the hospital's role matrix gives it* fails, naming the role, if a role is given more in Role Permissions Manager.
 - **Registration SMS:** Healthcare Settings › *Patient Registration* SMS goes through Frappe's SMS Settings, not RoyceTalk. It is switched off at each update while no SMS gateway is set there, so saving a patient no longer shows "Please Update SMS Settings".
 
 ![Kenya Health Settings](images/admin/08-kenya-health-settings.png)

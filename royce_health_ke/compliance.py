@@ -175,6 +175,11 @@ def checks():
 		)
 	)
 
+	# Access
+	from royce_health_ke.role_access import compliance_row
+
+	rows.append(compliance_row(_row))
+
 	# Backups
 	rows.append(_backups())
 	return rows

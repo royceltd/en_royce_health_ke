@@ -142,7 +142,11 @@ def _warn_no_fee(doc):
 
 
 def after_insert_visit(doc):
-	"""An appointment the patient arrived for is checked in."""
+	"""An appointment the patient arrived for is checked in; a cash
+	consultation's fee goes on its draft bill."""
+	from royce_health_ke.visit_bill import draft_visit_fee
+
+	draft_visit_fee(doc)
 	if doc.appointment and frappe.db.get_value("Patient Appointment", doc.appointment, "status") in (
 		"Scheduled",
 		"Open",
@@ -300,13 +304,121 @@ def link_vital_signs(doc, method=None):
 
 
 def vital_signs_saved(doc, method=None):
-	if doc.get("ke_patient_visit") and doc.docstatus < 2:
-		frappe.db.set_value(
-			"Patient Visit",
-			doc.ke_patient_visit,
-			{"vitals_status": doc.get("ke_vitals_status") or "", "vital_signs": doc.name},
-			update_modified=False,
+	"""Triage records the vital signs: the visit shows their flag, the patient
+	is seen at Triage on the first save, and submitting them sends the patient
+	to the doctor (Kenya Health Settings > Vital signs send the patient to the
+	doctor; IT demo, 17 Nov 2026: no Seen or Send To clicks at triage)."""
+	if not doc.get("ke_patient_visit") or doc.docstatus == 2:
+		return
+	frappe.db.set_value(
+		"Patient Visit",
+		doc.ke_patient_visit,
+		{"vitals_status": doc.get("ke_vitals_status") or "", "vital_signs": doc.name},
+		update_modified=False,
+	)
+	if not _triage_moves_on():
+		return
+	visit = frappe.get_doc("Patient Visit", doc.ke_patient_visit)
+	if visit.status != "Open" or visit.current_station != "Triage":
+		return
+	visit.flags.ignore_permissions = True
+	if method == "on_submit" and _vitals_send_to_doctor():
+		_send_to_doctor(visit)
+	elif visit.queue_status != "Seen":
+		_acknowledge(visit)
+		visit.save()
+
+
+def _triage_moves_on():
+	f = frappe.flags
+	if f.in_import or f.in_install or f.in_migrate or f.ke_demo:
+		return False
+	# tests of other areas record vital signs without moving the patient
+	return not f.in_test or bool(f.ke_test_triage_moves)
+
+
+def _vitals_send_to_doctor():
+	return bool(frappe.db.get_single_value("Kenya Health Settings", "vitals_send_to_doctor"))
+
+
+def _send_to_doctor(visit):
+	"""Triage done: on to the doctor's queue (the visit's doctor, else the next
+	on duty), by the patient flow's rules. A move that can't happen leaves the
+	patient at Triage with the reason; the vital signs stay submitted."""
+	from royce_health_ke import flow
+
+	_acknowledge(visit)
+	frappe.db.savepoint("ke_vitals_to_doctor")
+	try:
+		r = flow.send(visit, "Consultation", visit.practitioner, _("Triage done"))
+	except Exception as e:
+		frappe.db.rollback(save_point="ke_vitals_to_doctor")
+		frappe.clear_last_message()
+		seen = frappe.get_doc("Patient Visit", visit.name)
+		_acknowledge(seen)
+		seen.flags.ignore_permissions = True
+		seen.save()
+		frappe.msgprint(
+			_("Vital signs saved, but {0} was not sent to the doctor: {1}").format(
+				visit.patient_name, frappe.utils.strip_html(str(e))
+			),
+			indicator="orange",
+			alert=True,
 		)
+		return
+	if r.get("station") == "Consultation":
+		who = ", ".join(x for x in (r.get("practitioner_name") or r.get("practitioner"), r.get("room")) if x)
+		message = _("Sent to the doctor: {0}").format(who) if who else _("Sent to the doctor's queue")
+	else:
+		message = _("Sent to the {0} first").format(_(r.get("station")))
+	frappe.msgprint(message, indicator="green", alert=True)
+
+
+@frappe.whitelist()
+def open_station(visit: str) -> dict:
+	"""What a queue opens for this visit (the Triage and Doctor's queues): the
+	visit's draft vital signs or consultation, or a new one filled from the
+	visit. {"doctype", "name"} for a saved record, {"doctype", "new": values}
+	for a new one; the visit itself when the user doesn't work that station."""
+	doc = frappe.get_doc("Patient Visit", visit)
+	doc.check_permission("read")
+	stay = {"doctype": "Patient Visit", "name": doc.name}
+	if doc.status != "Open":
+		return stay
+	if doc.current_station == "Triage" and frappe.has_permission("Vital Signs", "create"):
+		draft = frappe.db.get_value(
+			"Vital Signs", {"ke_patient_visit": doc.name, "docstatus": 0}, "name", order_by="creation desc"
+		)
+		if draft:
+			return {"doctype": "Vital Signs", "name": draft}
+		if frappe.db.exists("Vital Signs", {"ke_patient_visit": doc.name, "docstatus": 1}):
+			return stay
+		return {
+			"doctype": "Vital Signs",
+			"new": {"patient": doc.patient, "company": doc.company, "ke_patient_visit": doc.name},
+		}
+	if doc.current_station == "Consultation" and frappe.has_permission("Patient Encounter", "create"):
+		draft = frappe.db.get_value(
+			"Patient Encounter",
+			{"ke_patient_visit": doc.name, "docstatus": 0},
+			"name",
+			order_by="creation desc",
+		)
+		if draft:
+			return {"doctype": "Patient Encounter", "name": draft}
+		mine = frappe.db.get_value("Healthcare Practitioner", {"user_id": frappe.session.user}, "name")
+		return {
+			"doctype": "Patient Encounter",
+			"new": {
+				"patient": doc.patient,
+				"practitioner": doc.practitioner or mine,
+				"appointment_type": doc.appointment_type,
+				"medical_department": doc.department,
+				"company": doc.company,
+				"ke_patient_visit": doc.name,
+			},
+		}
+	return stay
 
 
 def link_encounter(doc, method=None):

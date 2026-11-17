@@ -38,7 +38,9 @@ frappe.ui.form.on("Patient Visit", {
 		}
 		frm.add_custom_button(__("Send To"), () => send_to_dialog(frm, call));
 
+		// each person sees what their role does (IT demo, 17 Nov 2026: "what do these buttons do?")
 		const make = (doctype, label, values) =>
+			frappe.model.can_create(doctype) &&
 			frm.add_custom_button(label, () => frappe.new_doc(doctype, values), __("Record"));
 		make("Vital Signs", __("Vital Signs"), {
 			patient: frm.doc.patient,
@@ -64,6 +66,7 @@ frappe.ui.form.on("Patient Visit", {
 				call("complete", { visit: frm.doc.name }, __("Visit completed")),
 			),
 		__("Status"));
+		if (frappe.user.has_role(["Receptionist", "Healthcare Administrator", "System Manager"]))
 		frm.add_custom_button(__("Cancel Visit"), () =>
 			frappe.prompt({ fieldname: "reason", fieldtype: "Small Text", label: __("Reason"), reqd: 1 }, (v) =>
 				call("cancel", { visit: frm.doc.name, reason: v.reason }, __("Visit cancelled")),

@@ -30,6 +30,7 @@ One shift is open per cashier at a time. Managers (Accounts Manager) see every s
 2. Check each receipt: patient, amount, the transaction code (*Reference No*) for M-Pesa and cards, and *Account Paid To* matching the method (M-Pesa receipts into the M-Pesa account, cash into the cash account). Payments taken on the invoice itself are under Accounts › Sales Invoice (the payments table), with the same codes.
 3. Compare the M-Pesa total with the Safaricom statement for the day, and the cash total with the cash in the drawer.
 4. Refunds show as *Pay*; each must match a credit note.
+5. **Patient credit:** an M-Pesa, card or bank payment over the bill keeps the extra as the patient's credit (the Payment Entry's *Unallocated Amount*). It is used on their next bill when the cashier ticks **Use the patient's credit**. Accounts › Reports › **Accounts Receivable** shows credit as a negative balance per patient; a refund of credit needs a manager (a *Pay* Payment Entry against it).
 
 The **General Ledger** for the M-Pesa account (Accounts › Reports › General Ledger, account M-Pesa) gives the same receipts with a running balance.
 
