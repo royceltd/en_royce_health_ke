@@ -32,6 +32,7 @@
   "sms_lab_template",
   "privacy_section",
   "track_record_access",
+  "idle_lock_minutes",
   "privacy_defaults_applied",
   "role_defaults_version",
   "registration_section",
@@ -239,6 +240,14 @@
    "label": "Log Who Opens Patient Records",
    "default": "1",
    "description": "Each time a user opens or prints a patient's record (the patient, encounters, lab tests, admissions, maternity, theatre...), a Patient Record Access entry is written. Required for accountability under the Data Protection Act; keep it on."
+  },
+  {
+   "fieldname": "idle_lock_minutes",
+   "fieldtype": "Int",
+   "label": "Idle Screen Lock (minutes)",
+   "default": "10",
+   "non_negative": 1,
+   "description": "After this many minutes without activity the screen locks and the user's password unlocks it; unsaved work stays on the page. 0 switches the lock off."
   },
   {
    "fieldname": "privacy_defaults_applied",
@@ -462,7 +471,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-18 12:00:00.000000",
+ "modified": "2026-11-18 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

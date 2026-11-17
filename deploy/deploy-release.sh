@@ -81,4 +81,6 @@ done
 docker images royceerp --format '{{.CreatedAt}}	{{.Tag}}' | sort -r | awk -F'\t' 'NR>3 {print $2}' \
 	| while read -r t; do [ "$t" != "$TAG" ] && docker rmi -f "royceerp:$t" "$REGISTRY_IMAGE:$t" >/dev/null 2>&1 || true; done
 docker image prune -f >/dev/null
+# Old compose copies hold the database password too: keep the last 3.
+ls -t compose.royceerp.*.yaml 2>/dev/null | tail -n +4 | xargs -r rm -f
 exit $status

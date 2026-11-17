@@ -600,6 +600,19 @@ def payment_fields(insert_after):
 	]
 
 
+# A user account valid until a date (security.py: disabled the day after).
+USER = [
+	{
+		"fieldname": "ke_valid_until",
+		"fieldtype": "Date",
+		"label": "Valid Until",
+		"insert_after": "enabled",
+		"description": "The account is disabled automatically after this date (a locum, an intern, "
+		"a contract). Leave empty for no end date.",
+	},
+]
+
+
 SERVICE_REQUEST = [
 	{
 		"fieldname": "ke_patient_visit",
@@ -1303,6 +1316,7 @@ def apply():
 		OPERATION_NOTE,
 		IMAGING_TEMPLATE,
 		IMAGING_OBSERVATION,
+		USER,
 		*MOH.values(),
 	):
 		for field in fields:
@@ -1329,6 +1343,7 @@ def apply():
 		"Delivery Note Item": DELIVERY_NOTE_ITEM,
 		"Lab Test Template": LAB_TEST_TEMPLATE,
 		"Healthcare Service Unit": SERVICE_UNIT,
+		"User": USER,
 	}
 	# MOH has its own Patient Encounter fields: combine, don't replace.
 	for doctype, extra in MOH.items():

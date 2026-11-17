@@ -6,7 +6,7 @@ Every step is idempotent and never overwrites a hospital's own data (ADR-023).
 Downloading code sets (ICD-11) is left to an explicit action - a migrate must
 not depend on WHO's servers being reachable."""
 
-from royce_health_ke import clinical, codes, consultation, forms, formulary, privacy, roles
+from royce_health_ke import clinical, codes, consultation, forms, formulary, privacy, roles, security
 from royce_health_ke.setup import custom_fields, marley_fixes
 
 
@@ -38,6 +38,7 @@ def run():
 	formulary.batch_quick_entry()
 	forms.apply()
 	consultation.apply_layout()
+	security.apply_baseline()
 
 
 def seed_moh705():
@@ -155,6 +156,7 @@ def default_settings():
 		("cashier_before_service", 1),
 		("consultation_fee_due", "Before triage"),
 		("consultation_needs_check_in", 1),
+		("idle_lock_minutes", 10),
 		("auto_bill_insured", 1),
 		("clinical_alerts", 1),
 	):

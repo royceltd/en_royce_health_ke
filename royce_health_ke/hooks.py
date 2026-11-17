@@ -33,6 +33,10 @@ doc_events = {
 		"before_print": "royce_health_ke.access.log_print",
 	},
 	"Patient": {"validate": "royce_health_ke.identity.validate_patient"},
+	"User": {
+		"validate": "royce_health_ke.security.user_validate",
+		"on_trash": "royce_health_ke.security.user_on_trash",
+	},
 	"Healthcare Practitioner": {"validate": "royce_health_ke.identity.validate_practitioner"},
 	"Sales Invoice": {
 		"before_validate": [
@@ -198,6 +202,7 @@ doctype_list_js = {"Vital Signs": "public/js/vital_signs_list.js"}
 scheduler_events = {
 	"daily": [
 		"royce_health_ke.identity.remind_licence_expiry",
+		"royce_health_ke.security.disable_expired_users",
 		"royce_health_ke.surveillance.weekly_job",
 	],
 	"hourly": [
@@ -241,6 +246,7 @@ extend_bootinfo = [
 	"royce_health_ke.sms.extend_bootinfo",
 	"royce_health_ke.identity.extend_bootinfo",
 	"royce_health_ke.cashier.extend_bootinfo",
+	"royce_health_ke.security.extend_bootinfo",
 ]
 
 # include js, css files in header of desk.html

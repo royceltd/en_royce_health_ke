@@ -19,7 +19,7 @@ whitelisted methods keep their old paths (`override_whitelisted_methods`).
 | **Maternity** | `maternity`, `lcg`, `family_planning` | ANC, labour care guide, delivery, PNC, family planning |
 | **Hospital services** | `kitchen`, `laundry`, `sms` | Diet orders, linen, patient SMS |
 | **Reporting** | `dashboards`, `quality`, `surveillance`, `printing` | MOH reports, dashboards, quality measures, IDSR surveillance, print formats |
-| **Identity and access** | `identity`, `access`, `privacy`, `roles`, `kenya` | Patient and practitioner identity, record access log, masked details, roles, Kenyan reference data |
+| **Identity, access and security** | `identity`, `access`, `privacy`, `roles`, `security`, `compliance`, `kenya` | Patient and practitioner identity, record access log, masked details, roles, login and user safeguards, idle screen lock, the Compliance Check, Kenyan reference data |
 | **Marley boundary** | `marley` | The supported Marley version, every Marley function we use, the Marley rule we replace |
 | **Platform glue** | `hooks`, `sidebar`, `utils`, `setup/`, `patches/`, `demo/` | Frappe hooks, the sidebar, installation and settings defaults, data patches, the demo hospital |
 

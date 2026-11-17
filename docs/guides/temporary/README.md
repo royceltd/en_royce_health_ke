@@ -21,6 +21,7 @@ Once a temporary guide's job is done (the hospital is set up, the release is tes
 | [Take Payment, Cashier before service points, Billing menu](v0.37-testing.md) | Bethesda's testers, on their own system | v0.37.0 | 2026-11-17 |
 | [No consultation or triage before payment](v0.41-testing.md) | Bethesda's IT team, on the demo or their own system | v0.41.0 | 2026-11-18 |
 | [Your feedback of 17 November: payment, queues, service prices and categories](v0.42-it-feedback-guide.md) | Bethesda's IT team and system administrator | v0.42.0 | 2026-11-18 |
+| [Security basics: logins, users, screen lock, Compliance Check](v0.43-testing.md) | The hospital's IT team or administrator | v0.43.0 | 2026-11-18 |
 | [Bethesda go-live, 16 to 20 November](bethesda-go-live.md) | Royce's go-live team, Bethesda's coordinator and department leads | v0.29.0 | 2026-11-15 |
 
 PDFs: `TEMPORARY=1 node make_pdfs.mjs ../temporary "<output folder>/Temporary"` from `docs/guides/tools` (same environment variables as the numbered guides).

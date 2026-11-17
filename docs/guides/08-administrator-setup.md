@@ -37,7 +37,9 @@ The company, chart of accounts, VAT, KRA eTIMS and payroll are set up by Royce d
 | Hospital administrator | Healthcare Administrator |
 
 3. Save, then set a password under **Password** or let the welcome email do it.
-4. When someone leaves, untick **Enabled**; never delete a user, so their records keep their name.
+4. When someone leaves, untick **Enabled**. A user who has worked in the system can't be deleted (the audit trail keeps their name); disable them instead. For a locum, intern or contract, set **Valid Until**: the account is disabled automatically the day after, and can only be enabled again with a new date.
+
+**Security settings** (applied when RoyceERP Health is installed or updated, only where you haven't set your own): an account is locked for 10 minutes after 5 failed logins, passwords must be strong (score 3), and a login ends after 12 hours without activity (Setup › System Settings). The screen also locks after 10 minutes without activity and the user's password unlocks it, keeping unsaved work (Kenya Health Settings › **Idle Screen Lock (minutes)**; 0 switches it off). **Kenya Health › Setup › Compliance Check** shows each safeguard as *Pass*, *Fail* or *Advice*, live, for you and for auditors.
 
 Roles decide what each person sees: a nurse does not see revenue, only administrators read the patient record access log, and only Receptionist, Healthcare Administrator and System Manager see patients' phone and ID numbers (others see XXXXXXXX). Who sees them can be changed in Role Permissions Manager (the Mask column).
 

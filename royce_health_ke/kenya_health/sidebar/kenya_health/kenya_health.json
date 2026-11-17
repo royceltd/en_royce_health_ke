@@ -1053,6 +1053,22 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
+   "idx": 67,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Compliance Check",
+   "link_to": "Compliance Check",
+   "link_type": "Report",
+   "parentfield": "items",
+   "parenttype": "Sidebar",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "doctype": "Sidebar Item",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "Residence",
@@ -1062,14 +1078,14 @@
    "parenttype": "Sidebar",
    "show_arrow": 0,
    "type": "Link",
-   "idx": 67
+   "idx": 68
   },
   {
    "child": 1,
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 68,
+   "idx": 69,
    "indent": 0,
    "keep_closed": 0,
    "label": "Patient Record Access",
@@ -1085,7 +1101,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 69,
+   "idx": 70,
    "indent": 0,
    "keep_closed": 0,
    "label": "Maternity Package",
@@ -1101,7 +1117,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 70,
+   "idx": 71,
    "indent": 0,
    "keep_closed": 0,
    "label": "Diet Type",
@@ -1117,7 +1133,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 71,
+   "idx": 72,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 705 Indicator",
@@ -1133,7 +1149,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 72,
+   "idx": 73,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 706 Indicator",
@@ -1158,7 +1174,7 @@
    "label": "Clinical Alert Rule",
    "link_type": "DocType",
    "link_to": "Clinical Alert Rule",
-   "idx": 73
+   "idx": 74
   },
   {
    "child": 1,
@@ -1174,12 +1190,12 @@
    "label": "Quality Measure",
    "link_type": "DocType",
    "link_to": "Quality Measure",
-   "idx": 74
+   "idx": 75
   }
  ],
  "module": "Kenya Health",
  "name": "Kenya Health",
  "standard": 1,
  "title": "Kenya Health",
- "modified": "2026-11-18 13:00:00.000000"
+ "modified": "2026-11-18 15:00:00.000000"
 }
