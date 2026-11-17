@@ -96,9 +96,10 @@ def unbilled_lines(visit):
 	fee = visit_fee_line(visit)
 	if fee:
 		lines.append(fee)
-	from royce_health_ke.fees import marley_rule
+	from royce_health_ke.marley import install
 
-	with _as_administrator(), marley_rule():
+	install()
+	with _as_administrator():
 		for s in get_healthcare_services_to_invoice(visit.patient, customer, visit.company) or []:
 			if not _belongs(visit, window, s["reference_type"], s["reference_name"]):
 				continue

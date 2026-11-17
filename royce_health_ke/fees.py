@@ -19,12 +19,10 @@ What it costs:
   A price of 0 means no fee (e.g. a free review).
 
 Marley's own rule requires a typed amount and stops with an error without
-one. Its billing helpers are given this rule for the length of each call made
-through here (`marley_rule`), so the visit bill, Create Bill, Get Items From >
+one. Its billing helpers use this rule instead, in every request and job
+(marley.install), so the visit bill, Create Bill, Get Items From >
 Healthcare Services and the consultation's insurance cover price a
 consultation the same way. Inpatient visit charges keep Marley's rule."""
-
-from contextlib import contextmanager
 
 import frappe
 from frappe import _
@@ -128,7 +126,7 @@ def billing_item_and_rate(doc):
 	"""Drop-in for Marley's get_appointment_billing_item_and_rate:
 	{service_item, practitioner_charge}. A charge of None lets the invoice
 	price the item from the patient's price list."""
-	from healthcare.healthcare.utils import get_appointment_billing_item_and_rate as marley
+	from royce_health_ke.marley import original_billing_item_and_rate as marley
 
 	if isinstance(doc, str):
 		import json
@@ -147,19 +145,6 @@ def billing_item_and_rate(doc):
 	return {"service_item": item, "practitioner_charge": amount or None}
 
 
-@contextmanager
-def marley_rule():
-	"""Marley's healthcare billing helpers use this fee rule inside the block."""
-	from healthcare.healthcare import utils
-
-	original = utils.get_appointment_billing_item_and_rate
-	utils.get_appointment_billing_item_and_rate = billing_item_and_rate
-	try:
-		yield
-	finally:
-		utils.get_appointment_billing_item_and_rate = original
-
-
 @frappe.whitelist()
 def get_healthcare_services_to_invoice(
 	patient: str, customer: str, company: str, link_customer: bool = False
@@ -167,8 +152,10 @@ def get_healthcare_services_to_invoice(
 	"""Get Items From > Healthcare Services on an invoice, with this fee rule."""
 	from healthcare.healthcare.utils import get_healthcare_services_to_invoice as marley
 
-	with marley_rule():
-		return marley(patient, customer, company, link_customer)
+	from royce_health_ke.marley import install
+
+	install()
+	return marley(patient, customer, company, link_customer)
 
 
 @frappe.whitelist()

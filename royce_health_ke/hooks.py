@@ -412,7 +412,9 @@ override_whitelisted_methods = {
 
 # Request Events
 # ----------------
-# before_request = ["royce_health_ke.utils.before_request"]
+# Marley's invoice helpers use our consultation fee rule (marley.py)
+before_request = ["royce_health_ke.marley.install"]
+before_job = ["royce_health_ke.marley.install"]
 # after_request = ["royce_health_ke.utils.after_request"]
 
 # Job Events

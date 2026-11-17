@@ -8,7 +8,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, today
 
-from royce_health_ke import fees, visit_bill
+from royce_health_ke import fees, marley, visit_bill
 from royce_health_ke import hooks as app_hooks
 
 PRACTITIONER = "Healthcare Practitioner"
@@ -104,9 +104,7 @@ class TestConsultationFee(IntegrationTestCase):
 	def test_marley_billing_no_longer_needs_a_typed_amount(self):
 		self.doctor(self.general)  # an item, no amount: Marley's own rule stops here
 		with self.assertRaises(frappe.ValidationError):
-			from healthcare.healthcare.utils import get_appointment_billing_item_and_rate
-
-			get_appointment_billing_item_and_rate(
+			marley.original_billing_item_and_rate(
 				frappe._dict(doctype="Patient Appointment", practitioner=self.practitioner)
 			)
 		frappe.clear_last_message()
@@ -114,13 +112,14 @@ class TestConsultationFee(IntegrationTestCase):
 			{"doctype": "Patient Encounter", "practitioner": self.practitioner}
 		)
 		self.assertEqual(billing, {"service_item": self.general, "practitioner_charge": None})
-		# the swap lasts only for the block
+		# Marley's helpers use the rule for good (not swapped per call)
 		from healthcare.healthcare import utils
 
-		original = utils.get_appointment_billing_item_and_rate
-		with fees.marley_rule():
-			self.assertIs(utils.get_appointment_billing_item_and_rate, fees.billing_item_and_rate)
-		self.assertIs(utils.get_appointment_billing_item_and_rate, original)
+		marley.install()
+		self.assertIs(utils.get_appointment_billing_item_and_rate, fees.billing_item_and_rate)
+		self.assertIsNot(marley.original_billing_item_and_rate, fees.billing_item_and_rate)
+		marley.install()  # idempotent
+		self.assertIs(utils.get_appointment_billing_item_and_rate, fees.billing_item_and_rate)
 
 	def test_invoice_lines_and_fee_before_triage_use_the_rule(self):
 		self.doctor()
