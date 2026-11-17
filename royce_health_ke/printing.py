@@ -790,7 +790,7 @@ def diagnostic_rows(doc) -> list[frappe._dict]:
 	"""The report's observations, as Marley collects them (get_observation_details),
 	flattened for printing: a panel's name as a heading row, its components
 	indented under it. Text results (imaging findings, microscopy) print as text."""
-	from healthcare.healthcare.doctype.observation.observation import get_observation_details
+	from royce_health_ke.marley import get_observation_details
 
 	try:
 		data, _count = get_observation_details(doc.name)

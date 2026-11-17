@@ -28,12 +28,7 @@ def scheme_price(policy, item_code, company):
 	"""(price list, rate) for the item in the policy's scheme price list, else
 	its insurer's contract list; None when neither prices it. The default
 	selling (cash) list never counts as a scheme's."""
-	from healthcare.healthcare.doctype.patient_insurance_coverage.patient_insurance_coverage import (
-		get_item_price_list_rate,
-	)
-	from healthcare.healthcare.doctype.patient_insurance_policy.patient_insurance_policy import (
-		get_insurance_price_lists,
-	)
+	from royce_health_ke.marley import get_insurance_price_lists, get_item_price_list_rate
 
 	if not (policy and item_code):
 		return None
@@ -65,11 +60,8 @@ def cover_consultation(doc, method=None):
 	"""Patient Encounter on_submit: insurance cover for the consultation fee
 	of an insured consultation without an appointment (one opened from an
 	insured visit). An appointment's own cover bills its fee."""
-	from healthcare.healthcare.doctype.patient_insurance_coverage.patient_insurance_coverage import (
-		make_insurance_coverage,
-	)
-
 	from royce_health_ke import fees
+	from royce_health_ke.marley import make_insurance_coverage
 
 	if not doc.get("insurance_policy") or doc.get("insurance_coverage") or doc.get("appointment"):
 		return

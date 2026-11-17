@@ -465,7 +465,7 @@ def _patient_of(key):
 def collect(requests: str | list | None = None, lab_tests: str | list | None = None):
 	"""Collect samples: a lab test for each request (paid, or exempt), with
 	who collected and when. Returns what was done and what was refused."""
-	from healthcare.healthcare.doctype.service_request.service_request import make_lab_test
+	from royce_health_ke.marley import make_lab_test
 
 	frappe.has_permission("Lab Test", "create", throw=True)
 	now, user = now_datetime(), frappe.session.user

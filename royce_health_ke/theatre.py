@@ -235,7 +235,7 @@ def start(booking: str):
 			_("Emergency: starting while pre-authorisation is pending."), indicator="orange", alert=True
 		)
 
-	from healthcare.healthcare.doctype.clinical_procedure.clinical_procedure import get_procedure_consumables
+	from royce_health_ke.marley import get_procedure_consumables
 
 	template = frappe.get_doc("Clinical Procedure Template", doc.procedure_template)
 	procedure = frappe.get_doc(

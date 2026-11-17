@@ -88,7 +88,7 @@ def unbilled_lines(visit):
 	"""Marley's 'Get Items from Healthcare Services' lines for this visit,
 	drugs from the visit's consultations included, in the form
 	Sales Invoice.set_healthcare_services takes."""
-	from healthcare.healthcare.utils import get_drugs_to_invoice, get_healthcare_services_to_invoice
+	from royce_health_ke.marley import get_drugs_to_invoice, get_healthcare_services_to_invoice
 
 	customer = frappe.db.get_value("Patient", visit.patient, "customer")
 	window = _window(visit)

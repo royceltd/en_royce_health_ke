@@ -77,9 +77,8 @@ def run(company):
 	existing = frappe.db.get_value("Patient", {"first_name": "Joseph", "last_name": "Njoroge"})
 	if existing:
 		return {"patient": existing, "created": False}
-	from healthcare.healthcare.doctype.service_request.service_request import make_observation
-
 	from royce_health_ke import radiology
+	from royce_health_ke.marley import make_observation
 
 	amina = frappe.db.get_value("Healthcare Practitioner", {"first_name": "Amina"})
 	samuel = frappe.db.get_value("Healthcare Practitioner", {"first_name": "Samuel"})

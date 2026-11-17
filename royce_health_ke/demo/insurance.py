@@ -263,7 +263,7 @@ def _claim(company, patient, policy):
 			row.status = "Approved"
 	claim.save(ignore_permissions=True)
 
-	from healthcare.healthcare.doctype.insurance_claim.insurance_claim import create_payment_entry
+	from royce_health_ke.marley import create_claim_payment_entry as create_payment_entry
 
 	payment = create_payment_entry(claim.as_json())
 	if isinstance(payment, dict):

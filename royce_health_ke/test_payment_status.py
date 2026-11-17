@@ -72,7 +72,7 @@ class TestPaymentStatus(IntegrationTestCase):
 		self.assertIn(key, [r.key for r in lab.worklist("requests", today, today, self.company)["rows"]])
 
 		# ... but the lab can't start the test: the action checks live and corrects it.
-		from healthcare.healthcare.doctype.service_request.service_request import make_lab_test
+		from royce_health_ke.marley import make_lab_test
 
 		with self.assertRaises(frappe.ValidationError):
 			make_lab_test(request).insert(ignore_permissions=True)

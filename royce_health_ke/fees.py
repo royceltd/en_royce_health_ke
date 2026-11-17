@@ -42,7 +42,7 @@ def fee_item(doc):
 	"""(item, fixed amount or 0, where it came from) for an outpatient
 	consultation of `doc` (a visit, appointment or encounter, or a dict with
 	practitioner / appointment_type / department)."""
-	from healthcare.healthcare.utils import get_appointment_type_billing_details
+	from royce_health_ke.marley import get_appointment_type_billing_details
 
 	practitioner = doc.get("practitioner")
 	if practitioner:
@@ -150,8 +150,7 @@ def get_healthcare_services_to_invoice(
 	patient: str, customer: str, company: str, link_customer: bool = False
 ) -> list[dict]:
 	"""Get Items From > Healthcare Services on an invoice, with this fee rule."""
-	from healthcare.healthcare.utils import get_healthcare_services_to_invoice as marley
-
+	from royce_health_ke.marley import get_healthcare_services_to_invoice as marley
 	from royce_health_ke.marley import install
 
 	install()

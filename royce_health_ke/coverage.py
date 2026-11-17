@@ -89,9 +89,7 @@ class CoverageEligibility:
 	set_insurance_coverage with the corrected eligibility lookup."""
 
 	def set_insurance_coverage(self):
-		from healthcare.healthcare.doctype.patient_insurance_coverage.patient_insurance_coverage import (
-			CoverageNotFoundError,
-		)
+		from royce_health_ke.marley import CoverageNotFoundError
 
 		found = eligibility(
 			item_code=self.item_code,
@@ -132,9 +130,7 @@ def _quietly(fn, *args, **kwargs):
 def cover_drug(doc, method=None):
 	"""Medication Request on_submit: insurance cover for a drug prescribed in
 	an insured consultation, when the scheme lists it."""
-	from healthcare.healthcare.doctype.patient_insurance_coverage.patient_insurance_coverage import (
-		make_insurance_coverage,
-	)
+	from royce_health_ke.marley import make_insurance_coverage
 
 	if doc.get("ke_insurance_coverage") or not doc.get("medication_item") or not doc.get("order_group"):
 		return

@@ -6,6 +6,8 @@ It adds what a Kenyan hospital needs on top of Marley: SHA claims through DHA's 
 
 User guides with screenshots, for hospital staff: [docs/guides](docs/guides/README.md).
 
+For developers: the [architecture map](docs/architecture.md) (areas, the rules each test enforces) and the [hospital server kit and release path](deploy/README.md).
+
 ### Status
 
 | Workstream | State |

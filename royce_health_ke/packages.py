@@ -235,9 +235,7 @@ def _insure(doc, delivery, package, line):
 
 	coverage = delivery.package_coverage
 	if not coverage:
-		from healthcare.healthcare.doctype.patient_insurance_coverage.patient_insurance_coverage import (
-			make_insurance_coverage,
-		)
+		from royce_health_ke.marley import make_insurance_coverage
 
 		made = make_insurance_coverage(
 			doc.patient, policy, doc.company, item_code=package.item, qty=1, rate=package.rate

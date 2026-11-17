@@ -421,7 +421,7 @@ def run(company):
 		},
 		submit=True,
 	)
-	from healthcare.healthcare.doctype.inpatient_record.inpatient_record import schedule_inpatient
+	from royce_health_ke.marley import schedule_inpatient
 
 	schedule_inpatient(
 		frappe.as_json(

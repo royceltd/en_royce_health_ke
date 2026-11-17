@@ -113,7 +113,7 @@ class TestConsultationFee(IntegrationTestCase):
 		)
 		self.assertEqual(billing, {"service_item": self.general, "practitioner_charge": None})
 		# Marley's helpers use the rule for good (not swapped per call)
-		from healthcare.healthcare import utils
+		from royce_health_ke.marley import _utils as utils
 
 		marley.install()
 		self.assertIs(utils.get_appointment_billing_item_and_rate, fees.billing_item_and_rate)

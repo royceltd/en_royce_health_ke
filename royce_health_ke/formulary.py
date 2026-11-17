@@ -38,7 +38,7 @@ def link_items(doc):
 	"""Link each row that has no Item yet: an existing Item is linked as it is
 	(price added only when the row has one and the price list has none); a new
 	code goes through Marley, which creates the Item and its price."""
-	from healthcare.healthcare.doctype.medication.medication import insert_item
+	from royce_health_ke.marley import insert_item
 
 	for row in doc.linked_items:
 		if row.item or not row.item_code:
@@ -65,7 +65,7 @@ def _link_existing(doc, row):
 		and price_list
 		and not frappe.db.exists("Item Price", {"item_code": row.item_code, "price_list": price_list})
 	):
-		from healthcare.healthcare.doctype.medication.medication import make_item_price
+		from royce_health_ke.marley import make_item_price
 
 		make_item_price(row.item_code, row.rate, price_list)
 	frappe.db.set_value("Medication Linked Item", row.name, {"item": row.item_code, "stock_uom": stock_uom})

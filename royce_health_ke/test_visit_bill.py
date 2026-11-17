@@ -76,7 +76,7 @@ class TestVisitBill(IntegrationTestCase):
 		)
 
 	def start_lab_test(self, request):
-		from healthcare.healthcare.doctype.service_request.service_request import make_lab_test
+		from royce_health_ke.marley import make_lab_test
 
 		return make_lab_test(request).insert(ignore_permissions=True)
 

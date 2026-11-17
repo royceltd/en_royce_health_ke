@@ -208,10 +208,7 @@ def run(company):
 		},
 		submit=True,
 	)
-	from healthcare.healthcare.doctype.inpatient_record.inpatient_record import (
-		schedule_discharge,
-		schedule_inpatient,
-	)
+	from royce_health_ke.marley import schedule_discharge, schedule_inpatient
 
 	schedule_inpatient(
 		json.dumps(
@@ -270,7 +267,7 @@ def run(company):
 	)
 
 	# Final bill: ward round, bed day, OPD drugs dispensed from Stores, nursing, admission kit (16% VAT).
-	from healthcare.healthcare.utils import get_drugs_to_invoice
+	from royce_health_ke.marley import get_drugs_to_invoice
 
 	lines = _services(patient, customer, company)
 	lines += [
@@ -317,7 +314,7 @@ def run(company):
 	inpatient.reload()
 	inpatient.ke_discharge_outcome = "Discharged"
 	inpatient.discharge()
-	from healthcare.healthcare.doctype.inpatient_record.inpatient_record import make_discharge_summary
+	from royce_health_ke.marley import make_discharge_summary
 
 	make_discharge_summary(inpatient.name, ignore_permissions=True).insert(ignore_permissions=True)
 
@@ -364,7 +361,7 @@ def _register():
 def _services(patient, customer, company):
 	"""What Marley's 'Get Items from Healthcare Services' offers the cashier,
 	with every key it returns (insurance coverage included) passed through."""
-	from healthcare.healthcare.utils import get_healthcare_services_to_invoice
+	from royce_health_ke.marley import get_healthcare_services_to_invoice
 
 	return [
 		{
@@ -441,7 +438,7 @@ def _pay(si, reference):
 
 
 def _run_lab(patient):
-	from healthcare.healthcare.doctype.service_request.service_request import make_lab_test
+	from royce_health_ke.marley import make_lab_test
 
 	for request in frappe.get_all(
 		"Service Request", filters={"patient": patient, "template_dt": "Lab Test Template"}, fields=["name"]
