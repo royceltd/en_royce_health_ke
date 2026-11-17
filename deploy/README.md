@@ -16,7 +16,7 @@ notes: royce-erp-cloud `docs/operations/backups.md`).
 | Script | Run where, as | What |
 | --- | --- | --- |
 | `setup-server.sh` | new server, root | admin user, key-only SSH, ufw (22, and 80/443 from Cloudflare only), fail2ban, auto security updates, swap, Docker, nginx + Cloudflare Origin certificate |
-| `deploy-release.sh` | server, root | **the release path**: pulls the image GitHub Actions built (`.github/workflows/hospital-image.yml` in this repo, `ghcr.io/royceltd/royceerp-health:<tag>`), backs up, switches, migrates the sites named, checks, keeps 3 images |
+| `deploy-release.sh` | server, root | **the release path**: pulls the image GitHub Actions built (`.github/workflows/hospital-image.yml` in this repo, `ghcr.io/royceltd/royceerp-health:<tag>`), backs up and migrates **every** site on the server (they share the image), checks, keeps 3 images |
 | `ship-image.sh` | your laptop | copies the tested image from the pilot to the new server (no registry, no GitHub token on the hospital's server) |
 | `build-image.sh` | new server, root | fallback: builds the image there (asks for a read-only GitHub token, keeps it only in memory) |
 | `start-stack.sh` | new server, root | the ERPNext stack (compose project `royceerp`, MariaDB 11.8, Redis), and later upgrades |
@@ -40,8 +40,9 @@ same code.
 
 Release path: tests pass (GitHub Actions, every push; they use the versions in this file) →
 tag the app, set its ref here, commit → **en_royce_health_ke › Actions › Hospital image › Run workflow** with the image tag
-(e.g. `16-hke0.37.1`) → on the server `bash deploy-release.sh <tag> hospital.royceltd.com`
-(the demo is staging: the IT team checks it) → then the other sites. No image is ever
+(e.g. `16-hke0.40.0`) → on the server `bash deploy-release.sh <tag>`, which updates every site
+on it together (sites on one server share the image). The pilot (demo and test sites) gets
+each release first; a hospital's own server follows once the IT team has checked it. No image is ever
 built on a live server.
 
 ## Server to ask for

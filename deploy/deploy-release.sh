@@ -3,22 +3,22 @@
 # pulls the image from the registry, backs up every site, switches the stack, migrates,
 # checks. Nothing is built on the server. Run on the server, as root:
 #
-#   bash deploy-release.sh 16-hke0.37.1 hospital.royceltd.com              # demo first
-#   bash deploy-release.sh 16-hke0.37.1 bethesda.royceltd.com              # then the next
-#   bash deploy-release.sh --rollback 16-hke0.37.0 hospital.royceltd.com   # previous image
+#   bash deploy-release.sh 16-hke0.40.0                 # every site on this server
+#   bash deploy-release.sh --rollback 16-hke0.37.0      # back to the previous image
 #
 # The server must be logged in to the registry once (a classic token with only
 # read:packages): docker login ghcr.io -u <github user>
 # The stack keeps its local image name (royceerp:<tag>), so compose files, start-stack.sh
-# and ship-image.sh are unchanged. Every site on the server runs the same image: migrate
-# each site named, and name the others as soon as they are checked.
+# and ship-image.sh are unchanged. Every site on a server runs the same image, so every
+# site is backed up and migrated together (a site left on its old database would run the
+# new code against the old schema). "Demo first" means the demo's own server, or the
+# pilot before a hospital's server: not one site of a shared server ahead of another.
 set -euo pipefail
 ROLLBACK=0
 [ "${1:-}" = "--rollback" ] && { ROLLBACK=1; shift; }
-TAG="${1:?usage: $0 [--rollback] <tag> <site> [site ...]}"
+TAG="${1:?usage: $0 [--rollback] <tag>}"
 shift
-SITES=("$@")
-[ ${#SITES[@]} -gt 0 ] || { echo "name at least one site to migrate" >&2; exit 1; }
+[ $# -eq 0 ] || { echo "every site on the server is migrated; don't name sites" >&2; exit 1; }
 REGISTRY_IMAGE="${REGISTRY_IMAGE:-ghcr.io/royceltd/royceerp-health}"
 DIR="${STACK_DIR:-/opt/royceerp}"
 COMPOSE="docker compose -p royceerp -f compose.royceerp.yaml"
@@ -34,6 +34,11 @@ if ! docker image inspect "royceerp:$TAG" >/dev/null 2>&1; then
 	docker pull -q "$REGISTRY_IMAGE:$TAG"
 	docker tag "$REGISTRY_IMAGE:$TAG" "royceerp:$TAG"
 fi
+
+mapfile -t SITES < <(docker exec royceerp-backend-1 bash -c \
+	'cd sites && for d in */; do [ -f "$d/site_config.json" ] && echo "${d%/}"; done')
+[ ${#SITES[@]} -gt 0 ] || { echo "no sites found" >&2; exit 1; }
+log "sites: ${SITES[*]}"
 
 for site in "${SITES[@]}"; do
 	log "backup $site"

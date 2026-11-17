@@ -47,5 +47,5 @@ cashier before the service points, insured patients paying uncovered items first
 Every app is pinned to a tag in `deploy/apps.health.json`, the hospital release file. CI
 (`.github/workflows/tests.yml`) installs those versions on a fresh site with the demo and
 runs every test on each push. The image is built by GitHub Actions (`hospital-image.yml`)
-and deployed with `deploy/deploy-release.sh`: the demo first (it is staging), then each
-hospital. See `deploy/README.md`.
+and deployed with `deploy/deploy-release.sh`: the pilot server (demo and test sites) first,
+then each hospital's server. See `deploy/README.md`.
