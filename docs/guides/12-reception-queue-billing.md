@@ -70,9 +70,9 @@ Demo record: **VIS-2026-00003**, *Peter Otieno Kamau*, insured with Mlima Health
 
 ## Step 3 — The waiting lists
 
-**Who:** every station. **Where:** Kenya Health › Patient Visit.
+**Who:** every station. **Where:** your queue in the Kenya Health menu: **Triage › Triage Queue**, **Consultation › Doctor's Queue** (press **My Patients** for your own), **Billing › Cashier Queue**; the lab, radiology and pharmacy have their worklists. Each menu shows only what your role may open.
 
-1. Set the **Station** filter to your station (Triage, Consultation, Laboratory, Pharmacy, Cashier…). The list shows open visits only.
+1. Open your queue: it lists the open visits at your station only. (Or Kenya Health › Patient Visit with the **Station** filter.) A hospital can add a queue for another station (for example a procedure room) from the sidebar settings: a link to Patient Visit filtered by that Station, with no new software.
 2. Each row shows the station and whether the patient is *waiting* or *seen*, how long they have waited (orange after 30 minutes, red after an hour), cash or insurance, the **Bill** status and the triage **Vitals** flag. No phone or ID numbers.
 3. Open the patient and press **Seen** when you call them in.
 4. When you are done, press **Send To**, choose the next station, add a note if useful, and send.
