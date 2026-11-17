@@ -116,6 +116,12 @@ jobs:
           bench --site test_site set-config allow_tests true
           bench --site test_site execute royce_health_ke.demo.load >/dev/null
 
+      # Print tests render through Frappe's printview, which needs the built
+      # asset list (print.bundle.css); only Frappe's own bundles are used.
+      - name: Assets for printing
+        working-directory: /home/runner/frappe-bench
+        run: bench build --app frappe >/dev/null
+
       - name: Tests
         working-directory: /home/runner/frappe-bench
         run: bench --site test_site run-tests --app royce_health_ke
