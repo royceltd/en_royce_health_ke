@@ -10,6 +10,13 @@ frappe.ui.form.on("Patient Encounter", {
 	refresh(frm) {
 		if (!frm.is_new()) ke_show_clinical_alerts(frm);
 		ke_consultation_refresh(frm);
+		ke_may_consult(frm);
+	},
+	patient(frm) {
+		ke_may_consult(frm);
+	},
+	encounter_date(frm) {
+		ke_may_consult(frm);
 	},
 	after_save(frm) {
 		ke_show_clinical_alerts(frm, true);
@@ -21,6 +28,26 @@ frappe.ui.form.on("Patient Encounter", {
 		ke_complete_consultation(frm);
 	},
 });
+
+// A new consultation for a patient the doctor can't see yet (not checked in,
+// or the consultation fee unpaid): say so at once, not only on Save
+// (royce_health_ke.flow.consultation_gate refuses the save).
+function ke_may_consult(frm) {
+	if (!frm.is_new() || !frm.doc.patient) {
+		if (frm.__ke_blocked) frm.set_intro("");
+		frm.__ke_blocked = false;
+		return;
+	}
+	frappe
+		.xcall("royce_health_ke.flow.may_consult", {
+			patient: frm.doc.patient,
+			encounter_date: frm.doc.encounter_date,
+		})
+		.then((why) => {
+			frm.__ke_blocked = Boolean(why);
+			frm.set_intro(why ? frappe.utils.escape_html(why) : "", "red");
+		});
+}
 
 // Consultation tabs (royce_health_ke.consultation): Observation -> Requests ->
 // Results -> Diagnosis -> Prescription -> Complete.

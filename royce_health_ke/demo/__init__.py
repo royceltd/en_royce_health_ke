@@ -27,6 +27,9 @@ def load(company: str = DEMO_COMPANY):
 	# frappe.locale.get_locale_value raises UnboundLocalError when no language
 	# is set (bench console on a fresh site); bench execute and the desk set one.
 	frappe.local.lang = frappe.local.lang or "en"
+	# The demo records past journeys directly (consultations without a visit
+	# at the time): the patient-flow checks for staff don't apply (flow._gates_on).
+	frappe.flags.ke_demo = True
 
 	from royce_health_ke.demo import (
 		insurance,

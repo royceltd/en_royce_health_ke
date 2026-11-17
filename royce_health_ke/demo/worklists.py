@@ -98,6 +98,7 @@ def _guard():
 		frappe.throw("Demo data is off for this site (royce_health_demo).")
 	frappe.set_user("Administrator")
 	frappe.local.lang = frappe.local.lang or "en"
+	frappe.flags.ke_demo = True  # staff patient-flow checks don't apply (flow._gates_on)
 
 
 def run(company: str = DEMO_COMPANY):

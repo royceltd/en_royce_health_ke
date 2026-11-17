@@ -60,6 +60,7 @@ const temporaryGuides = [
   ["v0.36-testing.md", "Version 0.36 Consultation Tabs, Pharmacy Lock, Patient Receipt and Consultation Fee Testing Guide", "16 November 2026"],
   ["v0.36.2-testing.md", "Version 0.36.2 Create Bill Fix and Cover Price Books Testing Guide", "17 November 2026"],
   ["v0.37-testing.md", "Version 0.37 Take Payment, Cashier Before Service Points and Billing Menu Testing Guide", "17 November 2026"],
+  ["v0.41-testing.md", "Version 0.41 No Consultation or Triage Before Payment Testing Guide", "18 November 2026"],
   ["demo-script-bethesda.md", "Demo Script for Bethesda", "15 November 2026",
     "Written 15 November 2026 for the demo of RoyceERP Health to Bethesda Healthcare Services, on hospital.royceltd.com (v0.28.1). All patients, staff and records shown are fictional."],
 ];

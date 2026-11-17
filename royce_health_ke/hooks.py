@@ -107,6 +107,7 @@ doc_events = {
 	"Vital Signs": {
 		"validate": [
 			"royce_health_ke.visits.link_vital_signs",
+			"royce_health_ke.flow.triage_gate",
 			"royce_health_ke.vitals.validate_vital_signs",
 		],
 		"on_update": "royce_health_ke.visits.vital_signs_saved",
@@ -123,7 +124,10 @@ doc_events = {
 	"Inpatient Record": {"on_update": "royce_health_ke.payment_status.inpatient_changed"},
 	"Kenya Health Settings": {"on_update": "royce_health_ke.payment_status.settings_changed"},
 	"Patient Encounter": {
-		"validate": "royce_health_ke.visits.link_encounter",
+		"validate": [
+			"royce_health_ke.visits.link_encounter",
+			"royce_health_ke.flow.consultation_gate",
+		],
 		"on_update": [
 			"royce_health_ke.visits.encounter_saved",
 			"royce_health_ke.history.save_history_to_patient",

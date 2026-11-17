@@ -236,13 +236,19 @@ The patient leaves every waiting list. **Status › Cancel Visit** (with a reaso
 | Section | Setting | Default |
 | --- | --- | --- |
 | Patient Registration | Require full registration details | On |
-| Payment Before Service | Consultation fee before triage | On |
+| Payment Before Service | Consultation fee paid first | On |
+| | Consultation fee is paid | Before triage (or: Before the doctor) |
 | | Default Consultation Item | The general consultation item |
 | | Laboratory | On |
 | | Radiology | On |
 | | Pharmacy | On |
 | | Cashier before the lab, radiology and pharmacy | On |
+| | Consultations only for checked-in patients | On |
 | | Waiver Account | The company's write-off account; set your own (for example "Patient Waivers") |
+
+**When the consultation fee is paid:** *Before triage* (the patient pays on arrival, then joins the triage list) or *Before the doctor* (triage first; a patient sent to the doctor unpaid goes to the Cashier first and on to the doctor once paid). Either way, the rule also holds outside the queue: a doctor can't record a consultation, and (before triage) a nurse can't record vital signs, for a patient whose fee is unpaid. The consultation form says why as soon as the patient is chosen.
+
+**Consultations only for checked-in patients:** a consultation is refused for an outpatient not checked in today, so every patient goes through reception, the fee and the queue. An emergency patient is checked in as *Casualty* (served before paying). Inpatients are not affected.
 
 **Cashier before the lab, radiology and pharmacy:** a cash patient sent to one of them with requests there not paid goes to the **Cashier** first (the move's reason says *To pay first*), and joins that list as soon as they pay. Turn it off to let staff send patients straight on; the lab, radiology and pharmacy still don't serve an unpaid request while their own switch is on.
 

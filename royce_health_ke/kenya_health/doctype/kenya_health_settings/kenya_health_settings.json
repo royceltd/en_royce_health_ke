@@ -38,11 +38,13 @@
   "require_registration_details",
   "payment_section",
   "pay_before_triage",
+  "consultation_fee_due",
   "pay_before_lab",
   "pay_before_radiology",
   "payment_cb",
   "pay_before_pharmacy",
   "cashier_before_service",
+  "consultation_needs_check_in",
   "default_consultation_item",
   "auto_bill_insured",
   "insured_pay_uncovered",
@@ -274,9 +276,18 @@
   {
    "fieldname": "pay_before_triage",
    "fieldtype": "Check",
-   "label": "Consultation fee before triage",
+   "label": "Consultation fee paid first",
    "default": "1",
-   "description": "A cash outpatient checked in for a consultation goes to the Cashier first and joins the triage list once the consultation fee is paid."
+   "description": "A cash outpatient checked in for a consultation pays the consultation fee at the Cashier before being seen: before triage or before the doctor (below)."
+  },
+  {
+   "fieldname": "consultation_fee_due",
+   "fieldtype": "Select",
+   "label": "Consultation fee is paid",
+   "options": "Before triage\nBefore the doctor",
+   "default": "Before triage",
+   "depends_on": "pay_before_triage",
+   "description": "Before triage: the patient pays at the Cashier on arrival, then joins the triage list. Before the doctor: triage first; sent to the doctor unpaid, the patient goes to the Cashier first and on to the doctor once paid."
   },
   {
    "fieldname": "pay_before_lab",
@@ -309,6 +320,13 @@
    "label": "Cashier before the lab, radiology and pharmacy",
    "default": "1",
    "description": "A cash patient sent to the lab, radiology or pharmacy with requests there not paid goes to the Cashier first, and joins that list as soon as they pay."
+  },
+  {
+   "fieldname": "consultation_needs_check_in",
+   "fieldtype": "Check",
+   "label": "Consultations only for checked-in patients",
+   "default": "1",
+   "description": "A consultation is refused for an outpatient not checked in today (Patient Visit): reception checks the patient in, so the consultation fee and the queue apply. An emergency patient is checked in as Casualty (served before paying). Inpatients are not affected."
   },
   {
    "fieldname": "default_consultation_item",
@@ -444,7 +462,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-18 09:00:00.000000",
+ "modified": "2026-11-18 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",
