@@ -161,3 +161,19 @@ rollback. Remove the oldest image when more than three are kept (`docker image r
   The drill site was dropped afterwards and its archive folder removed.
 - Not yet run anywhere: `setup-server.sh` (needs a fresh server), `ship-image.sh`
   (needs a second server) and `setup-backups.sh` (needs the bucket).
+
+## Restore drill log
+
+Evidence for the Backup & Recovery policy (DHA certification asks that recovery has been
+tested). Each drill restores a backup under another name with `restore-backup.sh --as`,
+compares it with the source, and drops it.
+
+| Date | Source | Backup | Restore | Checks | Result |
+| --- | --- | --- | --- | --- | --- |
+| 2026-11-15 | bethesda.royceltd.com (pilot) | `move-site.sh` to a drill site on the same server | drill-bethesda | all `--check` checks | Passed |
+| 2026-11-17 | hospital.royceltd.com (pilot, v0.37.0) | bench backup with files, on the server (2.2 MB database, 6 files) | drill.royceltd.com, 150 s | stored passwords 2/2 decrypt; files 6/6 on disk; Patient 32, Patient Visit 30, Patient Encounter 45, Sales Invoice 37, Payment Entry 45, Lab Test 29, Medication Request 29, GL Entry 278, all equal to the source | Passed |
+
+Not yet drilled: restoring from the **off-site** copy. The pilot has no off-site backups
+(`setup-backups.sh` has not been run there: it holds only the demo and test data). Run it,
+and drill from the R2 copy, before any hospital's real data is on a server.
+
