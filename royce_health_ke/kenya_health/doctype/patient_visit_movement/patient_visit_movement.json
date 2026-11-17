@@ -6,6 +6,7 @@
  "field_order": [
   "from_station",
   "to_station",
+  "reason",
   "sent_at",
   "sent_by",
   "practitioner",
@@ -30,6 +31,16 @@
    "columns": 2
   },
   {
+   "fieldname": "reason",
+   "fieldtype": "Select",
+   "label": "Reason",
+   "options": "\nChecked in\nConsultation fee first\nConsultation fee paid\nSent\nTo pay first\nPaid at the Cashier\nSent back by the pharmacy",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 3,
+   "description": "Why the patient moved (flow.py)."
+  },
+  {
    "fieldname": "sent_at",
    "fieldtype": "Datetime",
    "label": "Sent At",
@@ -41,7 +52,7 @@
    "fieldtype": "Link",
    "label": "Sent By",
    "options": "User",
-   "in_list_view": 1,
+   "in_list_view": 0,
    "columns": 2
   },
   {
@@ -62,8 +73,8 @@
    "fieldname": "note",
    "fieldtype": "Data",
    "label": "Note",
-   "in_list_view": 1,
-   "columns": 2
+   "in_list_view": 0,
+   "columns": 1
   },
   {
    "fieldname": "acknowledged_at",
@@ -78,7 +89,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-13 11:58:42.878842",
+ "modified": "2026-11-18 09:30:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Patient Visit Movement",

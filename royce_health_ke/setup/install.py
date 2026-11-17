@@ -152,6 +152,7 @@ def default_settings():
 		("pay_before_lab", 1),
 		("pay_before_radiology", 1),
 		("pay_before_pharmacy", 1),
+		("cashier_before_service", 1),
 		("auto_bill_insured", 1),
 		("clinical_alerts", 1),
 	):

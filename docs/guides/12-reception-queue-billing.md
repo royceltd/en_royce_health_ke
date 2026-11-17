@@ -77,7 +77,7 @@ Demo record: **VIS-2026-00003**, *Peter Otieno Kamau*, insured with Mlima Health
 3. Open the patient and press **Seen** when you call them in.
 4. When you are done, press **Send To**, choose the next station, add a note if useful, and send.
 
-Every move is kept under **Movements**, with who sent the patient, when, and when they were seen.
+Every move is kept under **Movements**, with who sent the patient, when, **why** (the **Reason**: *Checked in*, *Consultation fee first*, *Consultation fee paid*, *Sent*, *To pay first*, *Paid at the Cashier*, *Sent back by the pharmacy*), and when they were seen.
 
 **The next doctor is assigned for you.** When you send a patient to **Consultation** and leave *Practitioner* blank, the system picks a doctor on duty now and their room, sharing patients evenly: the doctor with the fewest patients waiting or in the room goes first. The message says who and where, for example *Sent to Brian Kiprotich, OPD Room 2*, and the top of the visit shows the doctor, room and service.
 
@@ -241,7 +241,10 @@ The patient leaves every waiting list. **Status › Cancel Visit** (with a reaso
 | | Laboratory | On |
 | | Radiology | On |
 | | Pharmacy | On |
+| | Cashier before the lab, radiology and pharmacy | On |
 | | Waiver Account | The company's write-off account; set your own (for example "Patient Waivers") |
+
+**Cashier before the lab, radiology and pharmacy:** a cash patient sent to one of them with requests there not paid goes to the **Cashier** first (the move's reason says *To pay first*), and joins that list as soon as they pay. Turn it off to let staff send patients straight on; the lab, radiology and pharmacy still don't serve an unpaid request while their own switch is on.
 
 Set the **Default Consultation Item** and its price on the cash price list; give a doctor or a Service Type its own item only where the fee differs. Without any consultation item there is no fee to take before triage, and the visit's bill says the consultation can't be priced.
 

@@ -218,26 +218,8 @@ def fee_due(visit):
 	)
 
 
-def _fee_paid(visit):
-	"""Once the fee is paid, the patient waiting at the Cashier joins the triage list."""
-	if not visit.get("fee_first") or visit.get("fee_paid") or not is_paid(*fee_reference(visit)):
-		return
-	from royce_health_ke.visits import FIRST_STATION, _move
-
-	visit.fee_paid = 1
-	if visit.status == "Open" and visit.current_station == "Cashier":
-		_move(
-			visit, "Cashier", FIRST_STATION.get(visit.visit_type, "Triage"), note=_("Consultation fee paid")
-		)
-	visit.flags.ignore_permissions = True
-	visit.save()
-
-
-# Cash patients pay at the Cashier between the doctor and the service points
-# (Bethesda's notes, 17 Nov 2026: "if cash, return to billing; in all cases").
-# A cash patient sent to the lab, radiology or pharmacy with requests there not
-# paid goes to the Cashier instead; the visit remembers where they were going
-# (after_payment), and once paid they join that service point's list.
+# Which service points a visit's unpaid requests are waiting at: the patient
+# flow (flow.py) sends a cash patient to the Cashier first, and on once paid.
 
 SERVICE_STATIONS = {LAB: "Laboratory", RADIOLOGY: "Radiology", PHARMACY: "Pharmacy"}
 
@@ -287,26 +269,6 @@ def awaiting_stations(visit_name):
 			found.add(SERVICE_STATIONS[PHARMACY])
 			break
 	return [s for s in SERVICE_STATIONS.values() if s in found]
-
-
-def _requests_paid(visit):
-	"""Paid at the Cashier: the patient joins the list of the first service
-	point they were going to whose requests are now paid."""
-	if visit.status != "Open" or visit.current_station != "Cashier" or not visit.get("after_payment"):
-		return
-	if fee_due(visit):
-		return
-	from royce_health_ke.visits import _move
-
-	planned = [s.strip() for s in visit.after_payment.split(",") if s.strip()]
-	waiting = set(awaiting_stations(visit.name))
-	ready = [s for s in planned if s not in waiting]
-	if not ready:
-		return
-	_move(visit, "Cashier", ready[0], note=_("Paid at the Cashier"))
-	visit.after_payment = ", ".join(s for s in planned if s != ready[0])
-	visit.flags.ignore_permissions = True
-	visit.save()
 
 
 def _invoice(visit, lines, bill_for=None):
@@ -468,8 +430,9 @@ def refresh_bill_status(visit_name):
 	visit = frappe.get_doc("Patient Visit", visit_name)
 	auto_bill(visit)
 	try:
-		_fee_paid(visit)
-		_requests_paid(visit)
+		from royce_health_ke import flow
+
+		flow.after_payment(visit)
 	except Exception:
 		# Moving the patient on must never stop the payment.
 		frappe.log_error(title=f"Moving {visit_name} on after payment")

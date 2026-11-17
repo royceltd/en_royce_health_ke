@@ -38,7 +38,7 @@ class TestOutpatientPayment(IntegrationTestCase):
 				"needs a billable lab test, a charging practitioner and an appointment type (load the demo)"
 			)
 		frappe.flags.ke_test_payment_gate = True
-		for field in visit_bill.SETTING.values():
+		for field in (*visit_bill.SETTING.values(), "cashier_before_service"):
 			frappe.db.set_single_value("Kenya Health Settings", field, 1)
 		self.patient = (
 			frappe.get_doc(

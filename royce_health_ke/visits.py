@@ -21,27 +21,9 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, now_datetime, nowdate
 
+# The stations and each visit type's first station live with the patient flow.
+from royce_health_ke.flow import FIRST_STATION, STATIONS
 from royce_health_ke.vitals import age_in_years
-
-STATIONS = (
-	"Triage",
-	"Consultation",
-	"Casualty",
-	"Laboratory",
-	"Radiology",
-	"Pharmacy",
-	"Procedure Room",
-	"Cashier",
-	"Admission",
-)
-FIRST_STATION = {
-	"Outpatient": "Triage",
-	"Review": "Triage",
-	"Casualty": "Casualty",
-	"Lab only": "Laboratory",
-	"Radiology only": "Radiology",
-	"Pharmacy only": "Pharmacy",
-}
 
 
 def age_label(dob, on=None):
@@ -120,16 +102,11 @@ def before_insert_visit(doc):
 	# without a member number, validate asks for it
 	if doc.payment_method == "Insurance" and not doc.insurance_policy and doc.member_number:
 		doc.insurance_policy = find_or_create_policy(doc)
-	station = FIRST_STATION.get(doc.visit_type, "Triage")
-	from royce_health_ke.visit_bill import needs_fee_first
+	from royce_health_ke import flow
 
-	if needs_fee_first(doc):
-		# Cash consultation: the fee is paid at the Cashier, then the patient joins the triage list.
-		doc.fee_first = 1
-		_move(doc, _("Reception"), "Cashier", note=_("Consultation fee before triage"))
-		return
-	_warn_no_fee(doc)
-	_move(doc, _("Reception"), station)
+	flow.check_in(doc)
+	if not doc.fee_first:
+		_warn_no_fee(doc)
 
 
 def _warn_no_fee(doc):
@@ -226,26 +203,6 @@ def renew_policy(policy, valid_until):
 	)
 
 
-def _move(doc, from_station, to_station, practitioner=None, note=None, room=None):
-	now, user = now_datetime(), frappe.session.user
-	doc.append(
-		"movements",
-		{
-			"from_station": from_station,
-			"to_station": to_station,
-			"sent_at": now,
-			"sent_by": user,
-			"practitioner": practitioner,
-			"service_unit": room,
-			"note": note,
-		},
-	)
-	doc.current_station = to_station
-	doc.queue_status = "Waiting"
-	doc.sent_at, doc.sent_by = now, user
-	doc.acknowledged_at = doc.acknowledged_by = None
-
-
 def _open_visit(name):
 	doc = frappe.get_doc("Patient Visit", name)
 	doc.check_permission("write")
@@ -256,96 +213,10 @@ def _open_visit(name):
 
 @frappe.whitelist()
 def send_to(visit: str, station: str, practitioner: str | None = None, note: str | None = None):
-	"""Send the patient to another station's waiting list."""
-	doc = _open_visit(visit)
-	if station not in STATIONS:
-		frappe.throw(_("Unknown station {0}.").format(station))
-	redirected = None
-	if station == "Cashier" or station in PAY_FIRST:
-		station, note, redirected = _cashier_first(doc, station, note)
-	if station == doc.current_station and doc.queue_status == "Waiting":
-		frappe.throw(_("{0} is already waiting at {1}.").format(doc.patient_name, _(station)))
-	if station in ("Triage", "Consultation"):
-		from royce_health_ke.visit_bill import fee_due
+	"""Send the patient to another station's waiting list (flow.py: the rules, then the move)."""
+	from royce_health_ke import flow
 
-		if fee_due(doc):
-			frappe.throw(
-				_(
-					"{0} has not paid the consultation fee. Bill and take the fee at the Cashier first: "
-					"the patient then joins the triage list. A manager can allow services before payment."
-				).format(doc.patient_name),
-				title=_("Consultation fee first"),
-			)
-	if station == "Consultation":
-		return _send_to_consultation(doc, practitioner, note)
-	if practitioner:
-		doc.practitioner = practitioner
-	_move(doc, doc.current_station, station, practitioner, note)
-	doc.save()
-	return {"station": doc.current_station, "redirected_from": redirected}
-
-
-PAY_FIRST = ("Laboratory", "Radiology", "Pharmacy")
-
-
-def _cashier_first(doc, station, note):
-	"""(station, note, the station asked for when sent to the Cashier instead).
-	A cash patient whose requests at that service point aren't paid goes to
-	the Cashier first, and on to it once paid (visit_bill._requests_paid)."""
-	from royce_health_ke.visit_bill import awaiting_stations
-
-	waiting = awaiting_stations(doc.name)
-	if station == "Cashier":
-		doc.after_payment = ", ".join(waiting)
-		return station, note, None
-	if station not in waiting:
-		return station, note, None
-	if doc.current_station == "Cashier":
-		frappe.throw(
-			_(
-				"{0}'s {1} requests are not paid yet. Take the payment first: the patient then joins the "
-				"{1} list. A manager can allow services before payment."
-			).format(doc.patient_name, _(station)),
-			title=_("Not paid yet"),
-		)
-	doc.after_payment = ", ".join([station] + [s for s in waiting if s != station])
-	why = _("To the Cashier first: the {0} requests are not paid").format(_(station))
-	return "Cashier", f"{note} · {why}" if note else why, station
-
-
-def _consultation_result(doc):
-	return {
-		"station": doc.current_station,
-		"practitioner": doc.practitioner,
-		"practitioner_name": doc.practitioner_name,
-		"room": doc.consultation_room,
-	}
-
-
-def _send_to_consultation(doc, practitioner, note):
-	"""The doctor named, else the appointment's, else the next doctor on duty."""
-	from frappe.utils.synchronization import filelock
-
-	from royce_health_ke import assign
-
-	if not practitioner and doc.appointment:
-		practitioner = frappe.db.get_value("Patient Appointment", doc.appointment, "practitioner")
-	if practitioner:
-		if practitioner != doc.practitioner or not doc.consultation_room:
-			doc.consultation_room = assign.room_of(practitioner, doc.company, doc.get("facility"))
-		doc.practitioner = practitioner
-		_move(doc, doc.current_station, "Consultation", practitioner, note, doc.consultation_room)
-		doc.save()
-		return _consultation_result(doc)
-	# One assignment at a time, committed before the next is worked out, so
-	# two nurses sending at once don't both pick the same doctor.
-	with filelock("ke_next_consultant", timeout=20):
-		assign.assign(doc)
-		_move(doc, doc.current_station, "Consultation", doc.practitioner, note, doc.consultation_room)
-		doc.save()
-		if not frappe.flags.in_test:
-			frappe.db.commit()
-	return _consultation_result(doc)
+	return flow.send(_open_visit(visit), station, practitioner, note)
 
 
 @frappe.whitelist()
@@ -369,6 +240,8 @@ def reassign(visit: str):
 		doc.save()
 		if not frappe.flags.in_test:
 			frappe.db.commit()
+	from royce_health_ke.flow import _consultation_result
+
 	return _consultation_result(doc)
 
 

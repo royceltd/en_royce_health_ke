@@ -798,23 +798,14 @@ def send_back(requests: str | list, note: str):
 		visit = m.order_group and frappe.db.get_value("Patient Encounter", m.order_group, "ke_patient_visit")
 		if visit:
 			visits.setdefault(visit, (m.practitioner, []))[1].append(m.medication)
-	from royce_health_ke.visits import _move
+	from royce_health_ke import flow
 
 	for visit, (practitioner, drugs) in visits.items():
-		v = frappe.get_doc("Patient Visit", visit)
-		if v.status != "Open":
-			continue
-		_move(
-			v,
-			v.current_station,
-			"Consultation",
+		flow.sent_back(
+			frappe.get_doc("Patient Visit", visit),
 			practitioner,
 			_("Pharmacy: {0} ({1})").format(note, ", ".join(drugs)),
-			v.consultation_room,
 		)
-		v.practitioner = practitioner or v.practitioner
-		v.flags.ignore_permissions = True
-		v.save()
 	return done
 
 

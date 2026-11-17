@@ -340,7 +340,7 @@ def _ensure_visit(ctx, patient, visit_type="Outpatient"):
 
 def _consult(ctx, patient, labs=(), drugs=(), station=None):
 	"""Checked in, seen by Dr Amina (tests and drugs ordered), sent on."""
-	from royce_health_ke.visits import _move
+	from royce_health_ke import flow
 
 	visit = _ensure_visit(ctx, patient)
 	encounter = frappe.get_doc(
@@ -379,7 +379,7 @@ def _consult(ctx, patient, labs=(), drugs=(), station=None):
 		drug_requests[mr.medication_item] = mr.name
 	if station:
 		v = frappe.get_doc("Patient Visit", visit)
-		_move(v, v.current_station, station)
+		flow.move(v, station, flow.SENT)
 		v.flags.ignore_permissions = True
 		v.save()
 	return frappe._dict(
