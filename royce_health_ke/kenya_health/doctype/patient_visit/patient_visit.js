@@ -483,7 +483,8 @@ function bill_dialog(frm, charges, currency) {
 function make_bill(frm, lines) {
 	frappe.call({
 		method: "royce_health_ke.visit_bill.make_bill",
-		args: { visit: frm.doc.name, lines: lines || null },
+		// every charge ticked: send no list, and the server bills them all
+		args: lines ? { visit: frm.doc.name, lines } : { visit: frm.doc.name },
 		freeze: true,
 	}).then(
 		({ message }) => {

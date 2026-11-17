@@ -163,6 +163,17 @@ class TestOutpatientPayment(IntegrationTestCase):
 		visit = self.check_in()
 		with self.assertRaises(frappe.ValidationError):
 			visit_bill.make_bill(visit.name, [])
+		with self.assertRaises(frappe.ValidationError):
+			visit_bill.make_bill(visit.name, "[]")
+
+	def test_browser_values(self):
+		"""As the form sends them: no list (everything ticked), empty, "null", or JSON."""
+		visit = self.check_in()
+		expected = [c["reference_dt"] for c in visit_bill.visit_bill(visit.name)["charges"]]
+		self.assertTrue(expected)
+		for value in (None, "", "null", f'[["Patient Visit", "{visit.name}"]]'):
+			bill = visit_bill.make_bill(visit.name, value)
+			self.assertEqual([i["reference_dt"] for i in bill["items"]], expected, repr(value))
 
 
 class TestSettingsKeptOnUpdate(IntegrationTestCase):

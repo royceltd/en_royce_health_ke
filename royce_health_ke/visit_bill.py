@@ -526,8 +526,11 @@ def make_bill(visit: str, lines: str | list | None = None):
 	(all of them when not given). What isn't ticked stays to bill later, and
 	a request not paid stays off its service point's worklist."""
 	ticked = None
+	if isinstance(lines, str):
+		# the browser sends an empty value (or "null") when every charge is ticked
+		lines = frappe.parse_json(lines) if lines.strip() not in ("", "null") else None
 	if lines is not None:
-		ticked = {tuple(x) for x in (frappe.parse_json(lines) if isinstance(lines, str) else lines)}
+		ticked = {tuple(x) for x in lines}
 		if not ticked:
 			frappe.throw(_("Tick at least one charge to bill."))
 	frappe.has_permission("Sales Invoice", "create", throw=True)
