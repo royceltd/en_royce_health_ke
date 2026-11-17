@@ -31,7 +31,13 @@ old=$(sed -n 's/^ *image: royceerp:\(.*\)$/\1/p' compose.royceerp.yaml | head -1
 if ! docker image inspect "royceerp:$TAG" >/dev/null 2>&1; then
 	[ $ROLLBACK -eq 1 ] && { echo "royceerp:$TAG is not on this server" >&2; exit 1; }
 	log "pulling $REGISTRY_IMAGE:$TAG"
-	docker pull -q "$REGISTRY_IMAGE:$TAG"
+	# the registry download is sometimes reset mid-way: try a few times
+	for try in 1 2 3 4 5; do
+		docker pull -q "$REGISTRY_IMAGE:$TAG" && break
+		[ "$try" -eq 5 ] && { echo "could not pull $REGISTRY_IMAGE:$TAG" >&2; exit 1; }
+		log "pull failed, retrying ($try)"
+		sleep 20
+	done
 	docker tag "$REGISTRY_IMAGE:$TAG" "royceerp:$TAG"
 fi
 
