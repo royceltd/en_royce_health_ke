@@ -16,6 +16,23 @@ def apply():
 	fixed = fix_patient_history_field_types()
 	if fixed:
 		frappe.logger("royce_health_ke").info(f"marley_fixes: patient history field types corrected: {fixed}")
+	if fix_registration_sms():
+		frappe.logger("royce_health_ke").info("marley_fixes: registration SMS off (no SMS gateway)")
+
+
+def fix_registration_sms():
+	"""Healthcare Settings > Patient Registration SMS goes through Frappe's SMS
+	Settings. Without a gateway there it never sends; every new patient shows
+	"Please Update SMS Settings" instead of being saved quietly (IT demo,
+	17 Nov 2026). Patient SMS goes through RoyceTalk (sms.py), with consent.
+	Switched off only while no gateway is set, so a hospital that sets one up
+	and switches it on again keeps it."""
+	if not frappe.db.get_single_value("Healthcare Settings", "send_registration_msg"):
+		return False
+	if frappe.db.get_single_value("SMS Settings", "sms_gateway_url"):
+		return False
+	frappe.db.set_single_value("Healthcare Settings", "send_registration_msg", 0)
+	return True
 
 
 def fix_patient_history_field_types():

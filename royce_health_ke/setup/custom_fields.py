@@ -79,8 +79,10 @@ PATIENT = [
 		"label": "County of Residence",
 		"options": select(COUNTIES),
 		"insert_after": "ke_nationality",
-		"fetch_from": "ke_residence.county",
-		"fetch_if_empty": 1,
+		# filled from the residence only when empty (identity.fill_from_residence):
+		# Frappe's form ignores "fetch if empty" and blanked a chosen county
+		"fetch_from": "",
+		"fetch_if_empty": 0,
 	},
 	{
 		"fieldname": "ke_sub_county",
@@ -88,8 +90,10 @@ PATIENT = [
 		"label": "Sub-County",
 		"description": "Choose the county first: its sub-counties are offered as you type.",
 		"insert_after": "ke_county",
-		"fetch_from": "ke_residence.sub_county",
-		"fetch_if_empty": 1,
+		# filled from the residence only when empty (identity.fill_from_residence):
+		# Frappe's form ignores "fetch if empty" and blanked a chosen county
+		"fetch_from": "",
+		"fetch_if_empty": 0,
 	},
 	{
 		"fieldname": "ke_residence",

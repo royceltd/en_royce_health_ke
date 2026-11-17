@@ -98,7 +98,32 @@ def check_registration(doc):
 	)
 
 
+def fill_from_residence(doc):
+	"""County and sub-county from the residence, only where still empty: a
+	residence saved without a county must not blank the one reception chose
+	(IT demo, 17 Nov 2026)."""
+	if not doc.get("ke_residence"):
+		return
+	place = frappe.db.get_value("Residence", doc.ke_residence, ["county", "sub_county"], as_dict=True)
+	if not place:
+		return
+	if not doc.get("ke_county") and place.county:
+		doc.ke_county = place.county
+	if not doc.get("ke_sub_county") and place.sub_county and doc.ke_county == place.county:
+		doc.ke_sub_county = place.sub_county
+
+
+@frappe.whitelist()
+def residence_place(residence: str) -> dict:
+	"""County and sub-county of a residence, for the Patient form."""
+	if not (frappe.has_permission("Patient", "create") or frappe.has_permission("Patient", "write")):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	place = frappe.db.get_value("Residence", residence, ["county", "sub_county"], as_dict=True)
+	return place or {}
+
+
 def validate_patient(doc, method=None):
+	fill_from_residence(doc)
 	check_registration(doc)
 	for field in PHONE_FIELDS:
 		if doc.get(field):

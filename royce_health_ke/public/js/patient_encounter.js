@@ -7,10 +7,18 @@
 const KE_ALERT_COLOURS = { Critical: "red", Warning: "orange", Info: "blue" };
 
 frappe.ui.form.on("Patient Encounter", {
+	setup(frm) {
+		// the lab requests' Imaging column offers imaging exams only; lab tests
+		// are chosen in the Lab Test column (consultation.check_lab_rows)
+		frm.set_query("observation_template", "lab_test_prescription", () => ({
+			filters: { observation_category: "Imaging" },
+		}));
+	},
 	refresh(frm) {
 		if (!frm.is_new()) ke_show_clinical_alerts(frm);
 		ke_consultation_refresh(frm);
 		ke_may_consult(frm);
+		ke_unsent_requests(frm);
 	},
 	patient(frm) {
 		ke_may_consult(frm);
@@ -28,6 +36,38 @@ frappe.ui.form.on("Patient Encounter", {
 		ke_complete_consultation(frm);
 	},
 });
+
+// Requests added but not sent: they reach the Cashier and the lab only once
+// sent (Send Requests) or when the consultation is completed.
+function ke_unsent_requests(frm) {
+	if (frm.is_new() || frm.doc.docstatus !== 0) return;
+	const unsent = ["lab_test_prescription", "procedure_prescription", "therapies"]
+		.flatMap((t) => frm.doc[t] || [])
+		.filter(
+			(r) =>
+				!r.service_request &&
+				(r.lab_test_code || r.observation_template || r.procedure || r.therapy_type)
+		);
+	if (unsent.length) {
+		frm.dashboard.add_comment(
+			__(
+				"{0} request(s) not sent yet: click Send Requests on the Requests tab so they reach the Cashier and the lab.",
+				[unsent.length]
+			),
+			"orange",
+			true
+		);
+	}
+}
+
+// Requests the bill can't charge: no price for this patient.
+function ke_unpriced_html(info) {
+	if (!info || !(info.unpriced || []).length) return "";
+	return `<div class="alert alert-warning">${__(
+		"No price set for this patient: {0}. The Cashier can't bill these until the administrator sets their price.",
+		[info.unpriced.map((n) => frappe.utils.escape_html(n)).join(", ")]
+	)}</div>`;
+}
 
 // A new consultation for a patient the doctor can't see yet (not checked in,
 // or the consultation fee unpaid): say so at once, not only on Save
@@ -207,7 +247,12 @@ async function ke_complete_consultation(frm) {
 
 // After sending requests or completing: where does the patient go next?
 function ke_next_station(frm, info, completed) {
-	if (!info || !info.visit) return;
+	const unpriced = ke_unpriced_html(info);
+	if (!info || !info.visit) {
+		if (unpriced)
+			frappe.msgprint({ title: __("No price set"), indicator: "orange", message: unpriced });
+		return;
+	}
 	const FINISH = __("Finish visit (patient goes home)");
 	const STAY = __("Stay with me (results later)");
 	const options = [...info.stations];
@@ -218,12 +263,14 @@ function ke_next_station(frm, info, completed) {
 		fields: [
 			{
 				fieldtype: "HTML",
-				options: info.unpaid
-					? `<p class="text-muted">${__(
-							"{0} request(s) or medicine(s) are paid first: the patient goes to the Cashier, then on to the service point once paid.",
-							[info.unpaid]
-					  )}</p>`
-					: "",
+				options:
+					unpriced +
+					(info.unpaid
+						? `<p class="text-muted">${__(
+								"{0} request(s) or medicine(s) are paid first: the patient goes to the Cashier, then on to the service point once paid.",
+								[info.unpaid]
+						  )}</p>`
+						: ""),
 			},
 			{
 				fieldname: "station",
@@ -254,11 +301,14 @@ function ke_next_station(frm, info, completed) {
 							message: finish
 								? __("Visit completed")
 								: sent.redirected_from
-									? __("Sent to the Cashier first: the {0} requests are not paid. The patient goes on to {0} once paid.", [__(sent.redirected_from)])
-									: __("Sent to {0}", [__(sent.station || v.station)]),
+								? __(
+										"Sent to the Cashier first: the {0} requests are not paid. The patient goes on to {0} once paid.",
+										[__(sent.redirected_from)]
+								  )
+								: __("Sent to {0}", [__(sent.station || v.station)]),
 							indicator: sent.redirected_from ? "orange" : "green",
 						},
-						sent.redirected_from ? 10 : 5,
+						sent.redirected_from ? 10 : 5
 					);
 				},
 			});

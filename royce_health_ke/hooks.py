@@ -128,6 +128,7 @@ doc_events = {
 	"Inpatient Record": {"on_update": "royce_health_ke.payment_status.inpatient_changed"},
 	"Kenya Health Settings": {"on_update": "royce_health_ke.payment_status.settings_changed"},
 	"Patient Encounter": {
+		"before_validate": "royce_health_ke.consultation.before_validate",
 		"validate": [
 			"royce_health_ke.visits.link_encounter",
 			"royce_health_ke.flow.consultation_gate",

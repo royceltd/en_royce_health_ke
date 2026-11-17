@@ -15,9 +15,10 @@ The highlighted steps are the two payments. Each step below says who does it, wh
 **Who:** reception. **Where:** Healthcare › Patient › *+ Add Patient*.
 
 1. Enter first, middle and last name, sex, date of birth and **Mobile** number (saved as +254). The form has one contact number.
-2. Fill the Kenyan identifiers: ID type and number, SHA member number, county, then the sub-county (start typing and pick from the county's list).
+2. Fill the Kenyan identifiers: ID type and number, SHA member number, county, then the sub-county (start typing and pick from the county's list). Choosing the **Residence** fills the county and sub-county only if they are still empty; it never clears what you chose.
 3. Add next of kin, blood group and allergies (write *No known drug allergies* if none).
-4. Save. A second patient with the same ID number is refused and the existing record is named, so returning patients are found rather than duplicated.
+4. Leave **Invite as User** unticked (it creates a patient portal login; off by default).
+5. Save. A second patient with the same ID number is refused and the existing record is named, so returning patients are found rather than duplicated.
 
 ID, mobile number (the next of kin's for a child), nationality, county and residence are required for a new patient. Nurses, doctors, lab and pharmacy staff see the phone and ID numbers masked.
 
@@ -71,10 +72,10 @@ The consultation has tabs in the order the doctor works: **Patient → Observati
 *The Observation tab: presenting complaint and examination, then the medical history.*
 
 1. **Patient:** the patient, doctor, department and insurance fill in from the visit or the appointment. Symptoms, appointment type and source are taken at reception and are not on the consultation.
-2. **Observation:** under **Presenting Complaint**, write the **Chief Complaint** (in the patient's words, with how long), the **History of Presenting Illness**, **Review of Systems** and **Physical Examination**.
+2. **Observation:** under **Presenting Complaint**, write the **Chief Complaint** (in the patient's words, with how long), the **History of Presenting Illness**, **Review of Systems** and **Physical Examination**. Fill these **before requesting tests or prescribing**: Send Requests and Complete Consultation are refused while the required ones are empty (by default Chief Complaint, History of Presenting Illness and Physical Examination; the hospital chooses in Kenya Health Settings). Casualty visits and inpatients are not held back.
 3. **Medical History** (same tab) shows the patient's allergies, current medication, past medical and surgical history, family and social history from the patient's record. Correct or add to them here: when you save, the patient's record is updated, and the patient shows a note naming this consultation. The next clinician starts from the updated history. To clear a line, write *None* rather than leaving it blank (a blank field is refilled from the record).
 4. For a woman, **Obstetric and Gynaecological History** has an **OBS/Gynae** box: LMP, gravida/para, contraception, menstrual and gynaecological history. It is not shown for male patients.
-5. **Requests:** add the lab tests (for example malaria slide, Hb, WBC), imaging exams and procedures, then press **Send Requests**. Each request goes on the visit's bill and to its service point, and **the consultation stays open** for the results.
+5. **Requests:** add the lab tests in the **Lab Test** column (for example malaria slide, Hb, WBC), imaging exams in the **Imaging** column, and procedures, then press **Send Requests**. Until you do, an orange note says how many requests are not sent yet. If a request has no price for this patient, the next box says so: the Cashier can't bill it until the administrator sets its price. Each request goes on the visit's bill and to its service point, and **the consultation stays open** for the results.
 6. A box asks **Where does the patient go next?** For a cash patient whose requests aren't paid, the **Cashier** is suggested first (the requests reach the lab only once paid); otherwise the Laboratory or Radiology. Add a note if useful and **Send**, or choose *Stay with me* to keep the patient.
 
 ![Where does the patient go next?](images/outpatient/16-next-station.png)

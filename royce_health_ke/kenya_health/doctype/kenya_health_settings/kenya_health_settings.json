@@ -54,6 +54,13 @@
   "only_cashiers_take_payment",
   "cashier_cb",
   "require_cashier_shift",
+  "consultation_section",
+  "observation_before_requests",
+  "consultation_cb",
+  "obs_need_complaint",
+  "obs_need_hpi",
+  "obs_need_ros",
+  "obs_need_examination",
   "laboratory_section",
   "walk_in_lab_practitioner",
   "laboratory_cb",
@@ -388,6 +395,50 @@
    "description": "Approved waivers (what a patient can't pay) are written off to this expense account. Blank: the company's write-off account."
   },
   {
+   "fieldname": "consultation_section",
+   "fieldtype": "Section Break",
+   "label": "Consultation"
+  },
+  {
+   "fieldname": "observation_before_requests",
+   "fieldtype": "Check",
+   "default": "1",
+   "label": "Observation before requests",
+   "description": "The doctor fills the Observation tab before requesting tests or prescribing. Not for casualty visits or inpatients."
+  },
+  {
+   "fieldname": "consultation_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "obs_need_complaint",
+   "fieldtype": "Check",
+   "default": "1",
+   "label": "Chief Complaint",
+   "depends_on": "observation_before_requests"
+  },
+  {
+   "fieldname": "obs_need_hpi",
+   "fieldtype": "Check",
+   "default": "1",
+   "label": "History of Presenting Illness",
+   "depends_on": "observation_before_requests"
+  },
+  {
+   "fieldname": "obs_need_ros",
+   "fieldtype": "Check",
+   "default": "0",
+   "label": "Review of Systems",
+   "depends_on": "observation_before_requests"
+  },
+  {
+   "fieldname": "obs_need_examination",
+   "fieldtype": "Check",
+   "default": "1",
+   "label": "Physical Examination",
+   "depends_on": "observation_before_requests"
+  },
+  {
    "fieldname": "laboratory_section",
    "fieldtype": "Section Break",
    "label": "Laboratory",
@@ -471,7 +522,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-18 15:00:00.000000",
+ "modified": "2026-11-17 23:21:44.016299",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

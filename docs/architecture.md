@@ -31,6 +31,7 @@ whitelisted methods keep their old paths (`override_whitelisted_methods`).
 | Only `marley` imports from Marley (`healthcare`) | A Marley upgrade is a checklist (`marley.USES`), not a hunt | `test_marley.test_marley_only_through_the_adapter` |
 | Marley's version is the one we support | Tests run against what hospitals run | `test_marley.test_supported_version` |
 | Every Marley function we use exists with the arguments we pass | An upgrade that breaks us fails a test, not a hospital | `test_marley.test_everything_we_use_exists`, `test_signatures_we_call` |
+| Upgrades come first: every Marley, ERPNext or Frappe version bump goes through one checklist | Customisations never hold back an upgrade; the risky places are named | [marley-upgrade-checklist.md](marley-upgrade-checklist.md) |
 | Lists read the stored payment status; serving a patient checks it live | Fast worklists that agree, and no unpaid service from a stale value | `test_payment_status` |
 | A new site installs cleanly | The next hospital's first day | CI (fresh site, all apps, the demo, every test) |
 

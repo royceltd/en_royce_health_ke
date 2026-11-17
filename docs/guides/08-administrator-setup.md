@@ -169,6 +169,7 @@ Demo record: GW Bed 03 in the General Ward, type General Ward Bed, warehouse GW 
 | Pharmacy: customer for walk-in counter sales | Blank (a customer named *Walk-in Customer* is made the first time) |
 | Laboratory: requesting doctor for walk-ins | The lab's medical officer in charge |
 | Laboratory: a second person validates results | Off (whoever entered the results validates them), until the lab wants a second check |
+| Consultation: observation before requests | On: Chief Complaint, History of Presenting Illness and Physical Examination are filled before the doctor sends requests or prescribes (not for casualty or inpatients). Tick Review of Systems too if the hospital wants it |
 
 Save the page once after installation, even if you change nothing, so every default is stored. Since v0.35.1 an update no longer switches back on a setting you turned off.
 
@@ -178,6 +179,9 @@ Save the page once after installation, even if you change nothing, so every defa
 - **Vital Signs:** height is entered in centimetres.
 - **Consultation:** tabs in the order *Patient, Observation, Requests, Results, Diagnosis, Prescription, Complete*; symptoms, appointment type and source are hidden (taken at reception).
 - **Sales Invoice payments:** *Reference No* (the M-Pesa or card code) is a column of the payments table.
+- **Consultation requests:** the lab requests table shows a **Lab Test** column and an **Imaging** column (imaging exams only). Lab tests are set up as *Lab Test Templates*; an *Observation Template* is for imaging (category *Imaging*). A lab test set up as an Observation Template is refused when ordered, because no worklist picks it up.
+- **Patient:** *Invite as User* (a patient portal login) starts unticked.
+- **Registration SMS:** Healthcare Settings › *Patient Registration* SMS goes through Frappe's SMS Settings, not RoyceTalk. It is switched off at each update while no SMS gateway is set there, so saving a patient no longer shows "Please Update SMS Settings".
 
 ![Kenya Health Settings](images/admin/08-kenya-health-settings.png)
 

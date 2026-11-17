@@ -31,6 +31,23 @@ frappe.ui.form.on("Patient", {
 			}
 		});
 	},
+	// the residence fills the county and sub-county only when they are empty
+	ke_residence(frm) {
+		if (!frm.doc.ke_residence) return;
+		frappe
+			.xcall("royce_health_ke.identity.residence_place", { residence: frm.doc.ke_residence })
+			.then((place) => {
+				if (!place) return;
+				if (!frm.doc.ke_county && place.county) frm.set_value("ke_county", place.county);
+				if (
+					!frm.doc.ke_sub_county &&
+					place.sub_county &&
+					(frm.doc.ke_county || place.county) === place.county
+				) {
+					frm.set_value("ke_sub_county", place.sub_county);
+				}
+			});
+	},
 	refresh(frm) {
 		if (frappe.boot.ke_require_registration && frm.is_new()) {
 			for (const f of KE_REQUIRED) frm.toggle_reqd(f, true);
@@ -325,16 +342,20 @@ function ke_offer_sub_counties(frm) {
 	const names = !county
 		? Promise.resolve([])
 		: ke_sub_county_cache[county]
-			? Promise.resolve(ke_sub_county_cache[county])
-			: frappe
-					.xcall("royce_health_ke.identity.sub_counties", { county })
-					.then((list) => (ke_sub_county_cache[county] = list || []));
+		? Promise.resolve(ke_sub_county_cache[county])
+		: frappe
+				.xcall("royce_health_ke.identity.sub_counties", { county })
+				.then((list) => (ke_sub_county_cache[county] = list || []));
 	return names.then((list) => {
 		const field = frm.fields_dict.ke_sub_county;
 		const input = field && field.$input && field.$input.get(0);
 		if (!input) return list;
 		if (!field.ke_awesomplete) {
-			field.ke_awesomplete = new Awesomplete(input, { minChars: 0, maxItems: 30, autoFirst: true });
+			field.ke_awesomplete = new Awesomplete(input, {
+				minChars: 0,
+				maxItems: 30,
+				autoFirst: true,
+			});
 			$(input).on("focus", () => {
 				field.ke_awesomplete.evaluate();
 				if (field.ke_awesomplete._list.length) field.ke_awesomplete.open();

@@ -111,6 +111,145 @@ def layout_order(fields):
 	return order
 
 
+# Before requests are placed (IT demo, 17 Nov 2026)
+#
+# - The Lab Tests table's Observation column orders Marley Observations. In
+#   this system only imaging is done that way (radiology worklist); the lab
+#   works from Lab Test Templates. A haemogram or SpO2 ordered as an
+#   Observation reached no department, so it is refused with what to do.
+# - Observation first: the consultation's Observation tab is filled before
+#   anything is ordered (Kenya Health Settings > Consultation). Not for
+#   casualty or inpatients, where tests may come before the notes.
+
+# (Kenya Health Settings switch, consultation field)
+OBSERVATION_FIELDS = (
+	("obs_need_complaint", "ke_chief_complaint"),
+	("obs_need_hpi", "ke_hpi"),
+	("obs_need_ros", "ke_review_of_systems"),
+	("obs_need_examination", "ke_examination"),
+)
+ORDER_TABLES = ("lab_test_prescription", "procedure_prescription", "therapies")
+
+
+def _placing_orders(doc):
+	"""True when this save or submit places the consultation's orders (Marley
+	places them in validate when 'submit orders on save' is ticked, and on
+	submit)."""
+	if doc.docstatus == 1:
+		return getattr(doc, "_action", None) == "submit"
+	return not doc.is_new() and cint(doc.get("submit_orders_on_save"))
+
+
+def new_orders(doc):
+	"""The order rows not placed yet: requests and medicines."""
+	rows = [r for table in ORDER_TABLES for r in doc.get(table) or [] if not r.get("service_request")]
+	rows += [
+		d
+		for d in doc.get("drug_prescription") or []
+		if (d.get("medication") or d.get("drug_code")) and not d.get("medication_request")
+	]
+	return rows
+
+
+def _is_imaging_template(template):
+	from royce_health_ke.radiology import IMAGING
+
+	return frappe.db.get_value(OBS_TEMPLATE, template, "observation_category") == IMAGING
+
+
+def check_lab_rows(doc):
+	for row in doc.get("lab_test_prescription") or []:
+		if row.get("service_request") or not row.get("observation_template"):
+			continue
+		if not _is_imaging_template(row.observation_template):
+			frappe.throw(
+				_(
+					"Row {0} of the lab requests: {1} is not an imaging exam. Choose lab tests in the "
+					"Lab Test column; the Imaging column is for X-ray, ultrasound and other imaging."
+				).format(row.idx, frappe.bold(row.observation_template)),
+				title=_("Choose it as a lab test"),
+			)
+
+
+def observation_exempt(doc):
+	if doc.get("inpatient_record"):
+		return True
+	visit = doc.get("ke_patient_visit")
+	return bool(visit) and frappe.db.get_value("Patient Visit", visit, "visit_type") == "Casualty"
+
+
+def missing_observation(doc):
+	"""Labels of the required Observation fields still empty."""
+	from royce_health_ke.flow import SETTINGS, setting
+
+	if not setting("observation_before_requests"):
+		return []
+	meta = frappe.get_meta(DT)
+	return [
+		_(meta.get_label(field))
+		for switch, field in OBSERVATION_FIELDS
+		if cint(frappe.db.get_single_value(SETTINGS, switch))
+		and meta.has_field(field)
+		and not (doc.get(field) or "").strip()
+	]
+
+
+def _observation_gate_on():
+	if frappe.flags.in_import or frappe.flags.in_install or frappe.flags.in_migrate or frappe.flags.ke_demo:
+		return False
+	# tests switch it on themselves (ke_test_observation_gate), as flow.py's gates
+	return not frappe.flags.in_test or bool(frappe.flags.ke_test_observation_gate)
+
+
+def before_validate(doc, method=None):
+	"""Patient Encounter before_validate (before Marley places the orders)."""
+	check_lab_rows(doc)
+	if not _observation_gate_on() or not _placing_orders(doc) or not new_orders(doc):
+		return
+	if observation_exempt(doc):
+		return
+	missing = missing_observation(doc)
+	if missing:
+		frappe.throw(
+			_("Record the observation before requesting tests or prescribing. Still empty: {0}.").format(
+				", ".join(missing)
+			),
+			title=_("Observation first"),
+		)
+
+
+def unpriced(doc):
+	"""Requests of this consultation with no price for the patient (the
+	scheme's pricebook, else the cash price list): the bill can't charge them,
+	so the doctor is told at once (IT demo: a request "didn't go" until its
+	price was added)."""
+	from royce_health_ke import fees
+
+	visit = doc.get("ke_patient_visit")
+	v = visit and frappe.db.get_value(
+		"Patient Visit", visit, ["payment_method", "insurance_policy", "company"], as_dict=True
+	)
+	policy = v.insurance_policy if v and v.payment_method != "Cash" else None
+	company = (v and v.company) or doc.get("company")
+	out = []
+	for request in _requests(doc):
+		if request.template_dt not in (
+			LAB_TEMPLATE,
+			OBS_TEMPLATE,
+			"Clinical Procedure Template",
+			"Therapy Type",
+		):
+			continue
+		billable, item = frappe.db.get_value(
+			request.template_dt, request.template_dn, ["is_billable", "item"]
+		) or (0, None)
+		if not cint(billable):
+			continue
+		if not item or not fees.price(item, company, policy):
+			out.append(request.template_dn)
+	return out
+
+
 # Send requests / complete
 
 
@@ -191,6 +330,7 @@ def next_stations(doc):
 		"visit": visit if status == "Open" else None,
 		"stations": stations,
 		"unpaid": unpaid,
+		"unpriced": unpriced(doc),
 		"completed": doc.docstatus == 1,
 	}
 

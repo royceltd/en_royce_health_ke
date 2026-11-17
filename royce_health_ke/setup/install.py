@@ -159,6 +159,10 @@ def default_settings():
 		("idle_lock_minutes", 10),
 		("auto_bill_insured", 1),
 		("clinical_alerts", 1),
+		("observation_before_requests", 1),
+		("obs_need_complaint", 1),
+		("obs_need_hpi", 1),
+		("obs_need_examination", 1),
 	):
 		# tabSingles directly: frappe.db.exists("Singles", ...) always says no, which
 		# reset these switches on every migrate (fixed in v0.35.1)
