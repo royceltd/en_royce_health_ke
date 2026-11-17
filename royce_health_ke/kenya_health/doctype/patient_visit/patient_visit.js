@@ -215,6 +215,11 @@ function send_to_dialog(frm, call) {
 
 // "Sent to Dr Amina Otieno, OPD Room 1"
 function sent_message(r) {
+	if (r.redirected_from) {
+		return __("Sent to the Cashier first: the {0} requests are not paid. The patient goes on to {0} once paid.", [
+			__(r.redirected_from),
+		]);
+	}
 	if (r.station === "Consultation" && r.practitioner) {
 		return r.room
 			? __("Sent to {0}, {1}", [r.practitioner_name || r.practitioner, r.room])
@@ -336,6 +341,10 @@ function render_bill(frm) {
 			const billable = b.split ? pending.filter((r) => !r.covered) : pending;
 			frm.add_custom_button(__("Create Bill"), () => bill_dialog(frm, billable, c), __("Bill"));
 		}
+		const payable = b.invoices.filter((i) => !i.is_return && i.docstatus < 2 && patient_due(i) > 0.005);
+		if (b.can_bill && payable.length && !frappe.boot.ke_payment_blocked) {
+			frm.add_custom_button(__("Take Payment"), () => take_payment(frm, payable, c), __("Bill"));
+		}
 		if (b.can_request) {
 			const drafts = b.invoices.filter((i) => !i.docstatus && !i.is_return).map((i) => i.name);
 			const owing = b.invoices.filter((i) => i.docstatus === 1 && i.outstanding_amount > 0).map((i) => i.name);
@@ -369,6 +378,37 @@ function render_bill(frm) {
 			);
 		}
 	});
+}
+
+// Take Payment on one of the visit's bills (the only one, or the one chosen).
+// What the patient still owes on a bill (a draft: its total less the insurer's share).
+const patient_due = (i) =>
+	i.docstatus === 1 ? i.outstanding_amount : i.grand_total - (i.total_insurance_coverage_amount || 0);
+
+function take_payment(frm, payable, currency) {
+	const due = patient_due;
+	const pay = (i) =>
+		royce_health_ke.take_payment({
+			invoice: i.name,
+			company: frm.doc.company,
+			due: due(i),
+			currency,
+			on_paid: () => frm.reload_doc(),
+		});
+	if (payable.length === 1) return pay(payable[0]);
+	frappe.prompt(
+		{
+			fieldname: "invoice",
+			fieldtype: "Select",
+			label: __("Bill"),
+			options: payable.map((i) => ({ value: i.name, label: `${i.name}: ${money(due(i), currency)}` })),
+			default: payable[0].name,
+			reqd: 1,
+		},
+		(v) => pay(payable.find((i) => i.name === v.invoice)),
+		__("Which bill?"),
+		__("Next"),
+	);
 }
 
 function request_approval(frm, type, invoices) {

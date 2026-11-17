@@ -18,6 +18,7 @@ Once a temporary guide's job is done (the hospital is set up, the release is tes
 | [Paying before service: consultation fee, billing desk, service points](v0.35-testing.md) | Bethesda's testers, on their own system | v0.35.0 | 2026-11-16 |
 | [Consultation tabs, pharmacy substitution lock, patient receipt](v0.36-testing.md) | Bethesda's testers, on their own system | v0.36.0 | 2026-11-16 |
 | [Create Bill fix and cover price books](v0.36.2-testing.md) | Bethesda's testers, on their own system | v0.36.2 | 2026-11-17 |
+| [Take Payment, Cashier before service points, Billing menu](v0.37-testing.md) | Bethesda's testers, on their own system | v0.37.0 | 2026-11-17 |
 | [Bethesda go-live, 16 to 20 November](bethesda-go-live.md) | Royce's go-live team, Bethesda's coordinator and department leads | v0.29.0 | 2026-11-15 |
 
 PDFs: `TEMPORARY=1 node make_pdfs.mjs ../temporary "<output folder>/Temporary"` from `docs/guides/tools` (same environment variables as the numbered guides).

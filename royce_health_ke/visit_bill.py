@@ -232,6 +232,87 @@ def _fee_paid(visit):
 	visit.save()
 
 
+# Cash patients pay at the Cashier between the doctor and the service points
+# (Bethesda's notes, 17 Nov 2026: "if cash, return to billing; in all cases").
+# A cash patient sent to the lab, radiology or pharmacy with requests there not
+# paid goes to the Cashier instead; the visit remembers where they were going
+# (after_payment), and once paid they join that service point's list.
+
+SERVICE_STATIONS = {LAB: "Laboratory", RADIOLOGY: "Radiology", PHARMACY: "Pharmacy"}
+
+
+def drug_awaiting_payment(medication_request):
+	"""A cash patient's prescription not paid yet (drugs leave only once paid)."""
+	if not enforced(PHARMACY):
+		return False
+	m = frappe.db.get_value(
+		"Medication Request",
+		medication_request,
+		["patient", "order_group", "ke_insurance_coverage", "ke_pharmacy_status"],
+		as_dict=True,
+	)
+	if not m or m.ke_pharmacy_status in ("Buy Outside", "Sent Back"):
+		return False
+	visit = m.order_group and frappe.db.get_value("Patient Encounter", m.order_group, "ke_patient_visit")
+	cover = m.ke_insurance_coverage
+	insured = bool(cover) and (not coverage.pays_uncovered() or coverage.is_covered(cover))
+	if exemption(m.patient, visit or None, None, insured):
+		return False
+	return not is_paid("Medication Request", medication_request)
+
+
+def awaiting_stations(visit_name):
+	"""The service points with this visit's requests waiting for payment, in
+	the order the patient goes: Laboratory, Radiology, Pharmacy."""
+	from royce_health_ke.consultation import _kind
+	from royce_health_ke.lab import CLOSED_REQUEST
+	from royce_health_ke.pharmacy import CLOSED_MR
+
+	encounters = frappe.get_all(
+		"Patient Encounter", filters={"ke_patient_visit": visit_name, "docstatus": ["<", 2]}, pluck="name"
+	)
+	if not encounters:
+		return []
+	found = set()
+	for r in frappe.get_all(
+		"Service Request",
+		filters={"order_group": ["in", encounters], "docstatus": 1, "status": ["not in", CLOSED_REQUEST]},
+		fields=["name", "template_dt", "template_dn"],
+	):
+		kind = _kind(r)
+		if kind in (LAB, RADIOLOGY) and request_awaiting_payment(kind, r.name):
+			found.add(SERVICE_STATIONS[kind])
+	for mr in frappe.get_all(
+		"Medication Request",
+		filters={"order_group": ["in", encounters], "docstatus": 1, "status": ["not in", CLOSED_MR]},
+		pluck="name",
+	):
+		if drug_awaiting_payment(mr):
+			found.add(SERVICE_STATIONS[PHARMACY])
+			break
+	return [s for s in SERVICE_STATIONS.values() if s in found]
+
+
+def _requests_paid(visit):
+	"""Paid at the Cashier: the patient joins the list of the first service
+	point they were going to whose requests are now paid."""
+	if visit.status != "Open" or visit.current_station != "Cashier" or not visit.get("after_payment"):
+		return
+	if fee_due(visit):
+		return
+	from royce_health_ke.visits import _move
+
+	planned = [s.strip() for s in visit.after_payment.split(",") if s.strip()]
+	waiting = set(awaiting_stations(visit.name))
+	ready = [s for s in planned if s not in waiting]
+	if not ready:
+		return
+	_move(visit, "Cashier", ready[0], note=_("Paid at the Cashier"))
+	visit.after_payment = ", ".join(s for s in planned if s != ready[0])
+	visit.flags.ignore_permissions = True
+	visit.save()
+
+
 def _invoice(visit, lines, bill_for=None):
 	si = frappe.new_doc("Sales Invoice")
 	si.update(
@@ -392,9 +473,10 @@ def refresh_bill_status(visit_name):
 	auto_bill(visit)
 	try:
 		_fee_paid(visit)
+		_requests_paid(visit)
 	except Exception:
 		# Moving the patient on must never stop the payment.
-		frappe.log_error(title=f"Consultation fee of {visit_name}")
+		frappe.log_error(title=f"Moving {visit_name} on after payment")
 	try:
 		status = bill_status(unbilled_lines(visit), invoices(visit_name))
 	except Exception:

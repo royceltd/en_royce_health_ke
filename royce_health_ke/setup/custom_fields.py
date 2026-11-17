@@ -605,6 +605,27 @@ PAYMENT_ENTRY = [
 		"depends_on": "ke_cashier_shift",
 		"description": "The cashier's shift this payment was taken on.",
 	},
+	{
+		"fieldname": "ke_amount_received",
+		"fieldtype": "Currency",
+		"label": "Amount Received",
+		"options": "paid_from_account_currency",
+		"insert_after": "ke_cashier_shift",
+		"read_only": 1,
+		"no_copy": 1,
+		"depends_on": "ke_amount_received",
+		"description": "Cash handed over by the patient (Take Payment).",
+	},
+	{
+		"fieldname": "ke_change",
+		"fieldtype": "Currency",
+		"label": "Change Given",
+		"options": "paid_from_account_currency",
+		"insert_after": "ke_amount_received",
+		"read_only": 1,
+		"no_copy": 1,
+		"depends_on": "ke_change",
+	},
 ]
 
 INSURANCE_POLICY = [

@@ -242,7 +242,7 @@ def flag(value, normal_range, sex=None) -> str:
 	inside, or when either isn't a plain number/range (we never guess)."""
 	try:
 		v = float(str(value).strip().replace(",", ""))
-	except (TypeError, ValueError):
+	except TypeError, ValueError:
 		return ""
 	text = range_for_sex(re.sub(r"<[^>]+>", " ", str(normal_range or "")), sex)
 	m = _RANGE.search(text)
@@ -1029,7 +1029,10 @@ def health_patient_receipt(doc) -> frappe._dict:
 	if doc.get("patient"):
 		patient = (
 			frappe.db.get_value(
-				"Patient", doc.patient, ["name", "patient_name", "dob", "sex", "mobile", "phone"], as_dict=True
+				"Patient",
+				doc.patient,
+				["name", "patient_name", "dob", "sex", "mobile", "phone"],
+				as_dict=True,
 			)
 			or frappe._dict()
 		)
@@ -1040,7 +1043,7 @@ def health_patient_receipt(doc) -> frappe._dict:
 	]
 	if doc.docstatus == 1:
 		for pe in frappe.db.sql(
-			"""select pe.name, pe.mode_of_payment, pe.reference_no, ref.allocated_amount
+			"""select pe.name, pe.mode_of_payment, pe.reference_no, ref.allocated_amount, pe.ke_change
 			from `tabPayment Entry Reference` ref join `tabPayment Entry` pe on pe.name = ref.parent
 			where ref.reference_doctype = 'Sales Invoice' and ref.reference_name = %s
 				and pe.docstatus = 1 and pe.payment_type = 'Receive'
@@ -1050,10 +1053,15 @@ def health_patient_receipt(doc) -> frappe._dict:
 		):
 			payments.append(
 				frappe._dict(
-					mode=pe.mode_of_payment, amount=flt(pe.allocated_amount), reference=pe.reference_no or "", entry=pe.name
+					mode=pe.mode_of_payment,
+					amount=flt(pe.allocated_amount),
+					reference=pe.reference_no or "",
+					entry=pe.name,
+					change=flt(pe.ke_change),
 				)
 			)
 	paid = sum(p.amount for p in payments)
+	change = flt(doc.get("change_amount")) + sum(flt(p.get("change")) for p in payments)
 	return frappe._dict(
 		company=ctx.company,
 		badge=ctx.badge,
@@ -1064,10 +1072,10 @@ def health_patient_receipt(doc) -> frappe._dict:
 		payments=payments,
 		modes=", ".join(dict.fromkeys(p.mode for p in payments if p.mode)),
 		references=", ".join(dict.fromkeys(p.reference for p in payments if p.reference)),
-		tendered=paid + flt(doc.get("change_amount")),
+		tendered=paid + change,
+		change=change,
 		paid=paid,
 		balance=flt(doc.get("outstanding_amount")) if doc.docstatus == 1 else None,
 		served_by=frappe.utils.get_fullname(doc.owner),
 		paid_by=doc.get("patient_name") or doc.get("customer_name") or "",
 	)
-

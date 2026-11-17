@@ -260,6 +260,9 @@ def send_to(visit: str, station: str, practitioner: str | None = None, note: str
 	doc = _open_visit(visit)
 	if station not in STATIONS:
 		frappe.throw(_("Unknown station {0}.").format(station))
+	redirected = None
+	if station == "Cashier" or station in PAY_FIRST:
+		station, note, redirected = _cashier_first(doc, station, note)
 	if station == doc.current_station and doc.queue_status == "Waiting":
 		frappe.throw(_("{0} is already waiting at {1}.").format(doc.patient_name, _(station)))
 	if station in ("Triage", "Consultation"):
@@ -279,7 +282,35 @@ def send_to(visit: str, station: str, practitioner: str | None = None, note: str
 		doc.practitioner = practitioner
 	_move(doc, doc.current_station, station, practitioner, note)
 	doc.save()
-	return {"station": doc.current_station}
+	return {"station": doc.current_station, "redirected_from": redirected}
+
+
+PAY_FIRST = ("Laboratory", "Radiology", "Pharmacy")
+
+
+def _cashier_first(doc, station, note):
+	"""(station, note, the station asked for when sent to the Cashier instead).
+	A cash patient whose requests at that service point aren't paid goes to
+	the Cashier first, and on to it once paid (visit_bill._requests_paid)."""
+	from royce_health_ke.visit_bill import awaiting_stations
+
+	waiting = awaiting_stations(doc.name)
+	if station == "Cashier":
+		doc.after_payment = ", ".join(waiting)
+		return station, note, None
+	if station not in waiting:
+		return station, note, None
+	if doc.current_station == "Cashier":
+		frappe.throw(
+			_(
+				"{0}'s {1} requests are not paid yet. Take the payment first: the patient then joins the "
+				"{1} list. A manager can allow services before payment."
+			).format(doc.patient_name, _(station)),
+			title=_("Not paid yet"),
+		)
+	doc.after_payment = ", ".join([station] + [s for s in waiting if s != station])
+	why = _("To the Cashier first: the {0} requests are not paid").format(_(station))
+	return "Cashier", f"{note} · {why}" if note else why, station
 
 
 def _consultation_result(doc):

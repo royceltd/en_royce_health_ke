@@ -191,3 +191,103 @@ class TestSettingsKeptOnUpdate(IntegrationTestCase):
 		)
 		default_settings()
 		self.assertEqual(frappe.db.get_single_value("Kenya Health Settings", "pay_before_triage"), 1)
+
+
+class TestCashierBetweenDoctorAndServices(IntegrationTestCase):
+	"""v0.37 (Bethesda's notes, 17 Nov): a cash patient goes to the Cashier
+	between the doctor and the service points, and on once paid; the cashier
+	takes payment with the change worked out."""
+
+	# the same patient, visit and billing helpers (not the tests)
+	setUp = TestOutpatientPayment.setUp
+	tearDown = TestOutpatientPayment.tearDown
+	check_in = TestOutpatientPayment.check_in
+	order_lab_test = TestOutpatientPayment.order_lab_test
+	bill = TestOutpatientPayment.bill
+
+	def paid_visit(self):
+		"""Checked in, consultation fee paid: waiting at Triage."""
+		visit = self.check_in()
+		self.bill(visit.name, [["Patient Visit", visit.name]])
+		visit.reload()
+		self.assertEqual(visit.current_station, "Triage")
+		return visit
+
+	def test_sent_to_the_cashier_first_then_on(self):
+		visit = self.paid_visit()
+		_encounter, request = self.order_lab_test()
+		self.assertEqual(visit_bill.awaiting_stations(visit.name), ["Laboratory"])
+
+		r = visits.send_to(visit.name, "Laboratory")
+		self.assertEqual((r["station"], r["redirected_from"]), ("Cashier", "Laboratory"))
+		visit.reload()
+		self.assertEqual((visit.current_station, visit.after_payment), ("Cashier", "Laboratory"))
+
+		# The cashier can't send the patient on before the payment.
+		with self.assertRaises(frappe.ValidationError):
+			visits.send_to(visit.name, "Laboratory")
+
+		self.bill(visit.name, [["Service Request", request]])
+		visit.reload()
+		self.assertEqual((visit.current_station, visit.queue_status), ("Laboratory", "Waiting"))
+		self.assertEqual(visit.movements[-1].from_station, "Cashier")
+		self.assertFalse(visit.after_payment)
+		self.assertEqual(visit_bill.awaiting_stations(visit.name), [])
+
+	def test_sent_to_the_cashier_remembers_where_next(self):
+		visit = self.paid_visit()
+		self.order_lab_test()
+		visits.send_to(visit.name, "Cashier")
+		self.assertEqual(frappe.db.get_value("Patient Visit", visit.name, "after_payment"), "Laboratory")
+
+	def test_paid_or_approved_goes_straight_on(self):
+		visit = self.paid_visit()
+		self.order_lab_test()
+		visit_bill.approve_credit(visit.name, "Staff member")
+		r = visits.send_to(visit.name, "Laboratory")
+		self.assertEqual((r["station"], r["redirected_from"]), ("Laboratory", None))
+
+	def test_take_payment_gives_change(self):
+		from royce_health_ke import cashier
+
+		cash = frappe.db.get_value(
+			"Mode of Payment Account",
+			{"company": self.company, "default_account": ["is", "set"], "parent": "Cash"},
+			"parent",
+		)
+		if not cash:
+			self.skipTest("needs the Cash mode of payment with an account for the company")
+		visit = self.check_in()
+		si = frappe.get_doc(visit_bill.make_bill(visit.name))
+		si.insert(ignore_permissions=True)
+		due = si.rounded_total or si.grand_total
+
+		# a non-cash payment needs its code, and gives no change
+		other = next((m.name for m in cashier.payment_modes(self.company) if m.type != "Cash"), None)
+		if other:
+			with self.assertRaises(frappe.ValidationError):
+				cashier.take_payment(si.name, other, due)
+			with self.assertRaises(frappe.ValidationError):
+				cashier.take_payment(si.name, other, due + 100, "QAZ123")
+
+		r = cashier.take_payment(si.name, "Cash", due + 300)
+		self.assertEqual((r["paid"], r["change"], r["balance"]), (due, 300, 0))
+		self.assertEqual(frappe.db.get_value("Sales Invoice", si.name, "outstanding_amount"), 0)
+		self.assertEqual(frappe.db.get_value("Payment Entry", r["payment"], "ke_amount_received"), due + 300)
+		# paid: the patient moves on to triage
+		self.assertEqual(frappe.db.get_value("Patient Visit", visit.name, "current_station"), "Triage")
+		with self.assertRaises(frappe.ValidationError):
+			cashier.take_payment(si.name, "Cash", 10)
+
+	def test_part_payment(self):
+		from royce_health_ke import cashier
+
+		if not frappe.db.exists("Mode of Payment Account", {"company": self.company, "parent": "Cash"}):
+			self.skipTest("needs the Cash mode of payment with an account for the company")
+		visit = self.check_in()
+		si = frappe.get_doc(visit_bill.make_bill(visit.name))
+		si.insert(ignore_permissions=True)
+		due = si.rounded_total or si.grand_total
+		r = cashier.take_payment(si.name, "Cash", due / 2)
+		self.assertEqual((r["change"], r["balance"]), (0, due - due / 2))
+		self.assertEqual(frappe.db.get_value("Patient Visit", visit.name, "current_station"), "Cashier")

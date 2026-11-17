@@ -178,8 +178,12 @@ def next_stations(doc):
 		if kind and visit_bill.request_awaiting_payment(kind, request.name):
 			unpaid += 1
 		stations.append(STATION[kind])
-	if frappe.db.exists("Medication Request", {"order_group": doc.name, "docstatus": 1}):
+	drugs = frappe.get_all(
+		"Medication Request", filters={"order_group": doc.name, "docstatus": 1}, pluck="name"
+	)
+	if drugs:
 		stations.append("Pharmacy")
+		unpaid += sum(1 for mr in drugs if visit_bill.drug_awaiting_payment(mr))
 	stations = list(dict.fromkeys(stations))
 	if unpaid:
 		stations.insert(0, "Cashier")

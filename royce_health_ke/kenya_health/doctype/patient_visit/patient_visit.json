@@ -44,6 +44,7 @@
   "fee_first",
   "fee_paid",
   "invoiced",
+  "after_payment",
   "bill_cb",
   "allow_credit",
   "credit_reason",
@@ -355,6 +356,15 @@
    "description": "Set by the invoice that bills the consultation fee on this visit."
   },
   {
+   "fieldname": "after_payment",
+   "fieldtype": "Data",
+   "label": "After Paying, Goes To",
+   "read_only": 1,
+   "no_copy": 1,
+   "depends_on": "after_payment",
+   "description": "Where the patient goes once paid at the Cashier, in order: they join the first service point's list as soon as its requests are paid."
+  },
+  {
    "fieldname": "bill_cb",
    "fieldtype": "Column Break"
   },
@@ -507,7 +517,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-16 12:00:00.000000",
+ "modified": "2026-11-17 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Patient Visit",

@@ -95,12 +95,14 @@ Demo record: consultation HLC-ENC-2026-00009 orders BS for MPS, Hb and WBC.
 
 ## Step 5 — Pay for consultation and tests
 
-**Who:** cashier. **Where:** the patient's visit, **Bill** (Kenya Health › Patient Visit, Station = Cashier).
+**Who:** cashier. **Where:** the patient's visit, **Bill** (Kenya Health › Patient Visit, Station = Cashier). Everything for billing is under **Kenya Health › Billing**: Patient Bills, Sales Invoice, Payment Entry, Cashier Shift and Bill Approval Request. Taking money needs the **Cashier** role and, if the hospital requires it, an open Cashier Shift.
 
 A cash outpatient pays twice at the Cashier: the **consultation fee before triage** (on check-in, the patient waits at the Cashier first), then the **requests** after the doctor sends them. Insured patients don't stop at the Cashier. See the [Reception, queue and billing guide](12-reception-queue-billing.md), Steps 2 and 6.
 
+A cash patient with lab tests, imaging or medicines not paid goes to the Cashier first, whichever station the doctor sends them to: the visit shows **After Paying, Goes To** (for example *Laboratory*). As soon as the payment is taken, the patient joins that service point's list by themselves.
+
 1. On the patient's visit, **Bill › Create Bill**: the charges not billed yet are listed and ticked (the fee, or the tests the doctor requested). Untick anything the patient is not paying for now; it stays on the visit. **Create Invoice** opens the invoice with the ticked lines, linked to the visit. (Or, on a new invoice, choose the patient, then **Get Items From › Healthcare Services**.)
-2. Take the payment on the invoice (**Include Payment**), or submit and use **Create › Payment**. For M-Pesa, card or bank, type the transaction code in **Reference No**: a non-cash payment without it is refused.
+2. Save the invoice and press **Take Payment** (on the invoice, or on the visit under **Bill**). Choose how the patient pays and type the **Amount Received**: for cash, the **change to give** shows at once; less than the total is a part payment, and the rest stays owed. For M-Pesa, card or bank, type the transaction code: a non-cash payment without it is refused, and it can't be more than the bill (change is given only in cash). Take Payment submits the invoice and records the payment. (Paying on the invoice with **Include Payment**, or **Create › Payment**, still works.)
 3. The invoice is sent to KRA eTIMS and comes back *Sent*, with a KRA receipt number and QR code.
 4. Press **Patient Receipt** on the paid invoice and print it on the 80 mm receipt printer.
 

@@ -226,7 +226,10 @@ class TestConsultationFlow(ConsultationCase):
 		enc = self.encounter(lab=False, drug=True)
 		info = consultation.complete(enc.name)
 		self.assertEqual(frappe.db.get_value("Patient Encounter", enc.name, "docstatus"), 1)
-		self.assertEqual((info["stations"], info["completed"]), (["Pharmacy"], True))
+		# a cash patient's drugs are paid first (v0.37): the Cashier, then the Pharmacy
+		self.assertEqual(
+			(info["stations"], info["unpaid"], info["completed"]), (["Cashier", "Pharmacy"], 1, True)
+		)
 		with self.assertRaisesRegex(frappe.ValidationError, "already completed"):
 			consultation.send_requests(enc.name)
 

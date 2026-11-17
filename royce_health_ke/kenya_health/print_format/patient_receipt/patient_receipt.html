@@ -74,9 +74,9 @@
     {%- for p in r.payments %}
     <tr><td class="k">{{ p.mode or _("Payment") }}{% if p.reference %} ({{ p.reference }}){% endif %}</td><td class="v">{{ frappe.utils.fmt_money(p.amount, currency=None) }}</td></tr>
     {%- endfor %}
-    {%- if doc.change_amount %}
+    {%- if r.change %}
     <tr><td class="k">{{ _("Amount Tendered") }}</td><td class="v">{{ frappe.utils.fmt_money(r.tendered, currency=None) }}</td></tr>
-    <tr class="pr-strong"><td class="k">{{ _("Change") }}</td><td class="v">{{ frappe.utils.fmt_money(doc.change_amount, currency=None) }}</td></tr>
+    <tr class="pr-strong"><td class="k">{{ _("Change") }}</td><td class="v">{{ frappe.utils.fmt_money(r.change, currency=None) }}</td></tr>
     {%- endif %}
     {%- if r.balance %}<tr class="pr-strong"><td class="k">{{ _("Balance Due") }}</td><td class="v">{{ frappe.utils.fmt_money(r.balance, currency=doc.currency) }}</td></tr>{% endif %}
   </table>

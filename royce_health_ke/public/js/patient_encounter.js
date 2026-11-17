@@ -193,7 +193,7 @@ function ke_next_station(frm, info, completed) {
 				fieldtype: "HTML",
 				options: info.unpaid
 					? `<p class="text-muted">${__(
-							"{0} request(s) are paid first: the Cashier bills them, then they appear at the service point.",
+							"{0} request(s) or medicine(s) are paid first: the patient goes to the Cashier, then on to the service point once paid.",
 							[info.unpaid]
 					  )}</p>`
 					: "",
@@ -219,14 +219,20 @@ function ke_next_station(frm, info, completed) {
 				args: finish
 					? { visit: info.visit }
 					: { visit: info.visit, station: v.station, note: v.note },
-				callback: () => {
+				callback: (r) => {
 					d.hide();
-					frappe.show_alert({
-						message: finish
-							? __("Visit completed")
-							: __("Sent to {0}", [__(v.station)]),
-						indicator: "green",
-					});
+					const sent = (r && r.message) || {};
+					frappe.show_alert(
+						{
+							message: finish
+								? __("Visit completed")
+								: sent.redirected_from
+									? __("Sent to the Cashier first: the {0} requests are not paid. The patient goes on to {0} once paid.", [__(sent.redirected_from)])
+									: __("Sent to {0}", [__(sent.station || v.station)]),
+							indicator: sent.redirected_from ? "orange" : "green",
+						},
+						sent.redirected_from ? 10 : 5,
+					);
 				},
 			});
 		},
