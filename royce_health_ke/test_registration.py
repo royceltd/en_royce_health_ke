@@ -27,7 +27,13 @@ def checks_on():
 def patient_doc(**values):
 	if not frappe.db.exists("Residence", "_Test Reg Lanet"):
 		frappe.get_doc({"doctype": "Residence", "residence_name": "_Test Reg Lanet"}).insert()
-	base = {"doctype": "Patient", "first_name": "Reg", "last_name": f"Test {frappe.generate_hash(length=6)}"}
+	base = {
+		"doctype": "Patient",
+		"first_name": "Reg",
+		"last_name": f"Test {frappe.generate_hash(length=6)}",
+		# told how their data is used (v0.46 consent at registration)
+		"ke_privacy_notice": 1,
+	}
 	return frappe.get_doc({**base, **values})
 
 

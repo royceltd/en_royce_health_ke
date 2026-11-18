@@ -33,6 +33,10 @@
   "privacy_section",
   "track_record_access",
   "idle_lock_minutes",
+  "consent_at_registration",
+  "data_protection_officer",
+  "dsr_access_days",
+  "dsr_correction_days",
   "privacy_defaults_applied",
   "role_defaults_version",
   "registration_section",
@@ -260,6 +264,34 @@
    "default": "10",
    "non_negative": 1,
    "description": "After this many minutes without activity the screen locks and the user's password unlocks it; unsaved work stays on the page. 0 switches the lock off."
+  },
+  {
+   "fieldname": "consent_at_registration",
+   "fieldtype": "Check",
+   "label": "Privacy notice and SMS question at registration",
+   "default": "1",
+   "description": "A new patient can't be saved until Reception ticks Privacy Notice Given."
+  },
+  {
+   "fieldname": "data_protection_officer",
+   "fieldtype": "Link",
+   "label": "Data Protection Officer",
+   "options": "User",
+   "description": "Gets the alerts for overdue patient requests and data breaches."
+  },
+  {
+   "fieldname": "dsr_access_days",
+   "fieldtype": "Int",
+   "label": "Days to Answer a Request for a Copy",
+   "default": "7",
+   "description": "Data Protection (General) Regulations, 2021. Confirm with your Data Protection Officer."
+  },
+  {
+   "fieldname": "dsr_correction_days",
+   "fieldtype": "Int",
+   "label": "Days to Answer Other Requests",
+   "default": "14",
+   "description": "Correction, deletion, restriction, withdrawn consent."
   },
   {
    "fieldname": "privacy_defaults_applied",
@@ -562,7 +594,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-18 02:00:25.477014",
+ "modified": "2026-11-18 23:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

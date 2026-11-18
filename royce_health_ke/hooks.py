@@ -36,7 +36,13 @@ doc_events = {
 		"onload": "royce_health_ke.access.log_view",
 		"before_print": "royce_health_ke.access.log_print",
 	},
-	"Patient": {"validate": "royce_health_ke.identity.validate_patient"},
+	"Patient": {
+		"validate": [
+			"royce_health_ke.identity.validate_patient",
+			"royce_health_ke.dataprotection.patient_validate",
+		],
+		"on_update": "royce_health_ke.dataprotection.patient_on_update",
+	},
 	"User": {
 		"validate": "royce_health_ke.security.user_validate",
 		"on_trash": "royce_health_ke.security.user_on_trash",
@@ -226,6 +232,7 @@ scheduler_events = {
 		"royce_health_ke.security.disable_expired_users",
 		"royce_health_ke.surveillance.weekly_job",
 		"royce_health_ke.kenya_health.report.visits_to_close.visits_to_close.notify_managers",
+		"royce_health_ke.dataprotection.notify_overdue",
 	],
 	"hourly": [
 		"royce_health_ke.sms.send_appointment_reminders",

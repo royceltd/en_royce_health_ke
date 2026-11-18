@@ -1,0 +1,236 @@
+{
+ "name": "Data Breach",
+ "actions": [],
+ "creation": "2026-11-18 23:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-18 23:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "BRE-.YYYY.-",
+   "hidden": 1,
+   "default": "BRE-.YYYY.-"
+  },
+  {
+   "fieldname": "discovered_at",
+   "fieldtype": "Datetime",
+   "label": "Discovered At",
+   "reqd": 1,
+   "default": "Now",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "reported_by",
+   "fieldtype": "Link",
+   "label": "Reported By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cause",
+   "fieldtype": "Select",
+   "label": "What Happened",
+   "reqd": 1,
+   "in_list_view": 1,
+   "options": "Lost or stolen device or file\nUnauthorised access\nSent to the wrong person\nCyber attack\nStaff error\nSystem fault\nOther"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Open\nContained\nClosed",
+   "default": "Open",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "risk",
+   "fieldtype": "Select",
+   "label": "Risk to Patients",
+   "options": "\nLow\nMedium\nHigh",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "odpc_due",
+   "fieldtype": "Datetime",
+   "label": "ODPC Notice Due",
+   "read_only": 1,
+   "description": "72 hours after discovery (Data Protection Act, section 43)."
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description",
+   "reqd": 1
+  },
+  {
+   "fieldname": "data_categories",
+   "fieldtype": "Small Text",
+   "label": "Data Affected",
+   "description": "E.g. names and phone numbers; diagnoses; lab results."
+  },
+  {
+   "fieldname": "patients_affected",
+   "fieldtype": "Int",
+   "label": "Patients Affected (about)"
+  },
+  {
+   "fieldname": "containment",
+   "fieldtype": "Text",
+   "label": "Steps Taken to Contain It"
+  },
+  {
+   "fieldname": "notice_section",
+   "fieldtype": "Section Break",
+   "label": "Notification"
+  },
+  {
+   "fieldname": "odpc_notification_required",
+   "fieldtype": "Check",
+   "label": "ODPC Must Be Notified",
+   "default": "1",
+   "description": "Untick only when the breach is unlikely to harm anyone; give the reason."
+  },
+  {
+   "fieldname": "not_notified_reason",
+   "fieldtype": "Small Text",
+   "label": "Why Not Notified",
+   "depends_on": "eval:!doc.odpc_notification_required",
+   "mandatory_depends_on": "eval:!doc.odpc_notification_required"
+  },
+  {
+   "fieldname": "odpc_notified_at",
+   "fieldtype": "Datetime",
+   "label": "ODPC Notified At",
+   "depends_on": "odpc_notification_required"
+  },
+  {
+   "fieldname": "odpc_reference",
+   "fieldtype": "Data",
+   "label": "ODPC Reference",
+   "depends_on": "odpc_notification_required"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "subjects_notified",
+   "fieldtype": "Check",
+   "label": "Patients Told"
+  },
+  {
+   "fieldname": "subjects_notified_at",
+   "fieldtype": "Datetime",
+   "label": "Patients Told At",
+   "depends_on": "subjects_notified"
+  },
+  {
+   "fieldname": "close_section",
+   "fieldtype": "Section Break",
+   "label": "Closing"
+  },
+  {
+   "fieldname": "lessons",
+   "fieldtype": "Text",
+   "label": "What Changes So It Doesn't Happen Again"
+  },
+  {
+   "fieldname": "closed_at",
+   "fieldtype": "Datetime",
+   "label": "Closed At",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Data Protection Officer",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "create": 1,
+   "if_owner": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "create": 1,
+   "if_owner": 1
+  },
+  {
+   "role": "Receptionist",
+   "read": 1,
+   "create": 1,
+   "if_owner": 1
+  },
+  {
+   "role": "Cashier",
+   "read": 1,
+   "create": 1,
+   "if_owner": 1
+  },
+  {
+   "role": "Laboratory User",
+   "read": 1,
+   "create": 1,
+   "if_owner": 1
+  },
+  {
+   "role": "Pharmacist",
+   "read": 1,
+   "create": 1,
+   "if_owner": 1
+  }
+ ],
+ "autoname": "naming_series:",
+ "title_field": "cause",
+ "description": "The hospital's register of personal data breaches: what happened, the risk, containment, and notice to the Data Commissioner within 72 hours."
+}

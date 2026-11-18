@@ -131,6 +131,56 @@ PATIENT = [
 		"options": "Phone",
 		"insert_after": "ke_nok_cb",
 	},
+	# Consent at registration (dataprotection.py, Data Protection Act)
+	{
+		"fieldname": "ke_consent_section",
+		"fieldtype": "Section Break",
+		"label": "Consent (Data Protection)",
+		"insert_after": "ke_nok_phone",
+	},
+	{
+		"fieldname": "ke_privacy_notice",
+		"fieldtype": "Check",
+		"label": "Privacy Notice Given",
+		"insert_after": "ke_consent_section",
+		"description": "Tell the patient: their information is used for their care, billing, insurance claims "
+		"and Ministry of Health reports; it is kept confidential and shared only as the law allows; they may "
+		"ask for a copy, a correction or deletion. Tick once told.",
+	},
+	{
+		"fieldname": "ke_consent_given_by",
+		"fieldtype": "Data",
+		"label": "Consent Given By",
+		"insert_after": "ke_privacy_notice",
+		"description": "Blank when the patient answered. For a child or a patient who can't: the parent or guardian's name.",
+	},
+	{
+		"fieldname": "ke_consent_relation",
+		"fieldtype": "Select",
+		"label": "Relation to the Patient",
+		"options": select(NEXT_OF_KIN_RELATIONSHIPS),
+		"insert_after": "ke_consent_given_by",
+		"depends_on": "ke_consent_given_by",
+	},
+	{"fieldname": "ke_consent_cb", "fieldtype": "Column Break", "insert_after": "ke_consent_relation"},
+	{
+		"fieldname": "ke_consent_at",
+		"fieldtype": "Datetime",
+		"label": "Consent Recorded At",
+		"insert_after": "ke_consent_cb",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+	{
+		"fieldname": "ke_consent_recorded_by",
+		"fieldtype": "Link",
+		"label": "Consent Recorded By",
+		"options": "User",
+		"insert_after": "ke_consent_at",
+		"read_only": 1,
+		"no_copy": 1,
+		"description": "Every change is kept in the Patient Consent Log.",
+	},
 	{
 		"fieldname": "ke_sms_consent",
 		"fieldtype": "Check",

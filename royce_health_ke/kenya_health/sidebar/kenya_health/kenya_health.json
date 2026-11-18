@@ -1101,6 +1101,54 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
+   "idx": 70,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Patient Data Requests",
+   "link_to": "Data Subject Request",
+   "link_type": "DocType",
+   "parentfield": "items",
+   "parenttype": "Sidebar",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "doctype": "Sidebar Item",
+   "icon": "",
+   "idx": 71,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Data Breach Register",
+   "link_to": "Data Breach",
+   "link_type": "DocType",
+   "parentfield": "items",
+   "parenttype": "Sidebar",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "doctype": "Sidebar Item",
+   "icon": "",
+   "idx": 72,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Patient Consent Log",
+   "link_to": "Patient Consent Log",
+   "link_type": "DocType",
+   "parentfield": "items",
+   "parenttype": "Sidebar",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "doctype": "Sidebar Item",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "Residence",
@@ -1110,14 +1158,14 @@
    "parenttype": "Sidebar",
    "show_arrow": 0,
    "type": "Link",
-   "idx": 70
+   "idx": 73
   },
   {
    "child": 1,
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 71,
+   "idx": 74,
    "indent": 0,
    "keep_closed": 0,
    "label": "Patient Record Access",
@@ -1133,7 +1181,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 72,
+   "idx": 75,
    "indent": 0,
    "keep_closed": 0,
    "label": "Maternity Package",
@@ -1149,7 +1197,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 73,
+   "idx": 76,
    "indent": 0,
    "keep_closed": 0,
    "label": "Diet Type",
@@ -1165,7 +1213,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 74,
+   "idx": 77,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 705 Indicator",
@@ -1181,7 +1229,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 75,
+   "idx": 78,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 706 Indicator",
@@ -1206,7 +1254,7 @@
    "label": "Clinical Alert Rule",
    "link_type": "DocType",
    "link_to": "Clinical Alert Rule",
-   "idx": 76
+   "idx": 79
   },
   {
    "child": 1,
@@ -1222,12 +1270,12 @@
    "label": "Quality Measure",
    "link_type": "DocType",
    "link_to": "Quality Measure",
-   "idx": 77
+   "idx": 80
   }
  ],
  "module": "Kenya Health",
  "name": "Kenya Health",
  "standard": 1,
  "title": "Kenya Health",
- "modified": "2026-11-18 22:00:00.000000"
+ "modified": "2026-11-18 23:00:00.000000"
 }

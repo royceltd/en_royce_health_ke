@@ -206,6 +206,11 @@ def on_submit_delivery(doc):
 				"ke_nok_name": mother.patient_name,
 				"ke_nok_relationship": "Parent",
 				"ke_nok_phone": mother.mobile,
+				# the mother's consent covers her baby, given by her as the parent
+				"ke_privacy_notice": mother.get("ke_privacy_notice"),
+				"ke_sms_consent": mother.get("ke_sms_consent"),
+				"ke_consent_given_by": mother.patient_name,
+				"ke_consent_relation": "Parent",
 				"patient_details": _("Born {0} at {1} g, {2}. Mother: {3} ({4}).").format(
 					frappe.format(doc.delivery_datetime, "Datetime"),
 					row.birth_weight_g,
@@ -217,6 +222,7 @@ def on_submit_delivery(doc):
 		)
 		# Registered from the mother's record; any gaps there are hers to fill, not a reason to block the delivery.
 		baby.flags.ignore_registration_check = True
+		baby.flags.ignore_consent_check = True
 		baby.insert(ignore_permissions=True)
 		row.db_set("baby_patient", baby.name)
 

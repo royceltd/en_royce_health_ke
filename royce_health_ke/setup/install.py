@@ -6,7 +6,18 @@ Every step is idempotent and never overwrites a hospital's own data (ADR-023).
 Downloading code sets (ICD-11) is left to an explicit action - a migrate must
 not depend on WHO's servers being reachable."""
 
-from royce_health_ke import clinical, codes, consultation, forms, formulary, privacy, roles, routing, security
+from royce_health_ke import (
+	clinical,
+	codes,
+	consultation,
+	dataprotection,
+	forms,
+	formulary,
+	privacy,
+	roles,
+	routing,
+	security,
+)
 from royce_health_ke.setup import custom_fields, marley_fixes
 
 
@@ -34,6 +45,7 @@ def run():
 	seed_quality_measures()
 	default_settings()
 	privacy.apply_defaults()
+	dataprotection.ensure_role()
 	roles.apply_defaults()
 	formulary.batch_quick_entry()
 	forms.apply()
@@ -169,6 +181,9 @@ def default_settings():
 		("obs_need_complaint", 1),
 		("obs_need_hpi", 1),
 		("obs_need_examination", 1),
+		("consent_at_registration", 1),
+		("dsr_access_days", 7),
+		("dsr_correction_days", 14),
 	):
 		# tabSingles directly: frappe.db.exists("Singles", ...) always says no, which
 		# reset these switches on every migrate (fixed in v0.35.1)

@@ -1276,6 +1276,9 @@ def health_visit_summary(doc):
 
 
 def may_open_file(user=None):
+	# a patient's own copy, exported by the Data Protection Officer (dataprotection.export_record)
+	if frappe.flags.ke_record_export:
+		return True
 	return bool(set(FILE_ROLES) & set(frappe.get_roles(user)))
 
 

@@ -180,6 +180,11 @@ def checks():
 
 	rows.append(compliance_row(_row))
 
+	# Data protection (patients' rights, breaches)
+	from royce_health_ke.dataprotection import compliance_rows
+
+	rows.extend(compliance_rows(_row))
+
 	# Backups
 	rows.append(_backups())
 	return rows
