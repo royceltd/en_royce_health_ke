@@ -345,6 +345,35 @@ CONSULTATION_TABS = [
 		"insert_after": "ke_obs_section",
 		"description": "LMP, gravida/para, contraception, menstrual and gynaecological history.",
 	},
+	# The clerking order (Bethesda, 18 Nov 2026): CC, HPI, ROS, PMH/PSH, FH, SH,
+	# OBS/Gynae, then the examination last
+	{
+		"fieldname": "ke_exam_section",
+		"fieldtype": "Section Break",
+		"label": "Physical Examination",
+		"insert_after": "ke_obs_gynae",
+	},
+	{
+		"fieldname": "ke_examination",
+		"fieldtype": "Text",
+		"label": "Physical Examination",
+		"insert_after": "ke_exam_section",
+		"description": "General and systemic examination findings.",
+	},
+	# Request Type picker (requests.py): the Requests tab shows that category only
+	{
+		"fieldname": "ke_request_type_section",
+		"fieldtype": "Section Break",
+		"insert_after": "ke_tab_requests",
+	},
+	{
+		"fieldname": "ke_request_type",
+		"fieldtype": "Link",
+		"label": "Request Type",
+		"options": "Request Category",
+		"insert_after": "ke_request_type_section",
+		"description": "Choose a type to list only its requests, with this patient's price. Blank = all.",
+	},
 	{
 		"fieldname": "ke_tab_requests",
 		"fieldtype": "Tab Break",
@@ -454,19 +483,12 @@ ENCOUNTER = [
 		"label": "Review of Systems",
 		"insert_after": "ke_clerking_cb",
 	},
-	{
-		"fieldname": "ke_examination",
-		"fieldtype": "Text",
-		"label": "Physical Examination",
-		"insert_after": "ke_review_of_systems",
-		"description": "General and systemic examination findings.",
-	},
 	# The patient's history, shown and editable here; saved back to the patient
 	{
 		"fieldname": "ke_history_section",
 		"fieldtype": "Section Break",
 		"label": "Medical History",
-		"insert_after": "ke_examination",
+		"insert_after": "ke_review_of_systems",
 		"description": "From the patient's record. Changes made here update the patient's record when you save.",
 	},
 	*[
@@ -751,6 +773,297 @@ SALES_INVOICE = [
 		"no_copy": 1,
 		"depends_on": "ke_bill_for",
 		"description": "An insured visit's two bills: the insurer's (what the scheme covers) and the patient's (what it doesn't, paid first).",
+	},
+]
+
+# Prescribing in dispensing units (dispensing.py, v0.45): the dose is written
+# in clinical units (ml, mg, tablets) and the quantity is worked out in the
+# unit the pharmacy hands over and bills (the drug Item's stock unit).
+ROUTES = (
+	"Oral",
+	"Intravenous (IV)",
+	"Intramuscular (IM)",
+	"Subcutaneous (SC)",
+	"Topical",
+	"Inhaled",
+	"Nebulised",
+	"Sublingual",
+	"Rectal (PR)",
+	"Vaginal (PV)",
+	"Eye",
+	"Ear",
+	"Nasal",
+	"Other",
+)
+
+MEDICATION_DISPENSING = [
+	{
+		"fieldname": "ke_dispensing_section",
+		"fieldtype": "Section Break",
+		"label": "Dose and Dispensing Unit",
+		"insert_after": "dosage_form",
+		"description": "How a prescription's quantity is worked out: dose x times a day x days, "
+		"in the dose unit, then rounded up to whole dispensing units (the Item's stock unit). "
+		"E.g. a 100 ml bottle: dose unit ml, pack size 100.",
+	},
+	{
+		"fieldname": "ke_dose_uom",
+		"fieldtype": "Link",
+		"label": "Dose Unit",
+		"options": "UOM",
+		"insert_after": "ke_dispensing_section",
+		"description": "The unit the doctor writes the dose in (ml, mg, tablet).",
+	},
+	{
+		"fieldname": "ke_pack_size",
+		"fieldtype": "Float",
+		"label": "Pack Size (in Dose Units)",
+		"insert_after": "ke_dose_uom",
+		"description": "How much of the dose unit one dispensing unit holds: 100 for a 100 ml "
+		"bottle, 1 for a tablet. Blank: the strength when the dose is in the strength unit, else 1.",
+	},
+	{"fieldname": "ke_dispensing_cb", "fieldtype": "Column Break", "insert_after": "ke_pack_size"},
+	{
+		"fieldname": "ke_default_route",
+		"fieldtype": "Select",
+		"label": "Default Route",
+		"options": select(ROUTES),
+		"insert_after": "ke_dispensing_cb",
+	},
+	{
+		"fieldname": "ke_prescription_only",
+		"fieldtype": "Check",
+		"label": "Prescription Only (POM)",
+		"insert_after": "ke_default_route",
+		"description": "Sold at the counter only against a prescription: the prescriber is recorded (PPB).",
+	},
+]
+
+DRUG_PRESCRIPTION = [
+	{
+		"fieldname": "ke_dose",
+		"fieldtype": "Float",
+		"label": "Dose",
+		"insert_after": "drug_name",
+		"in_list_view": 1,
+		"columns": 1,
+		"description": "Per administration, in the dose unit.",
+	},
+	{
+		"fieldname": "ke_dose_uom",
+		"fieldtype": "Link",
+		"label": "Dose Unit",
+		"options": "UOM",
+		"insert_after": "ke_dose",
+		"fetch_from": "medication.ke_dose_uom",
+		"fetch_if_empty": 1,
+	},
+	{
+		"fieldname": "ke_route",
+		"fieldtype": "Select",
+		"label": "Route",
+		"options": select(ROUTES),
+		"insert_after": "ke_dose_uom",
+		"fetch_from": "medication.ke_default_route",
+		"fetch_if_empty": 1,
+	},
+	{
+		"fieldname": "ke_start_date",
+		"fieldtype": "Date",
+		"label": "Start Date",
+		"insert_after": "comment",
+	},
+	{
+		"fieldname": "ke_start_time",
+		"fieldtype": "Time",
+		"label": "Start Time",
+		"insert_after": "ke_start_date",
+	},
+	{
+		"fieldname": "ke_quantity",
+		"fieldtype": "Float",
+		"label": "Quantity",
+		"insert_after": "ke_start_time",
+		"in_list_view": 1,
+		"columns": 1,
+		"description": "In dispensing units, worked out from the dose, frequency and duration; "
+		"change it if needed. This is what the pharmacy dispenses and bills.",
+	},
+	{
+		"fieldname": "ke_dispensing_unit",
+		"fieldtype": "Data",
+		"label": "Dispensing Unit",
+		"insert_after": "ke_quantity",
+		"read_only": 1,
+	},
+]
+
+MEDICATION_REQUEST_DOSE = [
+	{
+		"fieldname": "ke_dose_section",
+		"fieldtype": "Section Break",
+		"label": "Dose",
+		"insert_after": "dosage",
+	},
+	{
+		"fieldname": "ke_dose",
+		"fieldtype": "Float",
+		"label": "Dose",
+		"insert_after": "ke_dose_section",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "ke_dose_uom",
+		"fieldtype": "Link",
+		"label": "Dose Unit",
+		"options": "UOM",
+		"insert_after": "ke_dose",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "ke_route",
+		"fieldtype": "Data",
+		"label": "Route",
+		"insert_after": "ke_dose_uom",
+		"read_only": 1,
+	},
+	{"fieldname": "ke_dose_cb", "fieldtype": "Column Break", "insert_after": "ke_route"},
+	{
+		"fieldname": "ke_start",
+		"fieldtype": "Datetime",
+		"label": "Start",
+		"insert_after": "ke_dose_cb",
+		"read_only": 1,
+	},
+]
+
+# ICD-11 on the consultation's diagnosis row (diagnosis.py): name or code,
+# either one searched, the other filled in.
+ENCOUNTER_DIAGNOSIS = [
+	{
+		"fieldname": "ke_icd11_code",
+		"fieldtype": "Link",
+		"label": "ICD-11 Code",
+		"options": "Code Value",
+		"insert_after": "diagnosis",
+		"in_list_view": 1,
+		"columns": 3,
+	},
+]
+
+# Request routing (requests.py): each request's category and the service point it goes to
+SERVICE_REQUEST_ROUTING = [
+	{
+		"fieldname": "ke_request_category",
+		"fieldtype": "Link",
+		"label": "Request Category",
+		"options": "Request Category",
+		"insert_after": "ke_cancel_reason",
+		"read_only": 1,
+		"no_copy": 1,
+	},
+	{
+		"fieldname": "ke_service_point",
+		"fieldtype": "Data",
+		"label": "Service Point",
+		"insert_after": "ke_request_category",
+		"read_only": 1,
+		"no_copy": 1,
+		"in_standard_filter": 1,
+		"search_index": 1,
+	},
+	{
+		"fieldname": "ke_done_at",
+		"fieldtype": "Datetime",
+		"label": "Done At",
+		"insert_after": "ke_service_point",
+		"read_only": 1,
+		"no_copy": 1,
+		"depends_on": "ke_done_at",
+	},
+	{
+		"fieldname": "ke_done_by",
+		"fieldtype": "Link",
+		"label": "Done By",
+		"options": "User",
+		"insert_after": "ke_done_at",
+		"read_only": 1,
+		"no_copy": 1,
+		"depends_on": "ke_done_at",
+	},
+	{
+		"fieldname": "ke_done_note",
+		"fieldtype": "Small Text",
+		"label": "Done Note",
+		"insert_after": "ke_done_by",
+		"read_only": 1,
+		"no_copy": 1,
+		"depends_on": "ke_done_at",
+	},
+]
+
+# Counter prescriptions (pharmacy.counter_sale, PPB): who prescribed, and the script
+COUNTER_PRESCRIPTION = [
+	{
+		"fieldname": "ke_prescriber_name",
+		"fieldtype": "Data",
+		"label": "Prescriber",
+		"insert_after": "ke_walk_in_name",
+		"depends_on": "ke_pharmacy_sale",
+	},
+	{
+		"fieldname": "ke_prescriber_reg",
+		"fieldtype": "Data",
+		"label": "Prescriber Registration No.",
+		"insert_after": "ke_prescriber_name",
+		"depends_on": "ke_prescriber_name",
+	},
+	{
+		"fieldname": "ke_prescriber_facility",
+		"fieldtype": "Data",
+		"label": "Prescribing Facility",
+		"insert_after": "ke_prescriber_reg",
+		"depends_on": "ke_prescriber_name",
+	},
+	{
+		"fieldname": "ke_prescription_date",
+		"fieldtype": "Date",
+		"label": "Prescription Date",
+		"insert_after": "ke_prescriber_facility",
+		"depends_on": "ke_prescriber_name",
+	},
+	{
+		"fieldname": "ke_prescription_image",
+		"fieldtype": "Attach Image",
+		"label": "Prescription (photo)",
+		"insert_after": "ke_prescription_date",
+		"depends_on": "ke_pharmacy_sale",
+	},
+]
+
+COUNTER_PRESCRIPTION_ITEM = [
+	{
+		"fieldname": "ke_dose",
+		"fieldtype": "Float",
+		"label": "Dose",
+		"insert_after": "ke_instructions",
+		"depends_on": "ke_dose",
+	},
+	{
+		"fieldname": "ke_dosage",
+		"fieldtype": "Link",
+		"label": "Frequency",
+		"options": "Prescription Dosage",
+		"insert_after": "ke_dose",
+		"depends_on": "ke_dosage",
+	},
+	{
+		"fieldname": "ke_period",
+		"fieldtype": "Link",
+		"label": "Duration",
+		"options": "Prescription Duration",
+		"insert_after": "ke_dosage",
+		"depends_on": "ke_period",
 	},
 ]
 
@@ -1341,6 +1654,13 @@ def apply():
 		IMAGING_TEMPLATE,
 		IMAGING_OBSERVATION,
 		USER,
+		MEDICATION_DISPENSING,
+		DRUG_PRESCRIPTION,
+		MEDICATION_REQUEST_DOSE,
+		ENCOUNTER_DIAGNOSIS,
+		SERVICE_REQUEST_ROUTING,
+		COUNTER_PRESCRIPTION,
+		COUNTER_PRESCRIPTION_ITEM,
 		*MOH.values(),
 	):
 		for field in fields:
@@ -1374,5 +1694,15 @@ def apply():
 		fields[doctype] = [*fields.get(doctype, []), *extra]
 	fields["Patient Encounter"] = [*fields.get("Patient Encounter", []), *ENCOUNTER]
 	fields["Sales Invoice"] = [*fields["Sales Invoice"], *PHARMACY_SALE]
-	fields["Sales Invoice Item"] = [*fields["Sales Invoice Item"], *PHARMACY_SALE_ITEM]
+	fields["Sales Invoice Item"] = [
+		*fields["Sales Invoice Item"],
+		*PHARMACY_SALE_ITEM,
+		*COUNTER_PRESCRIPTION_ITEM,
+	]
+	fields["Sales Invoice"] = [*fields["Sales Invoice"], *COUNTER_PRESCRIPTION]
+	fields["Medication"] = [*fields["Medication"], *MEDICATION_DISPENSING]
+	fields["Medication Request"] = [*fields["Medication Request"], *MEDICATION_REQUEST_DOSE]
+	fields["Service Request"] = [*fields["Service Request"], *SERVICE_REQUEST_ROUTING]
+	fields["Drug Prescription"] = DRUG_PRESCRIPTION
+	fields["Patient Encounter Diagnosis"] = ENCOUNTER_DIAGNOSIS
 	create_custom_fields(fields, update=True)

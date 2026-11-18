@@ -104,8 +104,9 @@ PAGES = {
 		"results-inbox",
 		"patient-bills",
 		"patient_history",
+		"nursing-worklist",
 	),
-	"Nursing User": ("patient_history",),
+	"Nursing User": ("patient_history", "nursing-worklist"),
 }
 REPORTS = {
 	"Receptionist": ("Patients by Residence", *EVERYONE_REPORTS),

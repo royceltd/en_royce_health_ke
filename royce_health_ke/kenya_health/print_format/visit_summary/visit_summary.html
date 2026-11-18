@@ -1,0 +1,28 @@
+{#- Patient Visit: everything done on the visit, for the patient's file (printing.visit_summary). -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, footer as page_footer -%}
+{%- from "royce_health_ke/templates/print/visit_block.html" import visit_block -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set s = health_visit_summary(doc) -%}
+{{ styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Visit Summary", letter_head, no_letterhead, [
+      ("Visit", doc.name),
+      ("Date", frappe.utils.formatdate(doc.visit_date, "d MMM yyyy")),
+      ("Printed", frappe.utils.format_datetime(frappe.utils.now_datetime(), "d MMM yyyy HH:mm")),
+  ]) }}
+  {{ patient_band(ctx.patient, [("Visit type", _(doc.visit_type)), ("Payment", (doc.payment_method or "") ~ ((" · " ~ doc.insurance_payor) if doc.insurance_payor else ""))]) }}
+
+  {% if not s.allowed %}
+  <div class="hx-section"><b>{{ _("The visit summary is for clinicians only (doctors, nurses and administrators).") }}</b></div>
+  {% else %}
+  <div class="hx-section">
+    {{ chips([("Doctor", doc.practitioner_name), ("Visit", _(doc.status))]) }}
+    {{ visit_block(s.record, with_title=False) }}
+    {% if not (s.record.vitals or s.record.encounters or s.record.labs or s.record.imaging or s.record.requests) %}
+    <div class="hx-muted">{{ _("Nothing recorded on this visit yet.") }}</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {{ page_footer(_("Confidential medical information. Share only with those caring for the patient."), footer, no_letterhead, ctx) }}
+</div>

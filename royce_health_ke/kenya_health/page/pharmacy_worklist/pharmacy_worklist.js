@@ -211,23 +211,59 @@ class PharmacyWorklist {
 							// only the pharmacy's drugs (Kenya Health Settings > Pharmacy)
 							get_query: () => ({ query: PH + "drug_query" }),
 						},
-						{ fieldtype: "Float", fieldname: "qty", label: __("Quantity"), in_list_view: 1, reqd: 1, columns: 2 },
+						{ fieldtype: "Float", fieldname: "dose", label: __("Dose"), in_list_view: 1, columns: 1 },
+						{
+							fieldtype: "Link",
+							fieldname: "dosage",
+							label: __("Frequency"),
+							options: "Prescription Dosage",
+							in_list_view: 1,
+							columns: 1,
+						},
+						{
+							fieldtype: "Link",
+							fieldname: "period",
+							label: __("Duration"),
+							options: "Prescription Duration",
+							in_list_view: 1,
+							columns: 1,
+						},
+						{
+							fieldtype: "Float",
+							fieldname: "qty",
+							label: __("Quantity"),
+							in_list_view: 1,
+							columns: 1,
+							description: __("Blank: worked out from the dose, frequency and duration, in dispensing units."),
+						},
 						{
 							fieldtype: "Data",
 							fieldname: "instructions",
 							label: __("Instructions"),
 							in_list_view: 1,
-							columns: 4,
+							columns: 2,
 						},
 					],
 				},
 				{ fieldtype: "Float", fieldname: "discount_percentage", label: __("Discount %") },
+				{
+					fieldtype: "Section Break",
+					label: __("Prescription brought in"),
+					collapsible: 1,
+					description: __("Needed for prescription-only medicines (PPB): who prescribed, and a photo of the script."),
+				},
+				{ fieldtype: "Data", fieldname: "prescriber_name", label: __("Prescriber") },
+				{ fieldtype: "Data", fieldname: "prescriber_reg", label: __("Registration No.") },
+				{ fieldtype: "Data", fieldname: "prescriber_facility", label: __("Facility") },
+				{ fieldtype: "Column Break" },
+				{ fieldtype: "Date", fieldname: "prescription_date", label: __("Prescription Date") },
+				{ fieldtype: "Attach Image", fieldname: "prescription_image", label: __("Photo of the Script") },
 			],
 			primary_action_label: __("Send Bill to Cashier"),
 			primary_action: (v) => {
-				const items = (v.items || []).filter((i) => i.item_code && i.qty > 0);
+				const items = (v.items || []).filter((i) => i.item_code && (i.qty > 0 || (i.dosage && i.period)));
 				if (!items.length) {
-					frappe.msgprint(__("Add the drugs and their quantities."));
+					frappe.msgprint(__("Add the drugs and their quantities (or the frequency and duration)."));
 					return;
 				}
 				frappe
@@ -238,6 +274,11 @@ class PharmacyWorklist {
 							patient: v.patient,
 							walk_in_name: v.walk_in_name,
 							discount_percentage: v.discount_percentage,
+							prescriber_name: v.prescriber_name,
+							prescriber_reg: v.prescriber_reg,
+							prescriber_facility: v.prescriber_facility,
+							prescription_date: v.prescription_date,
+							prescription_image: v.prescription_image,
 						},
 						freeze: true,
 					})

@@ -222,6 +222,7 @@ def fee_due(visit):
 # flow (flow.py) sends a cash patient to the Cashier first, and on once paid.
 
 SERVICE_STATIONS = {LAB: "Laboratory", RADIOLOGY: "Radiology", PHARMACY: "Pharmacy"}
+NURSING = "Nursing"  # requests routed there by their type (routing.py)
 
 
 def drug_awaiting_payment(medication_request):
@@ -242,6 +243,7 @@ def drug_awaiting_payment(medication_request):
 def awaiting_stations(visit_name):
 	"""The service points with this visit's requests waiting for payment, in
 	the order the patient goes: Laboratory, Radiology, Pharmacy."""
+	from royce_health_ke import payment_status
 	from royce_health_ke.consultation import _kind
 	from royce_health_ke.lab import CLOSED_REQUEST
 	from royce_health_ke.pharmacy import CLOSED_MR
@@ -255,11 +257,17 @@ def awaiting_stations(visit_name):
 	for r in frappe.get_all(
 		"Service Request",
 		filters={"order_group": ["in", encounters], "docstatus": 1, "status": ["not in", CLOSED_REQUEST]},
-		fields=["name", "template_dt", "template_dn"],
+		fields=["name", "template_dt", "template_dn", "ke_service_point", "ke_done_at"],
 	):
 		kind = _kind(r)
 		if kind in (LAB, RADIOLOGY) and request_awaiting_payment(kind, r.name):
 			found.add(SERVICE_STATIONS[kind])
+		elif (
+			r.ke_service_point == NURSING
+			and not r.ke_done_at
+			and payment_status.awaiting("Service Request", r.name)
+		):
+			found.add(NURSING)
 	for mr in frappe.get_all(
 		"Medication Request",
 		filters={"order_group": ["in", encounters], "docstatus": 1, "status": ["not in", CLOSED_MR]},
@@ -268,7 +276,7 @@ def awaiting_stations(visit_name):
 		if drug_awaiting_payment(mr):
 			found.add(SERVICE_STATIONS[PHARMACY])
 			break
-	return [s for s in SERVICE_STATIONS.values() if s in found]
+	return [s for s in (*SERVICE_STATIONS.values(), NURSING) if s in found]
 
 
 def _invoice(visit, lines, bill_for=None):

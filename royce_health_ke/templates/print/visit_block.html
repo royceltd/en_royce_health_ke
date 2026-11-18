@@ -1,0 +1,76 @@
+{#- One visit, as the Patient File and the Visit Summary print it (printing.visit_record). -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import section_title, chips, medicines_table -%}
+
+{%- macro visit_block(v, with_title=True) -%}
+  {% if with_title %}
+  {{ section_title(frappe.utils.formatdate(v.visit.visit_date, "d MMM yyyy") ~ " · " ~ _(v.visit.visit_type) ~ " · " ~ v.visit.name) }}
+  {{ chips([
+      ("Payment", (v.visit.payment_method or "") ~ ((" · " ~ v.visit.insurance_payor) if v.visit.insurance_payor else "")),
+      ("Doctor", v.visit.practitioner_name),
+      ("Visit", _(v.visit.status)),
+  ]) }}
+  {% endif %}
+
+  {% for s in v.vitals %}
+  <div class="hx-sub" style="margin-top:4px"><b>{{ _("Vital signs") }}</b> {{ frappe.utils.formatdate(s.signs_date, "d MMM") }} {{ (s.signs_time|string)[:5] }}:
+    {% if s.temperature %}{{ _("Temp") }} {{ s.temperature }} °C · {% endif %}{% if s.pulse %}{{ _("Pulse") }} {{ s.pulse }} · {% endif %}{% if s.respiratory_rate %}{{ _("Resp") }} {{ s.respiratory_rate }} · {% endif %}{% if s.bp %}{{ _("BP") }} {{ s.bp }} · {% endif %}{% if s.ke_spo2 %}SpO2 {{ s.ke_spo2 }}% · {% endif %}{% if s.weight %}{{ _("Weight") }} {{ s.weight }} kg{% endif %}
+    {% if s.ke_vitals_flags %}<span style="color:#c0392b"> · {{ s.ke_vitals_flags }}</span>{% endif %}
+  </div>
+  {% endfor %}
+
+  {% for e in v.encounters %}
+  {% set c = e.doc %}
+  <div style="margin-top:8px">
+    <div><b>{{ _("Consultation") }}</b> {{ c.name }} · {{ e.doctor.name }}{% if c.docstatus == 0 %} <i>({{ _("not completed") }})</i>{% endif %}</div>
+    {% for field, title in [
+        ("ke_chief_complaint", "Chief complaint"),
+        ("ke_hpi", "History of presenting illness"),
+        ("ke_review_of_systems", "Review of systems"),
+        ("ke_hx_medical", "Past medical history"),
+        ("ke_hx_surgical", "Past surgical history"),
+        ("ke_hx_family", "Family history"),
+        ("ke_hx_social", "Social history"),
+        ("ke_obs_gynae", "Obstetric and gynaecological history"),
+        ("ke_examination", "Physical examination"),
+        ("encounter_comment", "Clinical notes"),
+    ] %}
+    {% if c.get(field) %}<div class="hx-sub"><b>{{ _(title) }}:</b> {{ c.get(field) }}</div>{% endif %}
+    {% endfor %}
+    {% if e.diagnoses %}<div class="hx-sub"><b>{{ _("Diagnosis") }}:</b>
+      {% for d in e.diagnoses %}{{ d.name }}{% if d.code %} <span class="hx-muted">(ICD-11 {{ d.code }})</span>{% endif %}{% if not loop.last %}; {% endif %}{% endfor %}
+    </div>{% endif %}
+    {% if e.medicines %}<div style="margin-top:4px">{{ medicines_table(e.medicines) }}</div>{% endif %}
+  </div>
+  {% endfor %}
+
+  {% if v.requests %}
+  <div style="margin-top:8px">
+    <div><b>{{ _("Requests") }}</b></div>
+    <table class="hx-table"><tbody>
+    {% for r in v.requests %}
+      <tr><td>{{ r.test }}</td><td class="hx-muted">{{ _(r.where) if r.where else "" }}</td><td>{{ r.status }}{% if r.note %} <span class="hx-muted">· {{ r.note }}</span>{% endif %}</td></tr>
+    {% endfor %}
+    </tbody></table>
+  </div>
+  {% endif %}
+
+  {% for l in v.labs %}
+  <div style="margin-top:8px">
+    <div><b>{{ _("Lab") }}</b> {{ l.doc.lab_test_name or l.doc.template }} · {{ l.doc.name }}</div>
+    <table class="hx-table"><tbody>
+    {% for r in l.rows %}
+      {% if r.heading %}<tr><td colspan="4"><b>{{ r.name }}</b></td></tr>
+      {% else %}<tr><td>{{ r.name }}</td><td><b>{{ r.result }}</b>{% if r.flag %} <span style="color:#c0392b">{{ r.flag }}</span>{% endif %}</td><td>{{ r.unit or "" }}</td><td class="hx-muted">{{ r.range or "" }}</td></tr>{% endif %}
+    {% endfor %}
+    </tbody></table>
+  </div>
+  {% endfor %}
+
+  {% for o in v.imaging %}
+  <div style="margin-top:8px">
+    <div><b>{{ _("Imaging") }}</b> {{ o.observation_template }} · {{ o.name }}</div>
+    {% if o.result %}<div class="hx-sub"><b>{{ _("Findings") }}:</b> {{ o.result }}</div>{% endif %}
+    {% if o.get("ke_impression") %}<div class="hx-sub"><b>{{ _("Impression") }}:</b> {{ o.ke_impression }}</div>{% endif %}
+  </div>
+  {% endfor %}
+{%- endmacro -%}

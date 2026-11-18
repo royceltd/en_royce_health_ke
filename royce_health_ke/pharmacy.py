@@ -101,6 +101,7 @@ def _prescriptions(from_date, to_date, company=None):
 		f"""
 		select mr.name, mr.patient, mr.patient_name, mr.patient_gender, mr.company,
 			mr.medication, mr.medication_item, mr.quantity, mr.dosage, mr.period, mr.comment,
+			mr.ke_dose, mr.ke_dose_uom, mr.ke_route,
 			mr.order_date, mr.order_time, mr.creation, mr.practitioner, mr.practitioner_name,
 			mr.order_group, mr.ke_insurance_coverage, mr.ke_pharmacy_status, mr.ke_dispensed_qty,
 			mr.ke_pharmacy_note, mr.ke_payment_status, mr.ke_payment_exemption,
@@ -143,11 +144,16 @@ def _sales(from_date, to_date, company=None):
 
 
 def instructions(mr):
-	parts = [p for p in (mr.get("dosage"), mr.get("period") and _("for {0}").format(mr.period)) if p]
-	text = " ".join(parts)
-	if mr.get("comment"):
-		text = f"{text}. {mr.comment}" if text else mr.comment
-	return text
+	from royce_health_ke.dispensing import instructions_text
+
+	return instructions_text(
+		mr.get("ke_dose"),
+		mr.get("ke_dose_uom"),
+		mr.get("dosage"),
+		mr.get("period"),
+		mr.get("ke_route"),
+		mr.get("comment"),
+	)
 
 
 def _lines(from_date, to_date, company=None):
@@ -506,6 +512,9 @@ def _mr_row(ref, qty):
 			"dosage",
 			"period",
 			"comment",
+			"ke_dose",
+			"ke_dose_uom",
+			"ke_route",
 			"order_group",
 			"inpatient_record",
 			"ke_insurance_coverage",
@@ -911,6 +920,45 @@ def drug_query(doctype, txt, searchfield, start, page_len, filters):
 	)
 
 
+def counter_quantities(items):
+	"""Counter prescription rows: the quantity worked out from the dose,
+	frequency and duration when it was left blank, and the label's
+	instructions written from them (dispensing.py)."""
+	from royce_health_ke.dispensing import compute, instructions_text, medication_for_item
+
+	for i in items:
+		if not i.get("item_code"):
+			continue
+		medication = medication_for_item(i["item_code"])
+		dose_uom = medication and frappe.db.get_value("Medication", medication, "ke_dose_uom")
+		if flt(i.get("qty")) <= 0 and i.get("dosage") and i.get("period"):
+			result = compute(
+				medication=medication,
+				item_code=i["item_code"],
+				dose=i.get("dose"),
+				dose_uom=dose_uom,
+				dosage=i.get("dosage"),
+				period=i.get("period"),
+			)
+			if result:
+				i["qty"] = result.quantity
+		if not i.get("instructions") and (i.get("dosage") or flt(i.get("dose"))):
+			i["instructions"] = instructions_text(i.get("dose"), dose_uom, i.get("dosage"), i.get("period"))
+	return items
+
+
+def prescription_only(items):
+	"""The prescription-only medicines among these items (Medication > Prescription Only)."""
+	from royce_health_ke.dispensing import medication_for_item
+
+	out = []
+	for i in items:
+		medication = medication_for_item(i.get("item_code"))
+		if medication and frappe.db.get_value("Medication", medication, "ke_prescription_only"):
+			out.append(i.get("item_code"))
+	return out
+
+
 @frappe.whitelist()
 def counter_sale(
 	items: str | list,
@@ -918,14 +966,34 @@ def counter_sale(
 	walk_in_name: str | None = None,
 	discount_percentage: float | None = None,
 	company: str | None = None,
+	prescriber_name: str | None = None,
+	prescriber_reg: str | None = None,
+	prescriber_facility: str | None = None,
+	prescription_date: str | None = None,
+	prescription_image: str | None = None,
 ):
 	"""A draft bill for over-the-counter drugs, for the Cashier; dispensed
 	from the worklist once paid. A registered patient's bill goes on their
-	visit today (a new Pharmacy only visit if they have none)."""
+	visit today (a new Pharmacy only visit if they have none).
+
+	A prescription brought in (PPB): the prescriber, their registration
+	number and facility, the date and a photo of the script are kept on the
+	bill. A prescription-only medicine is not sold without the prescriber."""
 	_check_access()
-	items = [i for i in _list(items) if i.get("item_code") and flt(i.get("qty")) > 0]
+	items = counter_quantities([i for i in _list(items) if i.get("item_code")])
+	items = [i for i in items if flt(i.get("qty")) > 0]
 	if not items:
-		frappe.throw(_("Add the drugs and their quantities."))
+		frappe.throw(
+			_("Add the drugs and their quantities (or the frequency and duration to work them out).")
+		)
+	pom = prescription_only(items)
+	if pom and not (prescriber_name or "").strip():
+		frappe.throw(
+			_("{0}: prescription only. Enter who prescribed it (and attach the script).").format(
+				", ".join(pom)
+			),
+			title=_("Prescription required"),
+		)
 	groups = set(drug_groups())
 	not_drugs = [
 		i["item_code"]
@@ -971,23 +1039,58 @@ def counter_sale(
 			"ke_pharmacy_sale": 1,
 			"ke_walk_in_name": None if patient else walk_in_name,
 			"additional_discount_percentage": flt(discount_percentage),
+			"ke_prescriber_name": (prescriber_name or "").strip() or None,
+			"ke_prescriber_reg": prescriber_reg,
+			"ke_prescriber_facility": prescriber_facility,
+			"ke_prescription_date": prescription_date or None,
+			"ke_prescription_image": prescription_image,
 		}
 	)
 	for i in items:
 		si.append(
 			"items",
-			{"item_code": i["item_code"], "qty": flt(i["qty"]), "ke_instructions": i.get("instructions")},
+			{
+				"item_code": i["item_code"],
+				"qty": flt(i["qty"]),
+				"ke_instructions": i.get("instructions"),
+				"ke_dose": flt(i.get("dose")) or None,
+				"ke_dosage": i.get("dosage"),
+				"ke_period": i.get("period"),
+			},
 		)
 	si.set_missing_values()
 	si.flags.ignore_permissions = True
 	si.insert()
+	if prescription_image:
+		_attach_script(si, prescription_image)
 	if visit:
 		visit_bill.refresh_bill_status(visit)
 	return {
 		"invoice": si.name,
 		"key": f"visit:{visit}" if visit else f"sale:{si.name}",
 		"total": si.grand_total,
+		"quantities": [{"item_code": i["item_code"], "qty": flt(i["qty"])} for i in items],
 	}
+
+
+def _attach_script(si, file_url):
+	"""The script's photo, uploaded in the Counter Sale dialog, belongs to the bill."""
+	name = frappe.db.get_value(
+		"File",
+		{"file_url": file_url, "attached_to_name": ["in", ("", None)]},
+		"name",
+		order_by="creation desc",
+	)
+	if name:
+		frappe.db.set_value(
+			"File",
+			name,
+			{
+				"attached_to_doctype": "Sales Invoice",
+				"attached_to_name": si.name,
+				"attached_to_field": "ke_prescription_image",
+			},
+		)
 
 
 # Labels

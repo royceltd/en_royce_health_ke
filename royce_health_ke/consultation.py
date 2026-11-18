@@ -33,10 +33,19 @@ OBS_TEMPLATE = "Observation Template"
 # stays under the tab of the section it followed.
 TABS = (
 	("ke_tab_patient", (None, "insurance_section")),
-	("ke_tab_observation", ("ke_clerking_section", "ke_history_section", "ke_obs_section")),
+	(
+		"ke_tab_observation",
+		("ke_clerking_section", "ke_history_section", "ke_obs_section", "ke_exam_section"),
+	),
 	(
 		"ke_tab_requests",
-		("sb_test_prescription", "sb_procedures", "rehabilitation_section", "ke_requests_section"),
+		(
+			"ke_request_type_section",
+			"sb_test_prescription",
+			"sb_procedures",
+			"rehabilitation_section",
+			"ke_requests_section",
+		),
 	),
 	("ke_tab_results", ("ke_results_section",)),
 	("ke_tab_diagnosis", ("sb_symptoms", "codification")),
@@ -47,15 +56,51 @@ TABS = (
 	),
 )
 OUR_TABS = {tab for tab, _sections in TABS}
+# Bumped when our default order changes. v2 (v0.45): the clerking order CC,
+# HPI, ROS, PMH/PSH, FH, SH, OBS/Gynae, examination last; the Request Type.
+LAYOUT_VERSION = 2
+LAYOUT_KEY = "ke_consultation_layout"
 
 
 # Layout
 
 
+def _layout_property():
+	return frappe.db.get_value(
+		"Property Setter", {"doc_type": DT, "property": "field_order"}, ["name", "value"], as_dict=True
+	)
+
+
+def on_our_default(value):
+	"""True when a stored field order is ours: re-ordering it under our tabs
+	changes nothing (a hospital that moved sections between tabs, or reordered
+	the form in Customize Form, has its own)."""
+	try:
+		order = json.loads(value or "[]")
+	except ValueError:
+		return False
+	if not order or not all(tab in order for tab in OUR_TABS):
+		return False
+	meta = frappe.get_meta(DT)
+	types = {f.fieldname: f.fieldtype for f in meta.fields}
+	pairs = [(name, types[name]) for name in order if name in types]
+	known = [name for name, _type in pairs]
+	return layout_order(pairs) == known
+
+
 def apply_layout():
-	"""Order the consultation's fields under the tabs, once (ADR-023)."""
-	if frappe.db.exists("Property Setter", {"doc_type": DT, "property": "field_order"}):
-		return
+	"""Order the consultation's fields under the tabs, once (ADR-023). When our
+	default order changes (LAYOUT_VERSION), a site still on our earlier default
+	gets the new one; a hospital's own order is kept."""
+	existing = _layout_property()
+	version = cint(frappe.db.get_default(LAYOUT_KEY))
+	if existing:
+		if version >= LAYOUT_VERSION:
+			return
+		if not on_our_default(existing.value):
+			frappe.db.set_default(LAYOUT_KEY, LAYOUT_VERSION)
+			return
+		frappe.delete_doc("Property Setter", existing.name, ignore_permissions=True, force=True)
 	frappe.clear_cache(doctype=DT)
 	meta = frappe.get_meta(DT, cached=False)
 	if not all(meta.has_field(tab) for tab in OUR_TABS):
@@ -71,6 +116,7 @@ def apply_layout():
 		},
 		is_system_generated=False,
 	)
+	frappe.db.set_default(LAYOUT_KEY, LAYOUT_VERSION)
 	frappe.clear_cache(doctype=DT)
 
 
@@ -569,7 +615,7 @@ def _requests(doc):
 	return frappe.get_all(
 		"Service Request",
 		filters={"order_group": doc.name, "docstatus": 1},
-		fields=["name", "template_dt", "template_dn", "status"],
+		fields=["name", "template_dt", "template_dn", "status", "ke_service_point"],
 	)
 
 
@@ -578,11 +624,14 @@ def next_stations(doc):
 	visit = doc.get("ke_patient_visit")
 	status = visit and frappe.db.get_value("Patient Visit", visit, "status")
 	stations, unpaid = [], 0
+	from royce_health_ke.routing import service_point
+
 	for request in _requests(doc):
 		kind = _kind(request)
 		if kind and visit_bill.request_awaiting_payment(kind, request.name):
 			unpaid += 1
-		stations.append(STATION[kind])
+		# the request type's service point (routing.py), else where its kind goes
+		stations.append(service_point(request) or STATION[kind])
 	drugs = frappe.get_all(
 		"Medication Request", filters={"order_group": doc.name, "docstatus": 1}, pluck="name"
 	)
@@ -786,3 +835,25 @@ def panel(encounter: str):
 		fields=["name", "medication", "ke_pharmacy_note as note", "modified"],
 	)
 	return {"results": results, "sent_back": sent_back, "can_complete": cint(doc.docstatus == 0)}
+
+
+# Vital signs history (Bethesda proposals, 18 Nov 2026): on a revisit every
+# earlier reading is there beside today's, with the trend.
+
+HISTORY_LIMIT = 100
+
+
+@frappe.whitelist()
+def vitals_history(patient: str, limit: int = HISTORY_LIMIT) -> list:
+	"""The patient's vital signs, oldest first (for the trends), cancelled ones left out."""
+	if not frappe.has_permission("Vital Signs", "read"):
+		return []
+	frappe.has_permission("Patient", "read", patient, throw=True)
+	rows = frappe.get_all(
+		"Vital Signs",
+		filters={"patient": patient, "docstatus": ["<", 2]},
+		fields=[*VITALS, "ke_patient_visit"],
+		order_by="signs_date desc, signs_time desc, creation desc",
+		limit=min(cint(limit) or HISTORY_LIMIT, 500),
+	)
+	return list(reversed(rows))

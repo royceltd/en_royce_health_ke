@@ -138,6 +138,10 @@ def open_items(visit):
 		done, what = investigation_result(r)
 		if not done:
 			items.append(_("{0}: no {1} yet").format(r.template_dn, what))
+	from royce_health_ke.routing import open_nursing_items
+
+	for name in open_nursing_items([r.name for r in requests]):
+		items.append(_("{0}: not done at Nursing yet").format(name))
 	for t in frappe.get_all(
 		"Lab Test",
 		filters={"ke_patient_visit": visit.name, "docstatus": 0, "service_request": ["is", "not set"]},

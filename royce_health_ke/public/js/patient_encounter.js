@@ -8,11 +8,8 @@ const KE_ALERT_COLOURS = { Critical: "red", Warning: "orange", Info: "blue" };
 
 frappe.ui.form.on("Patient Encounter", {
 	setup(frm) {
-		// the lab requests' Imaging column offers imaging exams only; lab tests
-		// are chosen in the Lab Test column (consultation.check_lab_rows)
-		frm.set_query("observation_template", "lab_test_prescription", () => ({
-			filters: { observation_category: "Imaging" },
-		}));
+		ke_request_queries(frm);
+		ke_diagnosis_setup(frm);
 	},
 	refresh(frm) {
 		if (!frm.is_new()) ke_show_clinical_alerts(frm);
@@ -20,6 +17,17 @@ frappe.ui.form.on("Patient Encounter", {
 		ke_may_consult(frm);
 		ke_unsent_requests(frm);
 		ke_latest_vitals(frm);
+		ke_request_type(frm);
+		if (frm.doc.patient && frappe.model.can_read("Vital Signs")) {
+			frm.add_custom_button(
+				__("Vital Signs History"),
+				() => ke_vitals_history(frm.doc.patient),
+				__("View")
+			);
+		}
+	},
+	ke_request_type(frm) {
+		ke_request_type(frm);
 	},
 	patient(frm) {
 		ke_may_consult(frm);
@@ -42,6 +50,154 @@ frappe.ui.form.on("Patient Encounter", {
 		ke_complete_consultation(frm);
 	},
 });
+
+// ICD-11 diagnosis (royce_health_ke.diagnosis): one row, the name or the code
+// searched, the other filled in. An ICD-11 title picked by name becomes a
+// Diagnosis record on the server, so the name column skips link validation.
+function ke_diagnosis_setup(frm) {
+	frm.set_query("diagnosis", "diagnosis", () => ({
+		query: "royce_health_ke.diagnosis.diagnosis_query",
+	}));
+	frm.set_query("ke_icd11_code", "diagnosis", () => ({
+		query: "royce_health_ke.diagnosis.icd11_query",
+	}));
+	const grid = frm.fields_dict.diagnosis && frm.fields_dict.diagnosis.grid;
+	if (grid) grid.update_docfield_property("diagnosis", "ignore_link_validation", 1);
+}
+
+function ke_resolve_diagnosis(frm, cdt, cdn, args) {
+	const row = locals[cdt][cdn];
+	if (row.__ke_resolving) return;
+	frappe.xcall("royce_health_ke.diagnosis.resolve", args).then((r) => {
+		if (!r || !r.diagnosis) return;
+		row.__ke_resolving = true;
+		const sets = [];
+		if (row.diagnosis !== r.diagnosis)
+			sets.push(frappe.model.set_value(cdt, cdn, "diagnosis", r.diagnosis));
+		if (r.code_value && row.ke_icd11_code !== r.code_value)
+			sets.push(frappe.model.set_value(cdt, cdn, "ke_icd11_code", r.code_value));
+		Promise.all(sets).finally(() => (row.__ke_resolving = false));
+	});
+}
+
+frappe.ui.form.on("Patient Encounter Diagnosis", {
+	diagnosis(frm, cdt, cdn) {
+		const row = locals[cdt][cdn];
+		if (row.diagnosis) ke_resolve_diagnosis(frm, cdt, cdn, { diagnosis: row.diagnosis });
+	},
+	ke_icd11_code(frm, cdt, cdn) {
+		const row = locals[cdt][cdn];
+		if (row.ke_icd11_code)
+			ke_resolve_diagnosis(frm, cdt, cdn, { code_value: row.ke_icd11_code });
+	},
+});
+
+// Prescription in dispensing units (royce_health_ke.dispensing): the quantity
+// is worked out from the dose, frequency and duration as the doctor types.
+function ke_prescription_quantity(frm, cdt, cdn) {
+	const row = locals[cdt][cdn];
+	if (row.medication_request || !(row.medication || row.drug_code)) return;
+	frappe
+		.xcall("royce_health_ke.dispensing.quantity_for", {
+			row: {
+				medication: row.medication,
+				drug_code: row.drug_code,
+				ke_dose: row.ke_dose,
+				ke_dose_uom: row.ke_dose_uom,
+				dosage: row.dosage,
+				period: row.period,
+				interval: row.interval,
+				interval_uom: row.interval_uom,
+				dosage_by_interval: row.dosage_by_interval,
+			},
+		})
+		.then((r) => {
+			if (!r) return;
+			frappe.model.set_value(cdt, cdn, "ke_quantity", r.quantity);
+			if (r.unit) frappe.model.set_value(cdt, cdn, "ke_dispensing_unit", r.unit);
+		});
+}
+
+frappe.ui.form.on("Drug Prescription", {
+	drug_prescription_add(frm, cdt, cdn) {
+		const row = locals[cdt][cdn];
+		if (!row.ke_start_date)
+			frappe.model.set_value(cdt, cdn, "ke_start_date", frm.doc.encounter_date);
+	},
+	medication: ke_prescription_quantity,
+	drug_code: ke_prescription_quantity,
+	ke_dose: ke_prescription_quantity,
+	ke_dose_uom: ke_prescription_quantity,
+	dosage: ke_prescription_quantity,
+	period: ke_prescription_quantity,
+	interval: ke_prescription_quantity,
+	interval_uom: ke_prescription_quantity,
+	dosage_by_interval: ke_prescription_quantity,
+});
+
+// Request Type picker (royce_health_ke.routing): the request tables offer that
+// type's templates only, each with this patient's price; other tables hide.
+const KE_REQUEST_FIELDS = [
+	["lab_test_prescription", "lab_test_code", "Lab Test"],
+	["lab_test_prescription", "observation_template", "Imaging"],
+	["procedure_prescription", "procedure", "Procedure"],
+	["therapies", "therapy_type", "Therapy"],
+];
+const KE_REQUEST_SECTIONS = {
+	lab_test_prescription: "sb_test_prescription",
+	procedure_prescription: "sb_procedures",
+	therapies: "rehabilitation_section",
+};
+
+function ke_request_queries(frm) {
+	KE_REQUEST_FIELDS.forEach(([table, field, kind]) => {
+		frm.set_query(field, table, () => {
+			const category = frm.doc.ke_request_type;
+			const own = frm.__ke_request_kind;
+			// a type of another kind leaves this column to its own kind's templates
+			return {
+				query: "royce_health_ke.routing.template_query",
+				filters: {
+					category: category && own === kind ? category : "",
+					kind,
+					encounter: frm.is_new() ? "" : frm.doc.name,
+				},
+			};
+		});
+	});
+}
+
+async function ke_request_type(frm) {
+	if (!frm.fields_dict.ke_request_type) return;
+	let kind = null;
+	if (frm.doc.ke_request_type) {
+		kind = await frappe.db.get_value(
+			"Request Category",
+			frm.doc.ke_request_type,
+			"request_kind"
+		);
+		kind = kind && kind.message && kind.message.request_kind;
+	}
+	frm.__ke_request_kind = kind;
+	const show = {};
+	KE_REQUEST_FIELDS.forEach(([table, _field, k]) => {
+		show[table] = show[table] || !kind || k === kind;
+	});
+	Object.entries(KE_REQUEST_SECTIONS).forEach(([table, section]) => {
+		if (frm.fields_dict[section]) frm.toggle_display(section, show[table]);
+	});
+	const lab =
+		frm.fields_dict.lab_test_prescription && frm.fields_dict.lab_test_prescription.grid;
+	if (lab) {
+		lab.update_docfield_property("lab_test_code", "hidden", kind === "Imaging" ? 1 : 0);
+		lab.update_docfield_property(
+			"observation_template",
+			"hidden",
+			kind === "Lab Test" ? 1 : 0
+		);
+		lab.refresh();
+	}
+}
 
 // Requests added but not sent: they reach the Cashier and the lab only once
 // sent (Send Requests) or when the consultation is completed.
@@ -100,7 +256,8 @@ function ke_latest_vitals(frm) {
 				<div class="ml-auto small text-muted">${esc(frappe.datetime.str_to_user(v.signs_date))} ${esc(
 				(v.signs_time || "").slice(0, 5)
 			)} ·
-					<a href="/desk/vital-signs/${encodeURIComponent(v.name)}">${esc(v.name)}</a>
+					<a href="/desk/vital-signs/${encodeURIComponent(v.name)}">${esc(v.name)}</a> ·
+					<a class="ke-vitals-history">${__("History and trends")}</a>
 					${
 						v.ke_vitals_status === "Abnormal"
 							? `<span class="indicator-pill red ml-2">${__("Abnormal")}</span>`
@@ -108,6 +265,9 @@ function ke_latest_vitals(frm) {
 					}</div>
 			</div>`;
 			frm.__ke_vitals_section = frm.dashboard.add_section(html, __("Latest Vital Signs"));
+			frm.__ke_vitals_section
+				.find(".ke-vitals-history")
+				.on("click", () => ke_vitals_history(frm.doc.patient));
 			frm.dashboard.show();
 		});
 }
@@ -470,4 +630,86 @@ function ke_alerts_dialog(frm, alerts) {
 	};
 	render();
 	d.show();
+}
+
+// Every vital signs reading of the patient, with a trend line per sign
+// (royce_health_ke.consultation.vitals_history).
+const KE_TRENDS = [
+	["temperature", __("Temp"), "°C"],
+	["pulse", __("Pulse"), "/min"],
+	["respiratory_rate", __("Resp"), "/min"],
+	["bp_systolic", __("Systolic BP"), "mmHg"],
+	["ke_spo2", __("SpO2"), "%"],
+	["weight", __("Weight"), "kg"],
+];
+
+function ke_sparkline(values) {
+	const points = values.map((v, i) => [i, v]).filter(([, v]) => v || v === 0);
+	if (points.length < 2) return "";
+	const w = 160,
+		h = 36,
+		pad = 3;
+	const ys = points.map(([, v]) => v);
+	const lo = Math.min(...ys),
+		hi = Math.max(...ys);
+	const n = values.length - 1 || 1;
+	const xy = points.map(([i, v]) => [
+		pad + (i / n) * (w - 2 * pad),
+		h - pad - (hi === lo ? 0.5 : (v - lo) / (hi - lo)) * (h - 2 * pad),
+	]);
+	const last = xy[xy.length - 1];
+	return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img">
+		<polyline fill="none" stroke="var(--blue-500)" stroke-width="1.5" points="${xy
+			.map((p) => p.join(","))
+			.join(" ")}"/>
+		<circle cx="${last[0]}" cy="${last[1]}" r="2.5" fill="var(--blue-600)"/></svg>`;
+}
+
+function ke_vitals_history(patient) {
+	frappe.xcall("royce_health_ke.consultation.vitals_history", { patient }).then((rows) => {
+		const esc = frappe.utils.escape_html;
+		rows = rows || [];
+		const trends = KE_TRENDS.map(([field, label, unit]) => {
+			const values = rows.map((r) => (r[field] ? flt(r[field]) : null));
+			const known = values.filter((v) => v !== null);
+			if (!known.length) return "";
+			return `<div class="mr-4 mb-3"><div class="small text-muted">${label}</div>
+				<div><b>${esc(String(known[known.length - 1]))}</b> ${unit}
+				<span class="small text-muted">(${__("{0} readings", [known.length])})</span></div>
+				${ke_sparkline(values)}</div>`;
+		}).join("");
+		const table = rows
+			.slice()
+			.reverse()
+			.map((v) => {
+				const bp =
+					v.bp || (v.bp_systolic ? `${v.bp_systolic}/${v.bp_diastolic || "?"}` : "");
+				const cell = (x) => `<td>${x || x === 0 ? esc(String(x)) : ""}</td>`;
+				return `<tr${
+					v.ke_vitals_status === "Abnormal" ? ' style="color:var(--red-600)"' : ""
+				}>
+					<td><a href="/desk/vital-signs/${encodeURIComponent(v.name)}">${esc(
+					frappe.datetime.str_to_user(v.signs_date)
+				)} ${esc((v.signs_time || "").slice(0, 5))}</a></td>
+					${cell(v.temperature)}${cell(v.pulse)}${cell(v.respiratory_rate)}${cell(bp)}${cell(
+					v.ke_spo2
+				)}${cell(v.weight)}${cell(v.ke_height_cm)}${cell(v.bmi ? flt(v.bmi, 1) : "")}
+					<td class="small">${esc(v.ke_vitals_flags || "")}</td></tr>`;
+			})
+			.join("");
+		const d = new frappe.ui.Dialog({ title: __("Vital Signs History"), size: "extra-large" });
+		d.$body.html(
+			rows.length
+				? `<div class="d-flex flex-wrap">${trends}</div>
+				<div class="table-responsive"><table class="table table-sm table-bordered" style="font-size:12px">
+				<thead><tr><th>${__("Taken")}</th><th>${__("Temp")}</th><th>${__("Pulse")}</th><th>${__(
+						"Resp"
+				  )}</th><th>${__("BP")}</th><th>SpO2</th><th>${__("Weight")}</th><th>${__(
+						"Height"
+				  )}</th><th>BMI</th><th>${__("Flags")}</th></tr></thead>
+				<tbody>${table}</tbody></table></div>`
+				: `<p class="text-muted">${__("No vital signs recorded for this patient.")}</p>`
+		);
+		d.show();
+	});
 }

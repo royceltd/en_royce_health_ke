@@ -25,6 +25,10 @@ ignore_links_on_delete = ["Patient Record Access"]
 extend_doctype_class = {
 	"Patient Insurance Coverage": "royce_health_ke.coverage.CoverageEligibility",
 	"Medication": "royce_health_ke.formulary.MedicationLinking",
+	# prescribing in dispensing units (dispensing.py)
+	"Drug Prescription": "royce_health_ke.dispensing.DrugPrescriptionQuantity",
+	"Patient Encounter": "royce_health_ke.dispensing.EncounterOrders",
+	"Medication Request": "royce_health_ke.dispensing.MedicationRequestQuantity",
 }
 
 doc_events = {
@@ -132,9 +136,13 @@ doc_events = {
 	"Inpatient Record": {"on_update": "royce_health_ke.payment_status.inpatient_changed"},
 	"Kenya Health Settings": {"on_update": "royce_health_ke.payment_status.settings_changed"},
 	"Patient Encounter": {
-		"before_validate": "royce_health_ke.consultation.before_validate",
+		"before_validate": [
+			"royce_health_ke.diagnosis.sync_rows",
+			"royce_health_ke.consultation.before_validate",
+		],
 		"after_insert": "royce_health_ke.consultation.after_insert",
 		"validate": [
+			"royce_health_ke.dispensing.fill_quantities",
 			"royce_health_ke.visits.link_encounter",
 			"royce_health_ke.flow.consultation_gate",
 		],
@@ -163,7 +171,10 @@ doc_events = {
 		]
 	},
 	"Service Request": {
-		"before_insert": "royce_health_ke.lab.link_request_visit",
+		"before_insert": [
+			"royce_health_ke.lab.link_request_visit",
+			"royce_health_ke.routing.route",
+		],
 		"on_submit": "royce_health_ke.payment_status.order_submitted",
 	},
 }
@@ -193,6 +204,7 @@ jinja = {
 		"royce_health_ke.assign.health_queue_slip",
 		"royce_health_ke.pharmacy.health_medicine_labels",
 		"royce_health_ke.printing.health_patient_receipt",
+		"royce_health_ke.printing.health_visit_summary",
 	]
 }
 

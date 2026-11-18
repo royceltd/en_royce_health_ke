@@ -9,6 +9,7 @@ const STATIONS = [
 	"Radiology",
 	"Pharmacy",
 	"Procedure Room",
+	"Nursing",
 	"Cashier",
 	"Admission",
 ];
@@ -26,6 +27,14 @@ frappe.ui.form.on("Patient Visit", {
 		// a new visit has no bill: clear what the last visit opened left in the form (IT demo, 18 Nov 2026)
 		if (frm.is_new()) frm.get_field("bill_html").$wrapper.empty();
 		else render_bill(frm);
+		// one visit's consultation, vitals, diagnosis, prescriptions, requests and results (clinicians)
+		if (!frm.is_new() && frappe.user.has_role(["Physician", "Nursing User", "Healthcare Administrator", "System Manager"])) {
+			frm.add_custom_button(
+				__("Visit Summary"),
+				() => window.open(`/printview?doctype=Patient%20Visit&name=${encodeURIComponent(frm.doc.name)}&format=Visit%20Summary`, "_blank"),
+				__("View"),
+			);
+		}
 		if (frm.is_new() || frm.doc.status !== "Open") return;
 		const call = (method, args, message) =>
 			frappe.call({ method: `royce_health_ke.visits.${method}`, args, freeze: true }).then(() => {

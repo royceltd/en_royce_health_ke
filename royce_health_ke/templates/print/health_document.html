@@ -153,7 +153,7 @@
 {%- macro medicines_table(lines) -%}
 <table class="hx-table">
   <thead><tr>
-    <th style="width: 4%;">#</th><th>{{ _("Medicine") }}</th><th>{{ _("Dose / frequency") }}</th><th>{{ _("Duration") }}</th>
+    <th style="width: 4%;">#</th><th>{{ _("Medicine") }}</th><th>{{ _("Dose / frequency") }}</th><th>{{ _("Duration") }}</th><th>{{ _("Quantity") }}</th>
   </tr></thead>
   <tbody>
   {% for m in lines %}
@@ -161,8 +161,9 @@
     <td class="hx-muted">{{ loop.index }}</td>
     <td><b>{{ m.name }}</b>{% if m.strength or m.form %} <span class="hx-muted">{{ m.strength }}{% if m.strength and m.form %} · {% endif %}{{ m.form }}</span>{% endif %}
       {% if m.comment %}<div class="hx-sub">{{ m.comment }}</div>{% endif %}</td>
-    <td>{{ m.dosage }}</td>
-    <td>{{ m.period }}{% if m.repeats %}<div class="hx-sub">{{ _("Repeats: {0}").format(m.repeats) }}</div>{% endif %}</td>
+    <td>{% if m.dose %}<b>{{ m.dose }}</b> {% endif %}{{ m.dosage }}{% if m.route %}<div class="hx-sub">{{ m.route }}</div>{% endif %}</td>
+    <td>{{ m.period }}{% if m.start %}<div class="hx-sub">{{ _("From {0}").format(m.start) }}</div>{% endif %}{% if m.repeats %}<div class="hx-sub">{{ _("Repeats: {0}").format(m.repeats) }}</div>{% endif %}</td>
+    <td>{{ m.quantity or "" }}</td>
   </tr>
   {% endfor %}
   </tbody>

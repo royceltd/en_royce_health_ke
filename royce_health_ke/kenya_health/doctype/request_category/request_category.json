@@ -1,0 +1,115 @@
+{
+ "name": "Request Category",
+ "actions": [],
+ "autoname": "field:category_name",
+ "creation": "2026-11-18 22:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-18 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "sequence",
+ "sort_order": "ASC",
+ "states": [],
+ "description": "What the doctor picks as the Request Type on the consultation, and the service point each request goes to.",
+ "title_field": "category_name",
+ "show_title_field_in_link": 0,
+ "fields": [
+  {
+   "fieldname": "category_name",
+   "fieldtype": "Data",
+   "label": "Request Type",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "request_kind",
+   "fieldtype": "Select",
+   "label": "Requests From",
+   "options": "Lab Test\nImaging\nProcedure\nTherapy",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Which of the consultation's request tables: lab tests, imaging exams, procedures or therapies."
+  },
+  {
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "label": "Item Group",
+   "options": "Item Group",
+   "in_list_view": 1,
+   "description": "Only templates in this item group (and its sub-groups). Blank = every template of this kind not claimed by a more specific type."
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "service_point",
+   "fieldtype": "Select",
+   "label": "Service Point",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "options": "Laboratory\nRadiology\nProcedure Room\nNursing\nPharmacy\nCasualty\nTriage\nConsultation\nCashier\nAdmission",
+   "description": "Where these requests are done: the patient is sent there and the request shows on its worklist."
+  },
+  {
+   "fieldname": "sequence",
+   "fieldtype": "Int",
+   "label": "Sequence",
+   "description": "Order in the Request Type list."
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Laboratory User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ]
+}

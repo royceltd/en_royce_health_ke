@@ -51,6 +51,7 @@ STATIONS = (
 	"Radiology",
 	"Pharmacy",
 	"Procedure Room",
+	"Nursing",
 	"Cashier",
 	"Admission",
 )
@@ -62,7 +63,7 @@ FIRST_STATION = {
 	"Radiology only": "Radiology",
 	"Pharmacy only": "Pharmacy",
 }
-SERVICE_POINTS = ("Laboratory", "Radiology", "Pharmacy")
+SERVICE_POINTS = ("Laboratory", "Radiology", "Pharmacy", "Nursing")
 RECEPTION = "Reception"
 
 # Why a patient moved (Movements > Reason)

@@ -395,12 +395,30 @@ def prescription_lines(doc) -> list[frappe._dict]:
 		form = d.dosage_form or ""
 		if form and form.lower() in name.lower():
 			form = ""
+		dose = (
+			f"{flt(d.get('ke_dose')):g} {d.get('ke_dose_uom') or ''}".strip() if flt(d.get("ke_dose")) else ""
+		)
+		start = ""
+		if d.get("ke_start_date"):
+			start = formatdate(d.ke_start_date, "d MMM")
+			if d.get("ke_start_time"):
+				start = f"{start} {str(d.ke_start_time)[:5]}"
+		quantity = d.get("ke_quantity") or (
+			d.get("medication_request")
+			and frappe.db.get_value("Medication Request", d.medication_request, "quantity")
+		)
 		lines.append(
 			frappe._dict(
 				name=name,
 				strength=strength,
 				form=form,
 				dosage=how,
+				dose=dose,
+				route=d.get("ke_route") or "",
+				start=start,
+				quantity=f"{flt(quantity):g} {d.get('ke_dispensing_unit') or ''}".strip()
+				if flt(quantity)
+				else "",
 				period=d.period or "",
 				comment=d.comment or "",
 				repeats=cint(d.number_of_repeats_allowed),
@@ -1127,6 +1145,136 @@ VITALS_FIELDS = (
 )
 
 
+VISIT_FIELDS = (
+	"name",
+	"visit_date",
+	"visit_type",
+	"payment_method",
+	"insurance_payor",
+	"status",
+	"practitioner_name",
+)
+REQUEST_STATUS = {
+	"active-Request Status": _("Requested"),
+	"completed-Request Status": _("Done"),
+	"revoked-Request Status": _("Cancelled"),
+	"on-hold-Request Status": _("On hold"),
+}
+
+
+def diagnosis_lines(encounter):
+	"""The consultation's diagnoses with their ICD-11 code."""
+	from royce_health_ke.diagnosis import icd11_of
+
+	out = []
+	for row in encounter.get("diagnosis") or []:
+		if not row.get("diagnosis"):
+			continue
+		code = row.get("ke_icd11_code") and frappe.db.get_value("Code Value", row.ke_icd11_code, "code_value")
+		out.append(frappe._dict(name=row.diagnosis, code=code or icd11_of(row.diagnosis)[1] or ""))
+	return out
+
+
+def visit_record(v):
+	"""One visit as the Patient File and the Visit Summary print it: vitals,
+	consultations, requests, lab results, imaging reports."""
+	encounters = [
+		frappe.get_doc("Patient Encounter", name)
+		for name in frappe.get_all(
+			"Patient Encounter",
+			filters={"ke_patient_visit": v.name, "docstatus": ["<", 2]},
+			pluck="name",
+			order_by="creation asc",
+		)
+	]
+	request_rows = (
+		frappe.get_all(
+			"Service Request",
+			filters={"order_group": ["in", [e.name for e in encounters]], "docstatus": 1},
+			fields=[
+				"name",
+				"template_dn",
+				"status",
+				"ke_service_point",
+				"ke_request_category",
+				"ke_cancel_reason",
+			],
+			order_by="creation",
+		)
+		if encounters
+		else []
+	)
+	requests = [r.name for r in request_rows]
+	return frappe._dict(
+		visit=v,
+		vitals=frappe.get_all(
+			"Vital Signs",
+			filters={"ke_patient_visit": v.name, "docstatus": ["<", 2]},
+			fields=list(VITALS_FIELDS),
+			order_by="signs_date, signs_time",
+		),
+		encounters=[
+			frappe._dict(
+				doc=e,
+				doctor=clinician(e.practitioner),
+				medicines=prescription_lines(e),
+				diagnoses=diagnosis_lines(e),
+			)
+			for e in encounters
+		],
+		requests=[
+			frappe._dict(
+				test=r.template_dn,
+				where=r.ke_service_point or "",
+				status=REQUEST_STATUS.get(r.status, r.status.split("-")[0].title() if r.status else ""),
+				note=r.ke_cancel_reason or "",
+			)
+			for r in request_rows
+		],
+		labs=[
+			frappe._dict(doc=t, rows=lab_results(t))
+			for t in (
+				frappe.get_doc("Lab Test", name)
+				for name in frappe.get_all(
+					"Lab Test",
+					filters={"ke_patient_visit": v.name, "docstatus": 1},
+					pluck="name",
+					order_by="creation",
+				)
+			)
+		],
+		imaging=[
+			frappe.get_doc("Observation", name)
+			for name in (
+				frappe.get_all(
+					"Observation",
+					filters={
+						"service_request": ["in", requests],
+						"parent_observation": ["is", "not set"],
+						"ke_exam_status": ["in", ("Reported", "Verified")],
+					},
+					pluck="name",
+				)
+				if requests
+				else []
+			)
+		],
+	)
+
+
+def visit_summary(doc) -> frappe._dict:
+	"""Patient Visit: everything done on the visit, for the patient's file
+	(clinicians only, like the Patient File)."""
+	if not may_open_file():
+		return frappe._dict(allowed=False)
+	v = frappe._dict({field: doc.get(field) for field in VISIT_FIELDS})
+	return frappe._dict(allowed=True, record=visit_record(v))
+
+
+def health_visit_summary(doc):
+	return visit_summary(doc)
+
+
 def may_open_file(user=None):
 	return bool(set(FILE_ROLES) & set(frappe.get_roles(user)))
 
@@ -1146,87 +1294,16 @@ def patient_file(doc) -> frappe._dict:
 		)
 		if doc.get(field)
 	]
-	visits = []
-	for v in frappe.get_all(
-		"Patient Visit",
-		filters={"patient": doc.name, "status": ["!=", "Cancelled"]},
-		fields=[
-			"name",
-			"visit_date",
-			"visit_type",
-			"payment_method",
-			"insurance_payor",
-			"status",
-			"practitioner_name",
-		],
-		order_by="visit_date desc, creation desc",
-		limit=FILE_VISITS,
-	):
-		encounters = [
-			frappe.get_doc("Patient Encounter", name)
-			for name in frappe.get_all(
-				"Patient Encounter",
-				filters={"ke_patient_visit": v.name, "docstatus": ["<", 2]},
-				pluck="name",
-				order_by="creation asc",
-			)
-		]
-		requests = (
-			frappe.get_all(
-				"Service Request",
-				filters={"order_group": ["in", [e.name for e in encounters]], "docstatus": 1},
-				pluck="name",
-			)
-			if encounters
-			else []
+	visits = [
+		visit_record(v)
+		for v in frappe.get_all(
+			"Patient Visit",
+			filters={"patient": doc.name, "status": ["!=", "Cancelled"]},
+			fields=VISIT_FIELDS,
+			order_by="visit_date desc, creation desc",
+			limit=FILE_VISITS,
 		)
-		visits.append(
-			frappe._dict(
-				visit=v,
-				vitals=frappe.get_all(
-					"Vital Signs",
-					filters={"ke_patient_visit": v.name, "docstatus": ["<", 2]},
-					fields=list(VITALS_FIELDS),
-					order_by="signs_date, signs_time",
-				),
-				encounters=[
-					frappe._dict(
-						doc=e,
-						doctor=clinician(e.practitioner),
-						medicines=prescription_lines(e),
-					)
-					for e in encounters
-				],
-				labs=[
-					frappe._dict(doc=t, rows=lab_results(t))
-					for t in (
-						frappe.get_doc("Lab Test", name)
-						for name in frappe.get_all(
-							"Lab Test",
-							filters={"ke_patient_visit": v.name, "docstatus": 1},
-							pluck="name",
-							order_by="creation",
-						)
-					)
-				],
-				imaging=[
-					frappe.get_doc("Observation", name)
-					for name in (
-						frappe.get_all(
-							"Observation",
-							filters={
-								"service_request": ["in", requests],
-								"parent_observation": ["is", "not set"],
-								"ke_exam_status": ["in", ("Reported", "Verified")],
-							},
-							pluck="name",
-						)
-						if requests
-						else []
-					)
-				],
-			)
-		)
+	]
 	admissions = frappe.get_all(
 		"Inpatient Record",
 		filters={"patient": doc.name},
