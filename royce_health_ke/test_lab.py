@@ -199,3 +199,150 @@ class TestLab(IntegrationTestCase):
 		# A second walk-in the same day goes on the same visit.
 		again = lab.walk_in(self.patient, [self.template], company=self.company)
 		self.assertEqual(again["visit"], visit.name)
+
+	# Lab pack (v0.49): standard tests, per-visit reports, reception walk-ins
+
+	def validated_test(self):
+		"""A validated lab test on today's visit: (visit, lab test name)."""
+		from royce_health_ke.visits import open_visit_for
+
+		open_visit = open_visit_for(self.patient)
+		visit = frappe.get_doc("Patient Visit", open_visit) if open_visit else self.check_in()
+		frappe.db.set_single_value("Kenya Health Settings", "pay_before_lab", 0)
+		name = lab.collect(requests=[self.order()])["done"][0]
+		sheet = lab.results_sheet([name])[0]
+		values = {r["name"]: "5.5" for r in sheet["normal"] if not r["heading"]}
+		lab.save_results([{"lab_test": name, "normal": values}], validate=1)
+		return visit, name
+
+	def test_full_haemogram_from_the_library(self):
+		rows = lab.LIBRARY["Full Haemogram"]["rows"]
+		self.assertEqual(len(rows), 19)
+		self.assertEqual([r[0] for r in rows][:4], ["WBC", "Lymph#", "Mid#", "Gran#"])
+		self.assertEqual(rows[-1], ("PCT", "%", "0.108 - 0.282"))
+
+		# Added under a name of its own, so the test doesn't depend on the site.
+		suffix = frappe.generate_hash(length=5)
+		name = f"Full Haemogram {suffix}"
+		original = lab.LIBRARY
+		lab.LIBRARY = {name: {**original["Full Haemogram"], "code": f"LAB-FHG-{suffix}"}}
+		try:
+			self.assertFalse(lab.lab_library()[0]["exists"])
+			made = lab.add_from_library(name, 1200)
+			self.assertTrue(lab.lab_library()[0]["exists"])
+			with self.assertRaises(frappe.ValidationError):
+				lab.add_from_library(name, 1200)  # already set up
+		finally:
+			lab.LIBRARY = original
+		template = frappe.get_doc("Lab Test Template", made["name"])
+		self.assertEqual(template.lab_test_template_type, "Compound")
+		self.assertEqual(
+			[
+				(r.lab_test_event, r.lab_test_uom or "", r.normal_range)
+				for r in template.normal_test_templates
+			],
+			[(e, u, n) for e, u, n in rows],
+			"the analyser's print order, units and ranges",
+		)
+		self.assertTrue(made["priced"] and template.item)
+
+		# Ordered, collected and typed in: 19 result lines, in that order, flagged.
+		self.template = made["name"]
+		self.check_in()
+		frappe.db.set_single_value("Kenya Health Settings", "pay_before_lab", 0)
+		test = lab.collect(requests=[self.order()])["done"][0]
+		sheet = lab.results_sheet([test])[0]
+		self.assertEqual([r["label"] for r in sheet["normal"]], [r[0] for r in rows])
+		self.assertFalse(any(r["heading"] for r in sheet["normal"]))
+		self.assertEqual(lab.flag("17.0", "12.0 - 16.0"), "H")
+
+	def test_one_report_for_the_visits_tests(self):
+		visit, first = self.validated_test()
+		_v, second = self.validated_test()  # the same day: the same open visit
+		row = self.row("completed", f"visit:{visit.name}")
+		self.assertEqual(sorted(row.validated), sorted([first, second]))
+
+		other_patient = self.patient
+		self.patient = self.new_patient()
+		_v, foreign = self.validated_test()
+		self.patient = other_patient
+
+		frappe.flags.ke_lab_tests = [first, second, foreign]
+		try:
+			report = lab.lab_report(frappe.get_doc("Lab Test", first))
+			html = frappe.get_print("Lab Test", first, "Laboratory Report")
+			request = lab.lab_request(frappe.get_doc("Lab Test", first))
+		finally:
+			frappe.flags.ke_lab_tests = None
+		self.assertEqual(
+			[t.doc.name for t in report.tests], [first, second], "another patient's test is left out"
+		)
+		self.assertTrue(report.many)
+		self.assertIn(first, html)
+		self.assertIn(second, html)
+		self.assertNotIn(foreign, html)
+		self.assertEqual([x.lab_test for x in request.lines], [first, second])
+		self.assertEqual(request.visit, visit.name)
+
+		# Alone, the report is the one test, as before.
+		single = lab.lab_report(frappe.get_doc("Lab Test", first))
+		self.assertEqual((len(single.tests), single.many), (1, False))
+
+	def test_results_emailed_and_logged(self):
+		_visit, name = self.validated_test()
+		from unittest.mock import patch
+
+		frappe.db.set_single_value("Kenya Health Settings", "track_record_access", 1)
+		# The PDF itself needs a running web server for wkhtmltopdf; the report's
+		# HTML is tested above.
+		with (
+			patch("frappe.get_print", return_value=b"%PDF-1.4 test"),
+			patch(
+				"frappe.email.doctype.email_account.email_account.EmailAccount.find_outgoing",
+				return_value=frappe._dict(name="test"),
+			),
+			patch("frappe.sendmail") as sendmail,
+		):
+			sent = lab.email_results([name], "patient@example.com")
+		self.assertEqual(sendmail.call_args.kwargs["recipients"], ["patient@example.com"])
+		self.assertTrue(sendmail.call_args.kwargs["attachments"][0]["fname"].endswith(".pdf"))
+		self.assertEqual(sent, {"sent": 1, "to": "patient@example.com"})
+		self.assertTrue(
+			frappe.db.exists(
+				"Patient Record Access",
+				{"reference_name": name, "action": "Email", "detail": "patient@example.com"},
+			)
+		)
+		with self.assertRaises(frappe.ValidationError):
+			lab.email_results([name], "not an email")
+
+		# Results not validated yet are not sent.
+		frappe.db.set_single_value("Kenya Health Settings", "pay_before_lab", 0)
+		draft = lab.collect(requests=[self.order()])["done"][0]
+		with self.assertRaises(frappe.ValidationError):
+			lab.email_results([draft], "patient@example.com")
+
+	def test_reception_makes_walk_in_requests(self):
+		from royce_health_ke.test_cashier import user
+
+		frappe.db.set_single_value("Kenya Health Settings", "walk_in_lab_practitioner", self.practitioner)
+		reception = user("ke.reception@example.com", ["Receptionist"])
+		cashier = user("ke.cashier@example.com", ["Cashier"])
+		frappe.set_user(reception)
+		try:
+			tests = lab.walk_in_tests(self.template[:4])
+			self.assertIn(self.template, [t["value"] for t in tests])
+			made = lab.walk_in(self.patient, [self.template], company=self.company)
+		finally:
+			frappe.set_user("Administrator")
+		visit = frappe.get_doc("Patient Visit", made["visit"])
+		self.assertEqual((visit.visit_type, visit.payment_method), ("Lab only", "Cash"))
+		# paid first, then on the lab's list
+		self.assertIsNone(self.row("requests", made["key"]))
+
+		frappe.set_user(cashier)
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				lab.walk_in(self.patient, [self.template], company=self.company)
+		finally:
+			frappe.set_user("Administrator")

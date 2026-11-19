@@ -223,6 +223,8 @@ jinja = {
 		"royce_health_ke.printing.health_patient_receipt",
 		"royce_health_ke.printing.health_visit_summary",
 		"royce_health_ke.printing.health_admission_record",
+		"royce_health_ke.lab.health_lab_report",
+		"royce_health_ke.lab.health_lab_request",
 	]
 }
 

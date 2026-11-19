@@ -80,6 +80,17 @@ frappe.ui.form.on("Patient", {
 				() => frappe.new_doc("Patient Visit", { patient: frm.doc.name }),
 				__("Create")
 			);
+			// A patient sent by an outside doctor for tests only: reception
+			// makes the requests, the Cashier takes payment, the lab sees them.
+			frm.add_custom_button(
+				__("Lab Walk-in (Tests Only)"),
+				() =>
+					royce_health_ke.lab_walk_in({
+						patient: frm.doc.name,
+						on_done: (m) => frappe.set_route("Form", "Patient Visit", m.visit),
+					}),
+				__("Create")
+			);
 		}
 		// The patient file: the whole record, clinicians only (printing.patient_file)
 		if (

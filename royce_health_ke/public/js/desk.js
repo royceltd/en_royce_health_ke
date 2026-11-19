@@ -469,3 +469,86 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 	// locked before a reload or in another tab: still locked
 	$(() => frappe.boot && frappe.boot.ke_screen_locked && lock(true));
 })();
+
+// A walk-in lab request (lab.walk_in): from the Lab Worklist, or from the
+// patient's record at reception. The tests go on today's open visit or a new
+// "Lab only" cash visit; a cash patient pays at the Cashier, then the lab
+// sees the tests. opts: {patient, on_done(result)}.
+royce_health_ke.lab_walk_in = (opts = {}) => {
+	const d = new frappe.ui.Dialog({
+		title: __("Walk-in Lab Request"),
+		fields: [
+			{
+				fieldtype: "Link",
+				fieldname: "patient",
+				label: __("Patient"),
+				options: "Patient",
+				reqd: 1,
+				default: opts.patient,
+				read_only: opts.patient ? 1 : 0,
+				description: opts.patient ? "" : __("Register a new patient first if they are not found."),
+			},
+			{
+				fieldtype: "MultiSelectList",
+				fieldname: "tests",
+				label: __("Tests"),
+				reqd: 1,
+				get_data: (txt) =>
+					frappe.xcall("royce_health_ke.lab.walk_in_tests", { txt: txt || "" }),
+			},
+			{ fieldtype: "Column Break" },
+			{
+				fieldtype: "Link",
+				fieldname: "practitioner",
+				label: __("Requesting doctor"),
+				options: "Healthcare Practitioner",
+				description: __("Blank: the default in Kenya Health Settings > Laboratory."),
+			},
+			{
+				fieldtype: "Data",
+				fieldname: "referred_by",
+				label: __("Referred by (outside doctor or clinic)"),
+			},
+			{
+				fieldtype: "Select",
+				fieldname: "priority",
+				label: __("Urgency"),
+				options: "Routine\nUrgent\nASAP\nSTAT",
+				default: "Routine",
+			},
+		],
+		primary_action_label: __("Create Requests"),
+		primary_action: (v) => {
+			const tests = (v.tests || []).filter(Boolean);
+			if (!tests.length) {
+				frappe.msgprint(__("Choose at least one test."));
+				return;
+			}
+			frappe
+				.call({
+					method: "royce_health_ke.lab.walk_in",
+					args: {
+						patient: v.patient,
+						tests,
+						practitioner: v.practitioner,
+						referred_by: v.referred_by,
+						priority: v.priority,
+					},
+					freeze: true,
+				})
+				.then((r) => {
+					d.hide();
+					frappe.show_alert({
+						message: __("{0} requests on visit {1}. Cash patients pay at the Cashier first.", [
+							r.message.requests.length,
+							r.message.visit,
+						]),
+						indicator: "green",
+					});
+					opts.on_done && opts.on_done(r.message);
+				});
+		},
+	});
+	d.show();
+	return d;
+};

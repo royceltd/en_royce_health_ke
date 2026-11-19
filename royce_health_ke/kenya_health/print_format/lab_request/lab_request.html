@@ -1,0 +1,71 @@
+{#- Lab Test: the request form behind the patient's tests (one, or several
+    with ?tests=A,B: the Lab Worklist's "Print Request"). Who asked, when, how
+    urgent, the clinical diagnosis, the specimens and who collected them
+    (lab.lab_request). -#}
+{%- from "royce_health_ke/templates/print/health_document.html" import styles, header, patient_band, chips, section_title, signatures, footer as page_footer -%}
+{%- set ctx = health_print_context(doc) -%}
+{%- set req = health_lab_request(doc) -%}
+{%- set requested_by = health_clinician(doc.practitioner) -%}
+{{ styles(ctx) }}
+<div class="hx-doc">
+  {{ header(ctx, "Laboratory Request", letter_head, no_letterhead, [
+      ("Visit", req.visit),
+      ("Consultation", ", ".join(req.encounters)),
+      ("Urgency", _(req.priority) if req.priority != "Routine" else ""),
+  ]) }}
+
+  {{ patient_band(ctx.patient, [("Requested by", requested_by.name)]) }}
+
+  <div class="hx-section">
+    {{ chips([
+        ("Requesting clinician", requested_by.name),
+        ("Registration No.", requested_by.registration),
+        ("Referred from", req.referred_from),
+    ]) }}
+  </div>
+
+  {% if req.diagnoses or req.notes %}
+  <div class="hx-section">
+    {{ section_title("Clinical information") }}
+    {% if req.diagnoses %}<div><b>{{ _("Diagnosis") }}:</b>
+      {% for d in req.diagnoses %}{{ d.name }}{% if d.code %} <span class="hx-muted">(ICD-11 {{ d.code }})</span>{% endif %}{% if not loop.last %}; {% endif %}{% endfor %}
+    </div>{% endif %}
+    {% for n in req.notes %}<div class="hx-sub">{{ n }}</div>{% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="hx-section">
+    {{ section_title("Tests requested") }}
+    <table class="hx-table">
+      <thead><tr>
+        <th style="width: 4%;">#</th>
+        <th>{{ _("Test") }}</th>
+        <th>{{ _("Specimen") }}</th>
+        <th>{{ _("Urgency") }}</th>
+        <th>{{ _("Requested") }}</th>
+        <th>{{ _("Collected") }}</th>
+        <th>{{ _("Lab No.") }}</th>
+      </tr></thead>
+      <tbody>
+      {% for l in req.lines %}
+      <tr class="hx-keep">
+        <td class="hx-muted">{{ loop.index }}</td>
+        <td><b>{{ l.test }}</b></td>
+        <td>{{ l.sample }}</td>
+        <td>{{ _(l.priority) }}</td>
+        <td>{{ l.ordered }}</td>
+        <td>{{ l.collected }}</td>
+        <td class="hx-muted">{{ l.lab_test }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {{ signatures([
+      ("Requested by", requested_by.name, ""),
+      ("Specimen collected by", req.collected_by, ""),
+  ]) }}
+
+  {{ page_footer("", footer, no_letterhead, ctx) }}
+</div>

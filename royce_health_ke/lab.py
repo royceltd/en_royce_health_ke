@@ -362,8 +362,14 @@ def worklist(
 				tests=[],
 				counts=dict.fromkeys(STAGES, 0),
 				unpaid=0,
+				lab_tests=[],
+				validated=[],
 			)
 		g.tests.append(line.test)
+		if line.lab_test:
+			g.lab_tests.append(line.lab_test)
+			if line.stage == COMPLETED:
+				g.validated.append(line.lab_test)
 		g.insured = g.insured or bool(line.get("insurance_policy"))
 		g.counts[line.stage] += 1
 		if get_datetime(line.ordered_at) < get_datetime(g.requested_at):
@@ -591,8 +597,10 @@ def walk_in(
 	company: str | None = None,
 ):
 	"""Requests for a patient who came to the lab directly. They go on the
-	patient's open visit today, or on a new "Lab only" cash visit."""
-	frappe.has_permission("Lab Test", "create", throw=True)
+	patient's open visit today, or on a new "Lab only" cash visit. The lab
+	makes them (Lab Worklist) or reception does (the patient's record), then
+	the Cashier takes payment and the lab sees the tests."""
+	_check_walk_in()
 	tests = _list(tests)
 	if not tests:
 		frappe.throw(_("Choose at least one test."))
@@ -654,6 +662,352 @@ def walk_in(
 		made.append(sr.name)
 	visit_bill.refresh_bill_status(visit.name)
 	return {"visit": visit.name, "requests": made, "key": f"visit:{visit.name}"}
+
+
+def _check_walk_in():
+	"""The lab, or reception (who check patients in), may make walk-in requests."""
+	if frappe.has_permission("Lab Test", "create") or frappe.has_permission("Patient Visit", "create"):
+		return
+	frappe.throw(_("Only the laboratory or reception make walk-in lab requests."), frappe.PermissionError)
+
+
+@frappe.whitelist()
+def walk_in_tests(txt: str | None = None, company: str | None = None):
+	"""Tests to pick for a walk-in, with the cash price (reception reads no
+	lab templates of its own)."""
+	from royce_health_ke import fees
+
+	_check_walk_in()
+	rows = frappe.get_all(
+		LAB_TEMPLATE,
+		filters={"disabled": 0, "lab_test_name": ["like", f"%{txt or ''}%"]},
+		fields=["name", "item", "lab_test_template_type"],
+		order_by="name asc",
+		limit=50,
+		ignore_permissions=True,
+	)
+	out = []
+	for r in rows:
+		rate = fees.price(r.item, company) if r.item else 0
+		out.append(
+			{
+				"value": r.name,
+				"description": frappe.format_value(rate, {"fieldtype": "Currency"})
+				if rate
+				else _("no price"),
+			}
+		)
+	return out
+
+
+# Standard tests (lab library)
+
+# Tests as the hospital's analysers print them, ready to add with the
+# hospital's own price. Full Haemogram: the Mindray BC-20s 3-part
+# differential report, in its print order (Bethesda lab, 19 Nov 2026).
+# Each row: (parameter, unit, reference range).
+LIBRARY = {
+	"Full Haemogram": {
+		"code": "LAB-FHG",
+		"sample": "Whole Blood (EDTA)",
+		"sample_qty": 2,
+		"sample_uom": "mL",
+		"note": _("Mindray BC-20s 3-part differential, in the analyser's print order."),
+		"rows": (
+			("WBC", "10^9/L", "4.0 - 10.0"),
+			("Lymph#", "10^9/L", "0.8 - 4.0"),
+			("Mid#", "10^9/L", "0.1 - 1.5"),
+			("Gran#", "10^9/L", "2.0 - 7.0"),
+			("Lymph%", "%", "20.0 - 40.0"),
+			("Mid%", "%", "3.0 - 15.0"),
+			("Gran%", "%", "50.0 - 70.0"),
+			("RBC", "10^12/L", "3.50 - 5.00"),
+			("HGB", "g/dL", "12.0 - 16.0"),
+			("HCT", "%", "37.0 - 47.0"),
+			("MCV", "fL", "80.0 - 100.0"),
+			("MCH", "pg", "27.0 - 34.0"),
+			("MCHC", "g/dL", "32.0 - 36.0"),
+			("RDW-CV", "%", "11.0 - 16.0"),
+			("RDW-SD", "fL", "35.0 - 56.0"),
+			("PLT", "10^9/L", "150 - 450"),
+			("MPV", "fL", "6.5 - 12.0"),
+			("PDW", "", "15.0 - 17.0"),
+			("PCT", "%", "0.108 - 0.282"),
+		),
+	},
+}
+
+
+@frappe.whitelist()
+def lab_library():
+	"""The standard tests, and whether this hospital has each already."""
+	frappe.has_permission(LAB_TEMPLATE, "read", throw=True)
+	return [
+		{
+			"name": name,
+			"code": t["code"],
+			"note": t.get("note"),
+			"parameters": len(t["rows"]),
+			"exists": bool(frappe.db.exists(LAB_TEMPLATE, name)),
+		}
+		for name, t in LIBRARY.items()
+	]
+
+
+def _default(doctype, field, fallback, values):
+	"""What the hospital's other lab tests use, else `fallback` (made if missing)."""
+	used = frappe.get_all(LAB_TEMPLATE, fields=[field], filters={field: ["is", "set"]}, limit=1, pluck=field)
+	if used:
+		return used[0]
+	if not frappe.db.exists(doctype, fallback):
+		frappe.get_doc({"doctype": doctype, **values}).insert(ignore_permissions=True)
+	return fallback
+
+
+@frappe.whitelist()
+def add_from_library(name: str, rate: float | None = None, code: str | None = None):
+	"""Add a standard test as the hospital's own Lab Test Template (and its
+	billing item), priced at `rate` on the standard selling price list. Units
+	and ranges can be changed on the template afterwards."""
+	frappe.has_permission(LAB_TEMPLATE, "create", throw=True)
+	t = LIBRARY.get(name)
+	if not t:
+		frappe.throw(_("{0} is not a standard test.").format(name))
+	if frappe.db.exists(LAB_TEMPLATE, name):
+		frappe.throw(_("{0} is already set up.").format(name))
+	code = (code or t["code"]).strip()
+	if frappe.db.exists("Item", code):
+		frappe.throw(_("Item {0} already exists: give the test another code.").format(code))
+	for _event, uom, _range in t["rows"]:
+		if uom and not frappe.db.exists("Lab Test UOM", uom):
+			frappe.get_doc({"doctype": "Lab Test UOM", "lab_test_uom": uom, "uom_description": uom}).insert(
+				ignore_permissions=True
+			)
+	if t.get("sample") and not frappe.db.exists("Lab Test Sample", t["sample"]):
+		frappe.get_doc({"doctype": "Lab Test Sample", "sample": t["sample"]}).insert(ignore_permissions=True)
+	group = _default(
+		"Item Group",
+		"lab_test_group",
+		"Laboratory",
+		{"item_group_name": "Laboratory", "parent_item_group": "All Item Groups"},
+	)
+	department = _default("Medical Department", "department", "Laboratory", {"department": "Laboratory"})
+	rate = float(rate or 0)
+	doc = frappe.get_doc(
+		{
+			"doctype": LAB_TEMPLATE,
+			"lab_test_name": name,
+			"lab_test_code": code,
+			"lab_test_group": group,
+			"department": department,
+			"lab_test_template_type": "Compound",
+			"is_billable": 1,
+			"lab_test_rate": rate,
+			"sample": t.get("sample"),
+			"sample_qty": t.get("sample_qty") if t.get("sample") else None,
+			"sample_uom": t.get("sample_uom") if t.get("sample") else None,
+			"normal_test_templates": [
+				{"lab_test_event": event, "lab_test_uom": uom or None, "normal_range": normal_range}
+				for event, uom, normal_range in t["rows"]
+			],
+		}
+	)
+	doc.insert()
+	return {"name": doc.name, "item": doc.item, "priced": bool(rate)}
+
+
+# Reports: one per visit (the Completed tab's actions)
+
+
+def _names(value):
+	if isinstance(value, str) and not value.strip().startswith("["):
+		value = value.split(",")
+	return [v.strip() for v in _list(value) if v and v.strip()]
+
+
+def report_tests(doc, validated_only=True):
+	"""The lab tests a Laboratory Report or Lab Request prints: `doc`, or the
+	tests chosen with it (?tests=A,B in the print URL, or frappe.flags.ke_lab_tests
+	when emailing). Only the same patient's tests, each readable by the user;
+	the report prints validated results only."""
+	chosen = _names(frappe.flags.ke_lab_tests or frappe.form_dict.get("tests"))
+	if not chosen:
+		return [doc]
+	out, seen = [], set()
+	for name in [doc.name, *chosen]:
+		if name in seen:
+			continue
+		seen.add(name)
+		other = doc if name == doc.name else frappe.get_doc("Lab Test", name)
+		if other.patient != doc.patient or other.docstatus == 2:
+			continue
+		if validated_only and other.docstatus != 1:
+			continue
+		if other is not doc and not frappe.has_permission("Lab Test", "read", other):
+			continue
+		out.append(other)
+	return out or [doc]
+
+
+def lab_report(doc) -> frappe._dict:
+	"""Jinja (Laboratory Report): each test's results, people and times."""
+	from royce_health_ke import printing
+
+	tests = []
+	for t in report_tests(doc, validated_only=doc.docstatus == 1):
+		tests.append(
+			frappe._dict(
+				doc=t,
+				results=printing.lab_results(t),
+				people=printing.lab_people(t),
+			)
+		)
+	verified = []
+	for t in tests:
+		if t.people.verified and t.people.verified not in verified:
+			verified.append(t.people.verified)
+	return frappe._dict(
+		tests=tests,
+		many=len(tests) > 1,
+		names=", ".join(t.doc.name for t in tests),
+		verified=", ".join(verified),
+		verified_on=tests[-1].people.verified_on if tests else "",
+		performed=", ".join(dict.fromkeys(t.people.performed for t in tests if t.people.performed)),
+	)
+
+
+def health_lab_report(doc):
+	return lab_report(doc)
+
+
+def lab_request(doc) -> frappe._dict:
+	"""Jinja (Lab Request): the request form behind these tests: who asked,
+	when, how urgent, the clinical diagnosis and where the patient came from."""
+	from royce_health_ke.printing import diagnosis_lines
+
+	tests = report_tests(doc, validated_only=False)
+	lines, encounters = [], []
+	referred, notes = None, []
+	for t in tests:
+		sr = (
+			frappe.db.get_value(
+				"Service Request",
+				t.service_request,
+				[
+					"name",
+					"order_date",
+					"order_time",
+					"priority",
+					"order_group",
+					"order_description",
+					"source",
+				],
+				as_dict=True,
+			)
+			if t.get("service_request")
+			else None
+		)
+		lines.append(
+			frappe._dict(
+				test=t.lab_test_name or t.template,
+				lab_test=t.name,
+				request=sr.name if sr else "",
+				priority=_priority(sr.priority) if sr else "Routine",
+				ordered=(
+					frappe.utils.format_datetime(f"{sr.order_date} {sr.order_time}", "d MMM yyyy HH:mm")
+					if sr and sr.order_time
+					else frappe.utils.format_datetime(t.creation, "d MMM yyyy HH:mm")
+				),
+				collected=(
+					frappe.utils.format_datetime(t.ke_sample_collected_at, "d MMM yyyy HH:mm")
+					if t.get("ke_sample_collected_at")
+					else ""
+				),
+				sample=t.get("sample") or frappe.db.get_value(LAB_TEMPLATE, t.template, "sample") or "",
+			)
+		)
+		if sr and sr.order_group and sr.order_group not in encounters:
+			encounters.append(sr.order_group)
+		if sr and sr.order_description and sr.order_description not in notes:
+			notes.append(sr.order_description)
+	visit = tests[0].get("ke_patient_visit")
+	if visit:
+		referred = frappe.db.get_value("Patient Visit", visit, "referred_from")
+	diagnoses = []
+	for enc in encounters:
+		for d in diagnosis_lines(frappe.get_doc("Patient Encounter", enc)):
+			if d not in diagnoses:
+				diagnoses.append(d)
+	collectors = {t.get("ke_sample_collected_by") for t in tests if t.get("ke_sample_collected_by")}
+	return frappe._dict(
+		lines=lines,
+		visit=visit,
+		encounters=encounters,
+		diagnoses=diagnoses,
+		notes=notes,
+		referred_from=referred,
+		collected_by=", ".join(frappe.utils.get_fullname(u) for u in collectors),
+		priority=max((x.priority for x in lines), key=lambda p: PRIORITY_RANK.get(p, 0)),
+	)
+
+
+def health_lab_request(doc):
+	return lab_request(doc)
+
+
+@frappe.whitelist()
+def email_results(lab_tests: str | list, recipient: str, message: str | None = None):
+	"""Email the validated results (one PDF, the Laboratory Report) to the
+	patient. Each test sent is logged in Patient Record Access as Email, with
+	the address."""
+	from frappe.email.doctype.email_account.email_account import EmailAccount
+
+	from royce_health_ke import access
+
+	names = _names(lab_tests)
+	if not names:
+		frappe.throw(_("No results to send."))
+	recipient = (recipient or "").strip()
+	frappe.utils.validate_email_address(recipient, throw=True)
+	docs = [frappe.get_doc("Lab Test", n) for n in names]
+	for d in docs:
+		frappe.has_permission("Lab Test", "email", d, throw=True)
+		if d.docstatus != 1:
+			frappe.throw(_("{0} is not validated yet.").format(d.lab_test_name or d.name))
+		if d.patient != docs[0].patient:
+			frappe.throw(_("Send one patient's results at a time."))
+	if not EmailAccount.find_outgoing():
+		frappe.throw(
+			_("No outgoing email account is set up. Ask the administrator to add one (Email Account)."),
+			title=_("Email not set up"),
+		)
+	first = docs[0]
+	frappe.flags.ke_lab_tests = names
+	try:
+		pdf = frappe.get_print("Lab Test", first.name, "Laboratory Report", as_pdf=True)
+	finally:
+		frappe.flags.ke_lab_tests = None
+	company = first.get("company") or frappe.db.get_single_value("Global Defaults", "default_company")
+	frappe.sendmail(
+		recipients=[recipient],
+		subject=_("Your laboratory results from {0}").format(company),
+		message=frappe.utils.escape_html(message or "").replace("\n", "<br>")
+		or _("Dear {0},<br><br>Please find your laboratory results attached.").format(
+			frappe.utils.escape_html(first.patient_name or "")
+		),
+		attachments=[{"fname": f"{first.patient}-lab-results.pdf", "fcontent": pdf}],
+		reference_doctype="Lab Test",
+		reference_name=first.name,
+	)
+	for d in docs:
+		access._log(d, "Email", recipient)
+	return {"sent": len(docs), "to": recipient}
+
+
+@frappe.whitelist()
+def patient_email(patient: str):
+	frappe.has_permission("Lab Test", "read", throw=True)
+	return frappe.db.get_value("Patient", patient, "email")
 
 
 # Results inbox

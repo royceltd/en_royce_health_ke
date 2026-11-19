@@ -60,6 +60,9 @@ class LabWorklist {
 		this.tab = "requests";
 		this.page.set_primary_action(__("Walk-in Request"), () => this.walk_in(), "add");
 		this.page.set_secondary_action(__("Refresh"), () => this.refresh(), "refresh");
+		if (frappe.model.can_create("Lab Test Template")) {
+			this.page.add_menu_item(__("Standard Tests"), () => this.library());
+		}
 		this.from = this.page.add_field({
 			fieldtype: "Date",
 			fieldname: "from_date",
@@ -153,6 +156,7 @@ class LabWorklist {
 				.filter(([, n]) => n)
 				.map(([s, n]) => pill(`${n} ${STAGE_LABELS[s]}`, STAGE_COLOURS[s]))
 				.join(" ");
+		const completed = this.tab === "completed";
 		const body = rows
 			.map(
 				(g, i) => `
@@ -170,22 +174,31 @@ class LabWorklist {
 						g.unpaid ? " " + pill(__("{0} not paid", [g.unpaid]), "red") : ""
 					}</td>
 					<td>${stage_cells(g.counts)}</td>
+					${completed ? `<td>${this.actions_cell(g, i)}</td>` : ""}
 				</tr>`,
 			)
 			.join("");
+		// the Actions menu must not be clipped by a scrolling table
 		$t.html(`
-			<div class="table-responsive">
+			<div class="table-responsive" ${completed ? 'style="overflow:visible"' : ""}>
 			<table class="table table-hover table-bordered" style="background:var(--card-bg)">
 				<thead><tr>
 					<th>${__("Visit")}</th><th>${__("Patient")}</th><th>${__("Age, sex")}</th>
 					<th>${__("Requested by")}</th><th>${__("Requested")}</th><th>${__("Tests")}</th>
 					<th>${__("Urgency")}</th><th>${__("Payment")}</th><th>${__("Progress")}</th>
+					${completed ? `<th>${__("Actions")}</th>` : ""}
 				</tr></thead>
 				<tbody>${body}</tbody>
 			</table></div>`);
 		$t.find("tbody tr").on("click", (e) => {
+			if ($(e.target).closest(".ke-lab-row-actions").length) return;
 			const g = rows[$(e.currentTarget).data("idx")];
 			this.open_order(g.key);
+		});
+		$t.find(".ke-lab-row-actions [data-action]").on("click", (e) => {
+			e.preventDefault();
+			const $a = $(e.currentTarget);
+			this.action(rows[$a.data("idx")], $a.data("action"));
 		});
 	}
 
@@ -196,81 +209,180 @@ class LabWorklist {
 	}
 
 	walk_in() {
-		const d = new frappe.ui.Dialog({
-			title: __("Walk-in Lab Request"),
-			fields: [
-				{
-					fieldtype: "Link",
-					fieldname: "patient",
-					label: __("Patient"),
-					options: "Patient",
-					reqd: 1,
-					description: __("Register a new patient first if they are not found."),
-				},
-				{
-					fieldtype: "MultiSelectList",
-					fieldname: "tests",
-					label: __("Tests"),
-					reqd: 1,
-					get_data: (txt) =>
-						frappe.db.get_link_options("Lab Test Template", txt, { disabled: 0 }),
-				},
-				{ fieldtype: "Column Break" },
-				{
-					fieldtype: "Link",
-					fieldname: "practitioner",
-					label: __("Requesting doctor"),
-					options: "Healthcare Practitioner",
-					description: __("Blank: the default in Kenya Health Settings > Laboratory."),
-				},
-				{
-					fieldtype: "Data",
-					fieldname: "referred_by",
-					label: __("Referred by (outside doctor or clinic)"),
-				},
-				{
-					fieldtype: "Select",
-					fieldname: "priority",
-					label: __("Urgency"),
-					options: "Routine\nUrgent\nASAP\nSTAT",
-					default: "Routine",
-				},
-			],
-			primary_action_label: __("Create Requests"),
-			primary_action: (v) => {
-				const tests = (v.tests || []).filter(Boolean);
-				if (!tests.length) {
-					frappe.msgprint(__("Choose at least one test."));
-					return;
-				}
-				frappe
-					.call({
-						method: LAB + "walk_in",
-						args: {
-							patient: v.patient,
-							tests,
-							practitioner: v.practitioner,
-							referred_by: v.referred_by,
-							priority: v.priority,
-						},
-						freeze: true,
-					})
-					.then((r) => {
-						d.hide();
-						frappe.show_alert({
-							message: __("{0} requests on visit {1}. Cash patients pay at the Cashier first.", [
-								r.message.requests.length,
-								r.message.visit,
-							]),
-							indicator: "green",
-						});
-						this.tab = "requests";
-						this.refresh();
-						this.open_order(r.message.key);
-					});
+		royce_health_ke.lab_walk_in({
+			on_done: (m) => {
+				this.tab = "requests";
+				this.refresh();
+				this.open_order(m.key);
 			},
 		});
-		d.show();
+	}
+
+	// Standard tests (lab.LIBRARY): add one with the hospital's price.
+	library() {
+		frappe.call(LAB + "lab_library").then((r) => {
+			const tests = r.message || [];
+			const d = new frappe.ui.Dialog({
+				title: __("Standard Tests"),
+				fields: [
+					{ fieldtype: "HTML", fieldname: "list" },
+					{
+						fieldtype: "Select",
+						fieldname: "test",
+						label: __("Add"),
+						options: tests.filter((t) => !t.exists).map((t) => t.name),
+					},
+					{ fieldtype: "Currency", fieldname: "rate", label: __("Cash price") },
+					{
+						fieldtype: "Data",
+						fieldname: "code",
+						label: __("Item code"),
+						description: __("Blank: the standard code."),
+					},
+				],
+				primary_action_label: __("Add Test"),
+				primary_action: (v) => {
+					if (!v.test) return;
+					frappe
+						.call({
+							method: LAB + "add_from_library",
+							args: { name: v.test, rate: v.rate, code: v.code },
+							freeze: true,
+						})
+						.then((res) => {
+							d.hide();
+							frappe.show_alert({
+								message: res.message.priced
+									? __("{0} added", [res.message.name])
+									: __("{0} added without a price: set it on the test.", [res.message.name]),
+								indicator: res.message.priced ? "green" : "orange",
+							});
+							frappe.set_route("Form", "Lab Test Template", res.message.name);
+						});
+				},
+			});
+			d.fields_dict.list.$wrapper.html(
+				`<table class="table table-bordered table-sm"><tbody>${tests
+					.map(
+						(t) => `<tr><td><b>${esc(t.name)}</b><div class="small text-muted">${esc(
+							t.note || "",
+						)} ${__("{0} parameters", [t.parameters])}</div></td><td>${
+							t.exists ? pill(__("Set up"), "green") : pill(__("Not added"), "gray")
+						}</td></tr>`,
+					)
+					.join("")}</tbody></table>`,
+			);
+			if (!tests.some((t) => !t.exists)) {
+				d.get_primary_btn().hide();
+				d.set_df_property("test", "hidden", 1);
+				d.set_df_property("rate", "hidden", 1);
+				d.set_df_property("code", "hidden", 1);
+			}
+			d.show();
+		});
+	}
+
+	// The Completed tab's per-visit actions: the visit's validated tests in
+	// one report. No Word copy: validated results are not edited.
+	report_url(g, format, extra = "") {
+		const [first, ...rest] = g.validated;
+		return (
+			`/printview?doctype=Lab%20Test&name=${encodeURIComponent(first)}` +
+			`&format=${encodeURIComponent(format)}&no_letterhead=0` +
+			(rest.length ? `&tests=${encodeURIComponent(g.validated.join(","))}` : "") +
+			extra
+		);
+	}
+
+	action(g, what) {
+		if (!g.validated.length) return;
+		const tests = g.validated.join(",");
+		if (what === "view") window.open(this.report_url(g, "Laboratory Report"), "_blank");
+		if (what === "print") window.open(this.report_url(g, "Laboratory Report", "&trigger_print=1"), "_blank");
+		if (what === "request") {
+			// every test of the order, validated or not
+			const all = { ...g, validated: g.lab_tests.length ? g.lab_tests : g.validated };
+			window.open(this.report_url(all, "Lab Request", "&trigger_print=1"), "_blank");
+		}
+		if (what === "pdf") {
+			window.open(
+				`/api/method/frappe.utils.print_format.download_pdf?doctype=Lab%20Test&name=${encodeURIComponent(
+					g.validated[0],
+				)}&format=${encodeURIComponent("Laboratory Report")}&tests=${encodeURIComponent(tests)}`,
+				"_blank",
+			);
+		}
+		if (what === "email") this.email(g);
+	}
+
+	email(g) {
+		frappe.call(LAB + "patient_email", { patient: g.patient }).then((r) => {
+			const d = new frappe.ui.Dialog({
+				title: __("Send Results to {0}", [g.patient_name || g.patient]),
+				fields: [
+					{
+						fieldtype: "Data",
+						fieldname: "recipient",
+						label: __("Email"),
+						options: "Email",
+						reqd: 1,
+						default: r.message || "",
+						description: r.message
+							? __("The email on the patient's record.")
+							: __("No email on the patient's record: type the one the patient gives."),
+					},
+					{
+						fieldtype: "Small Text",
+						fieldname: "message",
+						label: __("Message"),
+						description: __("Blank: a short standard note. The results go as a PDF."),
+					},
+					{
+						fieldtype: "HTML",
+						options: `<div class="small text-muted">${esc(
+							__("{0} validated test(s): {1}", [g.validated.length, g.tests.join(", ")]),
+						)}</div>`,
+					},
+				],
+				primary_action_label: __("Send"),
+				primary_action: (v) => {
+					frappe
+						.call({
+							method: LAB + "email_results",
+							args: { lab_tests: g.validated, recipient: v.recipient, message: v.message },
+							freeze: true,
+							freeze_message: __("Sending..."),
+						})
+						.then((res) => {
+							d.hide();
+							frappe.show_alert({
+								message: __("Results sent to {0}", [res.message.to]),
+								indicator: "green",
+							});
+						});
+				},
+			});
+			d.show();
+		});
+	}
+
+	actions_cell(g, i) {
+		if (!g.validated || !g.validated.length) return "";
+		const items = [
+			["view", __("View")],
+			["print", __("Print")],
+			["pdf", __("Download PDF")],
+			["email", __("Send to Patient")],
+			["request", __("Print Request")],
+		]
+			.map(
+				([key, label]) =>
+					`<li><a class="dropdown-item" href="#" data-action="${key}" data-idx="${i}">${label}</a></li>`,
+			)
+			.join("");
+		return `<div class="dropdown ke-lab-row-actions">
+			<button class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">${__("Actions")}</button>
+			<ul class="dropdown-menu dropdown-menu-right">${items}</ul></div>`;
 	}
 }
 
@@ -428,6 +540,19 @@ class ResultsDialog {
 			const $i = $(e.currentTarget);
 			const f = this.flag($i.val(), $i.data("range"), this.sheet[$i.data("test")].sex);
 			$i.closest("tr").find(".ke-flag").html(f ? pill(f, "red") : "");
+		});
+		// Enter moves to the next result, as on the analyser's sheet; Enter
+		// on the last result stays there: saving is always a button press.
+		this.d.fields_dict.sheet.$wrapper.on("keydown", "input[data-kind]", (e) => {
+			if (e.key !== "Enter" || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
+			e.preventDefault();
+			e.stopPropagation();
+			const $inputs = this.d.fields_dict.sheet.$wrapper.find("input[data-kind]:visible:not([disabled])");
+			const next = $inputs.get($inputs.index(e.currentTarget) + 1);
+			if (next) {
+				next.focus();
+				next.select();
+			}
 		});
 		this.d.show();
 	}

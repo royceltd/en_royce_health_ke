@@ -82,7 +82,7 @@ def log_print(doc, method=None, *args, **kwargs):
 	_log(doc, "Print")
 
 
-def _log(doc, action):
+def _log(doc, action, detail=None):
 	if doc.doctype not in TRACKED or doc.is_new() or frappe.session.user == "Guest":
 		return
 	try:
@@ -107,6 +107,7 @@ def _log(doc, action):
 				"reference_doctype": doc.doctype,
 				"reference_name": doc.name,
 				"action": action,
+				"detail": detail,
 				"user": user,
 				"full_name": frappe.utils.get_fullname(user),
 				"ip_address": getattr(frappe.local, "request_ip", None),

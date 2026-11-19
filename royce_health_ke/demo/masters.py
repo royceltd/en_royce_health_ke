@@ -482,6 +482,13 @@ def _lab(company):
 		if code in LAB_LOINC and not template.get("codification_table"):
 			set_coding(template, LOINC, *LAB_LOINC[code])
 			template.save(ignore_permissions=True)
+	# The analyser's full haemogram, from the standard tests (lab.LIBRARY).
+	from royce_health_ke import lab
+
+	if not frappe.db.exists("Lab Test Template", "Full Haemogram") and not frappe.db.exists(
+		"Item", "LAB-FHG"
+	):
+		lab.add_from_library("Full Haemogram", 1200)
 	_map_moh706()
 
 

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "creation": "2026-11-08 23:00:00.000000",
- "modified": "2026-11-18 23:00:00.000000",
+ "modified": "2026-11-19 20:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
@@ -55,10 +55,17 @@
    "fieldname": "action",
    "fieldtype": "Select",
    "label": "Action",
-   "options": "View\nPrint\nExport",
+   "options": "View\nPrint\nExport\nEmail",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "detail",
+   "fieldtype": "Data",
+   "label": "Detail",
+   "read_only": 1,
+   "description": "Where a record was sent (Email)."
   },
   {
    "fieldname": "cb1",
@@ -101,6 +108,7 @@
   "reference_doctype",
   "reference_name",
   "action",
+  "detail",
   "cb1",
   "user",
   "full_name",
