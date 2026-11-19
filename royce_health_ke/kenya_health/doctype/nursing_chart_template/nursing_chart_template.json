@@ -1,0 +1,101 @@
+{
+ "name": "Nursing Chart Template",
+ "actions": [],
+ "creation": "2026-11-19 08:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-19 08:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "template_name",
+   "fieldtype": "Data",
+   "label": "Chart",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "interval_hours",
+   "fieldtype": "Int",
+   "label": "Due Every (hours)",
+   "description": "Blank: whenever care is given."
+  },
+  {
+   "fieldname": "needs_second_signature",
+   "fieldtype": "Check",
+   "label": "Second Nurse Checks Each Entry",
+   "description": "E.g. blood transfusion."
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "sequence",
+   "fieldtype": "Int",
+   "label": "Sequence"
+  },
+  {
+   "fieldname": "columns_section",
+   "fieldtype": "Section Break",
+   "label": "Columns"
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "Table",
+   "label": "Columns",
+   "options": "Nursing Chart Column",
+   "reqd": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1
+  }
+ ],
+ "istable": 0,
+ "track_changes": 1,
+ "autoname": "field:template_name",
+ "description": "A nursing chart the hospital defines: its columns, units, alert ranges, 24-hour totals and whether a second nurse checks. Add a chart without a new release."
+}

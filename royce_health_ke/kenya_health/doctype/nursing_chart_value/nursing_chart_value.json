@@ -1,0 +1,46 @@
+{
+ "name": "Nursing Chart Value",
+ "actions": [],
+ "creation": "2026-11-19 08:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-19 08:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "column_label",
+   "fieldtype": "Data",
+   "label": "Column",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Data",
+   "label": "Value",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Data",
+   "label": "Unit",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "flag",
+   "fieldtype": "Data",
+   "label": "Alert",
+   "in_list_view": 1,
+   "read_only": 1
+  }
+ ],
+ "permissions": [],
+ "istable": 1
+}

@@ -1,0 +1,40 @@
+{
+ "name": "Patient Workspace Tab",
+ "actions": [],
+ "creation": "2026-11-19 08:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-19 08:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "panel",
+   "fieldtype": "Select",
+   "label": "Panel",
+   "options": "Patient File\nVitals\nRequests\nResults\nDiagnosis\nNursing Notes\nNursing Care\nDrug Administration\nBilling\nDischarge",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Label",
+   "in_list_view": 1,
+   "description": "The tab's name on the screen. Blank: the panel's name."
+  },
+  {
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "label": "Hidden",
+   "in_list_view": 1
+  }
+ ],
+ "permissions": [],
+ "istable": 1
+}

@@ -1318,3 +1318,10 @@ def patient_file(doc) -> frappe._dict:
 
 def health_patient_file(doc):
 	return patient_file(doc)
+
+
+def health_admission_record(doc):
+	"""Jinja (Discharge Summary): the record of the stay (inpatient.admission_record)."""
+	from royce_health_ke.inpatient import admission_record
+
+	return admission_record(doc.get("inpatient_record"))

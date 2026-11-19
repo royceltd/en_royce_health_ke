@@ -22,6 +22,7 @@ Once a temporary guide's job is done (the hospital is set up, the release is tes
 | [No consultation or triage before payment](v0.41-testing.md) | Bethesda's IT team, on the demo or their own system | v0.41.0 | 2026-11-18 |
 | [Your feedback of 17 November: payment, queues, service prices and categories](v0.42-it-feedback-guide.md) | Bethesda's IT team and system administrator | v0.42.0 | 2026-11-18 |
 | [Changes from the 17 and 18 November demos: requests on save, diagnosis and results before completing, visits closing themselves, patient file, queues, draft bills, M-Pesa, role access](v0.44-testing.md) | The hospital's IT team or administrator | v0.44.1 | 2026-11-18 |
+| [Inpatient: admission, the ward, the patient screen, ward drugs, nursing charts and discharge](v0.47-testing.md) | The hospital's doctors, nurses, pharmacist and administrator, on the demo | v0.47.0 | 2026-11-19 |
 | [Data protection: consent at registration, patients' data requests and record export, breach register](v0.46-testing.md) | The hospital's administrator and Data Protection Officer, on the demo | v0.46.0 | 2026-11-18 |
 | [Outpatient changes from the Bethesda proposals: dispensing units, ICD-11, clerking order, vitals history, Visit Summary, request types and Nursing Worklist, counter prescriptions](v0.45-testing.md) | The hospital's IT team or administrator, on the demo | v0.45.0 | 2026-11-18 |
 | [Security basics: logins, users, screen lock, Compliance Check](v0.43-testing.md) | The hospital's IT team or administrator | v0.43.0 | 2026-11-18 |

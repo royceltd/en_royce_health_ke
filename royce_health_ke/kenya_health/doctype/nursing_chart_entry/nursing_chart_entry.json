@@ -1,0 +1,151 @@
+{
+ "name": "Nursing Chart Entry",
+ "actions": [],
+ "creation": "2026-11-19 08:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-19 08:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "NCE-.YYYY.-",
+   "default": "NCE-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "template",
+   "fieldtype": "Link",
+   "label": "Chart",
+   "options": "Nursing Chart Template",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "patient.patient_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "inpatient_record",
+   "fieldtype": "Link",
+   "label": "Admission",
+   "options": "Inpatient Record",
+   "search_index": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "recorded_at",
+   "fieldtype": "Datetime",
+   "label": "Time",
+   "default": "Now",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "recorded_by",
+   "fieldtype": "Link",
+   "label": "Recorded By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "second_check_by",
+   "fieldtype": "Link",
+   "label": "Checked By (second nurse)",
+   "options": "User"
+  },
+  {
+   "fieldname": "shift",
+   "fieldtype": "Data",
+   "label": "Shift",
+   "read_only": 1
+  },
+  {
+   "fieldname": "values_section",
+   "fieldtype": "Section Break",
+   "label": "Readings"
+  },
+  {
+   "fieldname": "values",
+   "fieldtype": "Table",
+   "label": "Values",
+   "options": "Nursing Chart Value"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  },
+  {
+   "fieldname": "alerts",
+   "fieldtype": "Small Text",
+   "label": "Alerts",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "create": 1,
+   "write": 1,
+   "print": 1,
+   "report": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "print": 1,
+   "report": 1
+  }
+ ],
+ "istable": 0,
+ "track_changes": 1,
+ "autoname": "naming_series:",
+ "title_field": "template",
+ "description": "One reading on a nursing chart: who, when, the values against the chart's columns, alerts and the second nurse's check."
+}

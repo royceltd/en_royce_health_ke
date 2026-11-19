@@ -18,6 +18,15 @@ frappe.ui.form.on("Patient Encounter", {
 		ke_unsent_requests(frm);
 		ke_latest_vitals(frm);
 		ke_request_type(frm);
+		// Admit to Ward (royce_health_ke.inpatient): the admission order with ward,
+		// urgency, date, reason and notes; the patient goes to the ward's list
+		if (
+			!frm.is_new() &&
+			!frm.doc.inpatient_record &&
+			frappe.model.can_create("Inpatient Record")
+		) {
+			frm.add_custom_button(__("Admit to Ward"), () => ke_admit_dialog(frm));
+		}
 		if (frm.doc.patient && frappe.model.can_read("Vital Signs")) {
 			frm.add_custom_button(
 				__("Vital Signs History"),
@@ -712,4 +721,79 @@ function ke_vitals_history(patient) {
 		);
 		d.show();
 	});
+}
+
+async function ke_admit_dialog(frm) {
+	const wards = (await frappe.xcall("royce_health_ke.inpatient.ward_list")) || [];
+	if (!wards.length) {
+		frappe.msgprint(
+			__("No ward has beds yet. Set up the wards and beds (Healthcare Service Units) first.")
+		);
+		return;
+	}
+	const d = new frappe.ui.Dialog({
+		title: __("Admit to Ward"),
+		fields: [
+			{
+				fieldname: "ward",
+				fieldtype: "Select",
+				label: __("Ward"),
+				options: wards.join("\n"),
+				reqd: 1,
+			},
+			{
+				fieldname: "urgency",
+				fieldtype: "Select",
+				label: __("Urgency"),
+				options: "Routine\nUrgent\nEmergency",
+				default: "Routine",
+				reqd: 1,
+			},
+			{
+				fieldname: "admission_date",
+				fieldtype: "Date",
+				label: __("Admission Date"),
+				default: frappe.datetime.get_today(),
+				reqd: 1,
+			},
+			{ fieldname: "expected_days", fieldtype: "Int", label: __("Expected Stay (days)") },
+			{ fieldtype: "Column Break" },
+			{
+				fieldname: "reason",
+				fieldtype: "Small Text",
+				label: __("Admission Reason"),
+				reqd: 1,
+			},
+			{
+				fieldname: "notes",
+				fieldtype: "Small Text",
+				label: __("Admission Notes (for the ward)"),
+			},
+		],
+		primary_action_label: __("Admit"),
+		primary_action(v) {
+			frappe
+				.xcall("royce_health_ke.inpatient.request_admission", {
+					encounter: frm.doc.name,
+					...v,
+				})
+				.then((ip) => {
+					d.hide();
+					frappe.msgprint({
+						title: __("Admission requested"),
+						indicator: "green",
+						message: __(
+							"{0} is on the {1} admission list ({2}). The ward gives the bed. Complete the consultation when you are done.",
+							[
+								frappe.utils.escape_html(frm.doc.patient_name),
+								frappe.utils.escape_html(v.ward),
+								ip,
+							]
+						),
+					});
+					frm.reload_doc();
+				});
+		},
+	});
+	d.show();
 }

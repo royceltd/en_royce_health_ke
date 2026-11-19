@@ -7,12 +7,14 @@ Downloading code sets (ICD-11) is left to an explicit action - a migrate must
 not depend on WHO's servers being reachable."""
 
 from royce_health_ke import (
+	charts,
 	clinical,
 	codes,
 	consultation,
 	dataprotection,
 	forms,
 	formulary,
+	inpatient,
 	privacy,
 	roles,
 	routing,
@@ -50,6 +52,9 @@ def run():
 	formulary.batch_quick_entry()
 	forms.apply()
 	routing.seed()
+	inpatient.seed()
+	charts.seed()
+	inpatient.sync_drug_charge()
 	consultation.apply_layout()
 	security.apply_baseline()
 
@@ -184,6 +189,8 @@ def default_settings():
 		("consent_at_registration", 1),
 		("dsr_access_days", 7),
 		("dsr_correction_days", 14),
+		("ward_drug_charge", "On issue"),
+		("over_deposit_action", "Warn"),
 	):
 		# tabSingles directly: frappe.db.exists("Singles", ...) always says no, which
 		# reset these switches on every migrate (fixed in v0.35.1)

@@ -83,7 +83,15 @@
   "clinical_services_cb",
   "load_growth_standards",
   "cds_section",
-  "clinical_alerts"
+  "clinical_alerts",
+  "inpatient_section",
+  "ward_drug_charge",
+  "inpatient_workspace_profile",
+  "inpatient_cb",
+  "admission_deposit",
+  "over_deposit_action",
+  "shifts_section",
+  "nursing_shifts"
  ],
  "fields": [
   {
@@ -590,11 +598,61 @@
    "label": "Clinical Alerts",
    "default": "1",
    "description": "Check each consultation against the Clinical Alert Rules and recalled / side-effect medicines, and show the alerts to the clinician. Never blocks saving."
+  },
+  {
+   "fieldname": "inpatient_section",
+   "fieldtype": "Section Break",
+   "label": "Inpatient (Wards)"
+  },
+  {
+   "fieldname": "ward_drug_charge",
+   "fieldtype": "Select",
+   "label": "Charge ward drugs",
+   "options": "On issue\nOn administration",
+   "default": "On issue",
+   "description": "On issue: charged when the pharmacy sends them to the ward. On administration: the pharmacy moves them to the bed and each dose given is charged (unused doses go back unbilled). Sets Marley's ward stock switch; beds then need a warehouse."
+  },
+  {
+   "fieldname": "inpatient_workspace_profile",
+   "fieldtype": "Link",
+   "label": "Patient Screen Tabs",
+   "options": "Patient Workspace Profile",
+   "description": "Which tabs the ward's patient screen shows, in which order."
+  },
+  {
+   "fieldname": "inpatient_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "admission_deposit",
+   "fieldtype": "Currency",
+   "label": "Deposit Asked at Admission (cash)",
+   "description": "Shown when a cash patient is admitted. Blank: none."
+  },
+  {
+   "fieldname": "over_deposit_action",
+   "fieldtype": "Select",
+   "label": "When the bill passes what is paid",
+   "options": "Warn\nWarn and notify billing",
+   "default": "Warn",
+   "description": "Cash admissions: the patient screen and the ward list warn; the billing desk can also get a daily notice. Care is never stopped."
+  },
+  {
+   "fieldname": "shifts_section",
+   "fieldtype": "Section Break",
+   "label": "Nursing Shifts"
+  },
+  {
+   "fieldname": "nursing_shifts",
+   "fieldtype": "Table",
+   "label": "Shifts",
+   "options": "Nursing Shift",
+   "description": "Nursing notes and charts are grouped by shift."
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-18 23:00:00.000000",
+ "modified": "2026-11-19 08:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

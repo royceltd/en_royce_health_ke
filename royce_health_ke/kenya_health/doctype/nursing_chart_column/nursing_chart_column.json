@@ -1,0 +1,73 @@
+{
+ "name": "Nursing Chart Column",
+ "actions": [],
+ "creation": "2026-11-19 08:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-19 08:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Column",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Kind",
+   "options": "Number\nText\nYes or No\nChoice",
+   "default": "Number",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Data",
+   "label": "Unit",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Small Text",
+   "label": "Choices",
+   "description": "One per line, for a Choice column.",
+   "depends_on": "eval:doc.kind=='Choice'"
+  },
+  {
+   "fieldname": "low",
+   "fieldtype": "Float",
+   "label": "Alert Below",
+   "depends_on": "eval:doc.kind=='Number'",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "high",
+   "fieldtype": "Float",
+   "label": "Alert Above",
+   "depends_on": "eval:doc.kind=='Number'",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "reqd",
+   "fieldtype": "Check",
+   "label": "Required"
+  },
+  {
+   "fieldname": "total",
+   "fieldtype": "Check",
+   "label": "Total per 24 Hours",
+   "depends_on": "eval:doc.kind=='Number'"
+  }
+ ],
+ "permissions": [],
+ "istable": 1
+}

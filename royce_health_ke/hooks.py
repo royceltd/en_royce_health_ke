@@ -140,7 +140,12 @@ doc_events = {
 	},
 	"Patient Visit": {"on_update": "royce_health_ke.payment_status.visit_changed"},
 	"Inpatient Record": {"on_update": "royce_health_ke.payment_status.inpatient_changed"},
-	"Kenya Health Settings": {"on_update": "royce_health_ke.payment_status.settings_changed"},
+	"Kenya Health Settings": {
+		"on_update": [
+			"royce_health_ke.payment_status.settings_changed",
+			"royce_health_ke.inpatient.sync_drug_charge",
+		]
+	},
 	"Patient Encounter": {
 		"before_validate": [
 			"royce_health_ke.diagnosis.sync_rows",
@@ -167,8 +172,11 @@ doc_events = {
 			"royce_health_ke.visit_bill.orders_changed",
 			"royce_health_ke.surveillance.encounter_submitted",
 			"royce_health_ke.cds.encounter_saved",
+			"royce_health_ke.inpatient.order_from_encounter",
 		],
 	},
+	"Inpatient Medication Entry": {"on_submit": "royce_health_ke.inpatient.bill_on_issue"},
+	"Insurance Claim": {"before_submit": "royce_health_ke.inpatient.hold_claim_without_preauth"},
 	"Public Health Event": {"after_insert": "royce_health_ke.surveillance.event_inserted"},
 	"Medication Request": {
 		"on_submit": [
@@ -211,6 +219,7 @@ jinja = {
 		"royce_health_ke.pharmacy.health_medicine_labels",
 		"royce_health_ke.printing.health_patient_receipt",
 		"royce_health_ke.printing.health_visit_summary",
+		"royce_health_ke.printing.health_admission_record",
 	]
 }
 
@@ -233,6 +242,7 @@ scheduler_events = {
 		"royce_health_ke.surveillance.weekly_job",
 		"royce_health_ke.kenya_health.report.visits_to_close.visits_to_close.notify_managers",
 		"royce_health_ke.dataprotection.notify_overdue",
+		"royce_health_ke.inpatient.notify_over_deposit",
 	],
 	"hourly": [
 		"royce_health_ke.sms.send_appointment_reminders",

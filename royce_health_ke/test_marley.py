@@ -21,6 +21,9 @@ SIGNATURES = {
 	"get_drugs_to_invoice": ["encounter", "customer"],
 	"get_appointment_type_billing_details": ["appointment_type", "dep_su", "is_inpatient"],
 	"make_lab_test": ["service_request"],
+	"create_inpatient_record": ["admission_order"],
+	"get_intake_output_summary": ["patient", "hours"],
+	"make_discharge_summary": ["source_name"],
 }
 
 

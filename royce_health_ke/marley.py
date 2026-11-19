@@ -66,6 +66,13 @@ USES = {
 	"schedule_inpatient": ("doctype.inpatient_record.inpatient_record", "schedule_inpatient"),
 	"schedule_discharge": ("doctype.inpatient_record.inpatient_record", "schedule_discharge"),
 	"make_discharge_summary": ("doctype.inpatient_record.inpatient_record", "make_discharge_summary"),
+	"create_inpatient_record": ("doctype.inpatient_record.inpatient_record", "create_inpatient_record"),
+	# ward medication and nursing (inpatient.py, charts.py)
+	"manages_medication_stock": (
+		"doctype.healthcare_service_unit.healthcare_service_unit",
+		"manages_medication_stock",
+	),
+	"get_intake_output_summary": ("api.intake_output", "get_intake_output_summary"),
 }
 
 

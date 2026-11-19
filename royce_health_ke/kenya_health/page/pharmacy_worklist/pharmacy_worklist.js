@@ -52,6 +52,8 @@ class PharmacyWorklist {
 		this.tab = "waiting";
 		page.set_primary_action(__("Counter Sale"), () => this.counter_sale(), "add");
 		page.set_secondary_action(__("Refresh"), () => this.refresh(), "refresh");
+		// inpatients' ward medication (royce_health_ke.inpatient): doses due, sent per patient
+		page.add_inner_button(__("Ward Requests"), () => this.ward_requests());
 		this.warehouse = page.add_field({
 			fieldtype: "Link",
 			fieldname: "warehouse",
@@ -166,6 +168,56 @@ class PharmacyWorklist {
 			to_date: this.to.get_value(),
 			warehouse: this.warehouse.get_value(),
 		};
+	}
+
+	ward_requests() {
+		const IP = "royce_health_ke.inpatient.";
+		const d = new frappe.ui.Dialog({ title: __("Ward Requests: doses due in the next 24 hours"), size: "extra-large" });
+		const render = () =>
+			frappe.xcall(IP + "ward_requests", { hours: 24 }).then((rows) => {
+				rows = rows || [];
+				if (!rows.length) {
+					d.$body.html(`<p class="text-muted">${__("No ward medication waiting.")}</p>`);
+					return;
+				}
+				const patients = {};
+				rows.forEach((r) => (patients[r.patient] = patients[r.patient] || { ...r, drugs: [] }).drugs.push(r));
+				d.$body.html(
+					Object.values(patients)
+						.map(
+							(p) => `<div class="mb-3 p-3" style="border:1px solid var(--border-color);border-radius:8px">
+							<div class="d-flex justify-content-between"><div><b>${ph_esc(p.patient_name)}</b>
+							<span class="text-muted small ml-2">${ph_esc(p.ward || "")} ${ph_esc(p.bed || "")} · ${ph_esc(p.inpatient_record)}</span></div>
+							<button class="btn btn-xs btn-primary ward-issue" data-patient="${ph_esc(p.patient)}">${__("Issue to Ward")}</button></div>
+							<table class="table table-sm mt-2 mb-0" style="font-size:12px"><thead><tr><th>${__("Drug")}</th><th>${__("Doses")}</th><th>${__(
+								"Quantity"
+							)}</th><th>${__("First due")}</th></tr></thead><tbody>${p.drugs
+								.map(
+									(r) =>
+										`<tr><td>${ph_esc(r.drug_name || r.drug)}</td><td>${ph_esc(r.doses)}</td><td>${ph_num(r.quantity)}</td><td>${ph_esc(
+											frappe.datetime.str_to_user(r.first_due)
+										)}</td></tr>`
+								)
+								.join("")}</tbody></table></div>`
+						)
+						.join("")
+				);
+				d.$body.find(".ward-issue").on("click", (e) => {
+					const warehouse = this.warehouse.get_value();
+					if (!warehouse) {
+						frappe.msgprint(__("Choose the pharmacy store first."));
+						return;
+					}
+					frappe
+						.xcall(IP + "issue_to_ward", { patient: $(e.currentTarget).data("patient"), warehouse, hours: 24 })
+						.then((name) => {
+							frappe.show_alert({ message: __("Sent to the ward: {0}", [name]), indicator: "green" });
+							render();
+						});
+				});
+			});
+		render();
+		d.show();
 	}
 
 	open(key) {

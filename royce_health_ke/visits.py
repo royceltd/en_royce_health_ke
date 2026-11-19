@@ -434,6 +434,9 @@ def open_station(visit: str) -> dict:
 
 def link_encounter(doc, method=None):
 	"""Link the day's visit and fill what the consultation can take from it."""
+	# a ward round belongs to the admission (billed with it), not to the outpatient visit
+	if doc.get("inpatient_record") and doc.is_new():
+		return
 	if not doc.get("ke_patient_visit"):
 		doc.ke_patient_visit = open_visit_for(doc.patient, doc.get("encounter_date"))
 	if doc.ke_patient_visit:

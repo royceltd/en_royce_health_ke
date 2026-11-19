@@ -1,0 +1,71 @@
+{
+ "name": "Patient Workspace Profile",
+ "actions": [],
+ "creation": "2026-11-19 08:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-19 08:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "profile_name",
+   "fieldtype": "Data",
+   "label": "Profile",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "care_setting",
+   "fieldtype": "Select",
+   "label": "Care Setting",
+   "options": "Inpatient\nCasualty\nMaternity\nICU\nOther",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "tabs",
+   "fieldtype": "Table",
+   "label": "Tabs (in order)",
+   "options": "Patient Workspace Tab"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1
+  }
+ ],
+ "istable": 0,
+ "track_changes": 1,
+ "autoname": "field:profile_name",
+ "description": "The tab bar of the patient screen for a care setting: which tabs, in which order, with which names."
+}

@@ -95,7 +95,7 @@ EVERYONE_REPORTS = ("Medication Item wise Sales", "Planned vs Actual Therapy Ses
 PAGES = {
 	"Receptionist": (),
 	"Cashier": ("patient-bills",),
-	"Physician": ("results-inbox", "patient_history"),
+	"Physician": ("results-inbox", "patient_history", "ward", "inpatient-workspace"),
 	"Laboratory User": ("lab-worklist",),
 	"Pharmacist": ("pharmacy-worklist",),
 	"Healthcare Administrator": (
@@ -105,8 +105,10 @@ PAGES = {
 		"patient-bills",
 		"patient_history",
 		"nursing-worklist",
+		"ward",
+		"inpatient-workspace",
 	),
-	"Nursing User": ("patient_history", "nursing-worklist"),
+	"Nursing User": ("patient_history", "nursing-worklist", "ward", "inpatient-workspace"),
 }
 REPORTS = {
 	"Receptionist": ("Patients by Residence", *EVERYONE_REPORTS),

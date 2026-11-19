@@ -1117,6 +1117,88 @@ COUNTER_PRESCRIPTION_ITEM = [
 	},
 ]
 
+# Admission from the consultation and the payer's pre-authorisation (inpatient.py)
+INPATIENT_RECORD = [
+	{
+		"fieldname": "ke_admission_section",
+		"fieldtype": "Section Break",
+		"label": "Admission Request",
+		"insert_after": "admission_instruction",
+	},
+	{
+		"fieldname": "ke_ward",
+		"fieldtype": "Link",
+		"label": "Ward",
+		"options": "Healthcare Service Unit",
+		"insert_after": "ke_admission_section",
+		"in_standard_filter": 1,
+	},
+	{
+		"fieldname": "ke_urgency",
+		"fieldtype": "Select",
+		"label": "Urgency",
+		"options": "\nRoutine\nUrgent\nEmergency",
+		"insert_after": "ke_ward",
+		"in_list_view": 1,
+	},
+	{
+		"fieldname": "ke_admission_reason",
+		"fieldtype": "Small Text",
+		"label": "Admission Reason",
+		"insert_after": "ke_urgency",
+	},
+	{"fieldname": "ke_admission_cb", "fieldtype": "Column Break", "insert_after": "ke_admission_reason"},
+	{
+		"fieldname": "ke_patient_visit",
+		"fieldtype": "Link",
+		"label": "Patient Visit",
+		"options": "Patient Visit",
+		"insert_after": "ke_admission_cb",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "ke_preauth_status",
+		"fieldtype": "Select",
+		"label": "Pre-authorisation",
+		"options": "\nPending\nReceived",
+		"insert_after": "ke_patient_visit",
+		"description": "The payer's approval of the admission. Pending holds the claim, never the care.",
+	},
+	{
+		"fieldname": "ke_preauth_code",
+		"fieldtype": "Data",
+		"label": "Pre-authorisation Code",
+		"insert_after": "ke_preauth_status",
+		"depends_on": "ke_preauth_status",
+	},
+	{
+		"fieldname": "ke_preauth_due",
+		"fieldtype": "Datetime",
+		"label": "Pre-authorisation Due",
+		"insert_after": "ke_preauth_code",
+		"read_only": 1,
+		"depends_on": "eval:doc.ke_preauth_status=='Pending'",
+	},
+]
+
+INSURANCE_PAYOR = [
+	{
+		"fieldname": "ke_admission_preauth",
+		"fieldtype": "Check",
+		"label": "Admissions Need Pre-authorisation",
+		"insert_after": "insurance_payor_name",
+		"description": "Insured admissions wait for this payer's code; the claim is held until it is recorded.",
+	},
+	{
+		"fieldname": "ke_preauth_hours",
+		"fieldtype": "Int",
+		"label": "Pre-authorisation Within (hours)",
+		"insert_after": "ke_admission_preauth",
+		"depends_on": "ke_admission_preauth",
+		"default": "24",
+	},
+]
+
 MEDICATION_REQUEST = [
 	{
 		"fieldname": "ke_insurance_coverage",
@@ -1711,6 +1793,8 @@ def apply():
 		SERVICE_REQUEST_ROUTING,
 		COUNTER_PRESCRIPTION,
 		COUNTER_PRESCRIPTION_ITEM,
+		INPATIENT_RECORD,
+		INSURANCE_PAYOR,
 		*MOH.values(),
 	):
 		for field in fields:
@@ -1755,4 +1839,6 @@ def apply():
 	fields["Service Request"] = [*fields["Service Request"], *SERVICE_REQUEST_ROUTING]
 	fields["Drug Prescription"] = DRUG_PRESCRIPTION
 	fields["Patient Encounter Diagnosis"] = ENCOUNTER_DIAGNOSIS
+	fields["Inpatient Record"] = [*fields.get("Inpatient Record", []), *INPATIENT_RECORD]
+	fields["Insurance Payor"] = INSURANCE_PAYOR
 	create_custom_fields(fields, update=True)

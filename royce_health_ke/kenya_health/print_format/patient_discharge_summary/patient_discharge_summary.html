@@ -4,6 +4,7 @@
 {%- set stay = health_discharge_details(doc) -%}
 {%- set doctor = health_clinician(doc.discharge_practitioner or doc.primary_practitioner) -%}
 {%- set primary = health_clinician(doc.primary_practitioner) -%}
+{%- set rec = health_admission_record(doc) -%}
 {{ styles(ctx) }}
 <div class="hx-doc">
   {{ header(ctx, "Discharge Summary", letter_head, no_letterhead, [
@@ -46,6 +47,84 @@
     <div class="hx-section hx-text">{{ section_title(title) }}{{ value }}</div>
     {% endif %}
   {% endfor %}
+
+  {% if rec.reason %}
+  <div class="hx-section">
+    {{ section_title("Reason for admission") }}
+    <div>{{ rec.reason }}{% if rec.urgency %} <span class="hx-muted">({{ _(rec.urgency) }})</span>{% endif %}</div>
+  </div>
+  {% endif %}
+
+  {% if rec.diagnoses %}
+  <div class="hx-section">
+    {{ section_title("Diagnoses during the stay") }}
+    <div class="hx-lines">{% for d in rec.diagnoses %}<div><b>{{ d.diagnosis }}</b>{% if d.code %} <span class="hx-muted">ICD-11 {{ d.code }}</span>{% endif %} <span class="hx-muted">· {{ frappe.utils.formatdate(d.date, "d MMM") }}</span></div>{% endfor %}</div>
+  </div>
+  {% endif %}
+
+  {% if rec.vitals %}
+  <div class="hx-section">
+    {{ section_title("Vital signs") }}
+    <div class="hx-small hx-muted">{{ _("{0} readings, {1} abnormal; the latest:").format(rec.vitals_count, rec.abnormal_vitals) }}</div>
+    <table class="hx-table"><tbody>
+    {% for v in rec.vitals %}
+      <tr><td>{{ frappe.utils.formatdate(v.signs_date, "d MMM") }} {{ (v.signs_time|string)[:5] }}</td><td>{% if v.temperature %}{{ v.temperature }} °C{% endif %}</td><td>{% if v.pulse %}{{ v.pulse }}/min{% endif %}</td><td>{{ v.bp or "" }}</td><td>{% if v.ke_spo2 %}SpO2 {{ v.ke_spo2 }}%{% endif %}</td><td style="color:#c0392b">{{ v.ke_vitals_flags or "" }}</td></tr>
+    {% endfor %}
+    </tbody></table>
+  </div>
+  {% endif %}
+
+  {% if rec.medicines %}
+  <div class="hx-section">
+    {{ section_title("Medicines given on the ward") }}
+    <table class="hx-table"><tbody>
+    {% for m in rec.medicines %}
+      <tr><td><b>{{ m.drug }}</b></td><td>{% for status, n in m.counts.items() %}{{ n }} {{ _(status)|lower }}{% if not loop.last %} · {% endif %}{% endfor %}</td></tr>
+    {% endfor %}
+    </tbody></table>
+  </div>
+  {% endif %}
+
+  {% if rec.labs or rec.imaging %}
+  <div class="hx-section">
+    {{ section_title("Investigations") }}
+    {% for t in rec.labs %}
+      <div><b>{{ t.test }}</b>: {% for r in t.rows if not r.heading %}{{ r.name }} {{ r.result }}{% if r.flag %} ({{ r.flag }}){% endif %}{% if not loop.last %}; {% endif %}{% endfor %}</div>
+    {% endfor %}
+    {% for o in rec.imaging %}
+      <div><b>{{ o.observation_template }}</b>: {{ o.ke_impression or o.result or "" }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if rec.procedures %}
+  <div class="hx-section">
+    {{ section_title("Procedures") }}
+    <div class="hx-lines">{% for p in rec.procedures %}<div>{{ p.procedure_template }} · {{ frappe.utils.formatdate(p.start_date, "d MMM yyyy") }}</div>{% endfor %}</div>
+  </div>
+  {% endif %}
+
+  {% if rec.notes or rec.charts %}
+  <div class="hx-section">
+    {{ section_title("Nursing care") }}
+    {% if rec.charts %}<div class="hx-small">{% for c in rec.charts %}{{ c.template }}: {{ c.entries }} {{ _("entries") }}{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+    {% for n in rec.notes %}
+      <div class="hx-small"><span class="hx-muted">{{ frappe.utils.format_datetime(n.creation, "d MMM HH:mm") }} {{ n.shift }} · {{ n.by }}:</span> {{ frappe.utils.strip_html(n.note or n.fdar_focus or "")|truncate(220) }}</div>
+    {% endfor %}
+    {% if rec.notes_count > rec.notes|length %}<div class="hx-small hx-muted">{{ _("{0} nursing notes in all; the latest shown.").format(rec.notes_count) }}</div>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if rec.money and rec.money.total %}
+  <div class="hx-section">
+    {{ section_title("Services and bill") }}
+    {{ chips([
+        ("Total", frappe.format(rec.money.total, {"fieldtype": "Currency"})),
+        ("Paid", frappe.format(rec.money.paid, {"fieldtype": "Currency"})),
+        ("Owed", frappe.format(rec.money.outstanding + rec.money.unbilled, {"fieldtype": "Currency"})),
+    ]) }}
+  </div>
+  {% endif %}
 
   {% if stay.medicines %}
   <div class="hx-section">

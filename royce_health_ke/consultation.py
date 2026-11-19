@@ -365,6 +365,12 @@ def check_nothing_pending(doc):
 	(strict: cancel a request the patient won't do)."""
 	if not _submitting(doc) or doc.get("inpatient_record"):
 		return
+	# admitted from this consultation: the results follow the patient to the ward
+	if frappe.db.exists(
+		"Inpatient Record",
+		{"admission_encounter": doc.name, "status": ["not in", ("Discharged", "Cancelled")]},
+	):
+		return
 	pending = pending_investigations(doc)
 	if pending:
 		frappe.throw(
