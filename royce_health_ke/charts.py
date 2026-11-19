@@ -42,6 +42,7 @@ def validate_entry(doc):
 	given = {(v.column_label or "").strip(): (v.value or "").strip() for v in doc.get("values") or []}
 	doc.set("values", [])
 	alerts = []
+	score, scored = 0.0, False
 	for col in template.columns:
 		value = given.get(col.label, "")
 		if not value:
@@ -58,17 +59,28 @@ def validate_entry(doc):
 				flag = _("low")
 			elif col.high is not None and flt(col.high) and number > flt(col.high):
 				flag = _("high")
-		elif col.kind == "Yes or No" and value not in YES_NO:
-			frappe.throw(_("{0}: answer Yes or No.").format(col.label))
-		elif col.kind == "Choice":
+		elif col.kind == "Yes or No":
+			if value not in YES_NO:
+				frappe.throw(_("{0}: answer Yes or No.").format(col.label))
+			if value == "Yes" and cint(col.alert_if_yes):
+				flag = _("yes")
+		elif col.kind in ("Choice", "Score"):
 			choices = [c.strip() for c in (col.options or "").split("\n") if c.strip()]
 			if choices and value not in choices:
 				frappe.throw(_("{0}: choose one of {1}.").format(col.label, ", ".join(choices)))
+			if col.kind == "Score":
+				score += points(value)
+				scored = True
 		if flag:
 			alerts.append(f"{col.label} {value} {col.unit or ''} ({flag})".replace("  ", " "))
 		doc.append("values", {"column_label": col.label, "value": value, "unit": col.unit, "flag": flag})
 	if not doc.get("values"):
 		frappe.throw(_("Enter at least one reading."))
+	doc.score = score if scored else None
+	if scored and template.score_label:
+		low, high = flt(template.score_alert_below), flt(template.score_alert_above)
+		if (low and score < low) or (high and score > high):
+			alerts.append(f"{template.score_label} {score:g}")
 	unknown = set(given) - {c.label for c in template.columns}
 	if unknown:
 		frappe.throw(_("{0} has no column {1}.").format(template.template_name, ", ".join(sorted(unknown))))
@@ -78,6 +90,15 @@ def validate_entry(doc):
 		if doc.second_check_by == doc.recorded_by:
 			frappe.throw(_("The second check is by another nurse."))
 	doc.alerts = "; ".join(alerts)
+
+
+def points(value):
+	"""A Score choice's points: the number it starts with ("4 Opens eyes spontaneously" = 4)."""
+	head = (value or "").strip().split(" ", 1)[0]
+	try:
+		return float(head)
+	except ValueError:
+		return 0.0
 
 
 @frappe.whitelist()
@@ -111,13 +132,18 @@ def record(
 	return doc.name
 
 
-def panel(ip):
+def panel(ip, only=None, skip=None):
 	"""The Nursing Care tab: each chart with its columns, latest entries and
-	24-hour totals, plus Marley's fluid balance."""
+	24-hour totals, plus Marley's fluid balance. `only`/`skip`: chart names."""
+	filters = {"disabled": 0}
+	if only:
+		filters["name"] = ["in", only]
+	elif skip:
+		filters["name"] = ["not in", skip]
 	templates = frappe.get_all(
 		TEMPLATE,
-		filters={"disabled": 0},
-		fields=["name", "description", "interval_hours", "needs_second_signature"],
+		filters=filters,
+		fields=["name", "description", "interval_hours", "needs_second_signature", "score_label"],
 		order_by="sequence asc, name asc",
 	)
 	since = add_to_date(now_datetime(), hours=-24)
@@ -127,7 +153,16 @@ def panel(ip):
 		entries = frappe.get_all(
 			ENTRY,
 			filters={"inpatient_record": ip.name, "template": t.name},
-			fields=["name", "recorded_at", "recorded_by", "second_check_by", "shift", "note", "alerts"],
+			fields=[
+				"name",
+				"recorded_at",
+				"recorded_by",
+				"second_check_by",
+				"shift",
+				"note",
+				"alerts",
+				"score",
+			],
 			order_by="recorded_at desc",
 			limit=50,
 		)
@@ -156,6 +191,7 @@ def panel(ip):
 				"name": t.name,
 				"description": t.description,
 				"second_check": cint(t.needs_second_signature),
+				"score_label": t.score_label,
 				"columns": [
 					{
 						"label": c.label,
@@ -238,8 +274,235 @@ SEED = (
 )
 
 
+EYE = "4 Opens eyes spontaneously\n3 To voice\n2 To pain\n1 No response"
+MOTOR = "6 Obeys commands\n5 Localises pain\n4 Withdraws from pain\n3 Abnormal flexion\n2 Extension\n1 No response"
+REVIEW = " Columns, ranges and scores follow common practice: review them against your own protocol."
+
+# Bethesda's nursing charts (PDF (9), 19 Nov 2026). Observation chart = vital
+# signs, fluid balance = Marley's intake/output, partograph = the Labour Care
+# Guide: those are recorded where they already live.
+LIBRARY = (
+	{
+		"template_name": "TB Screening",
+		"sequence": 1,
+		"description": "Intensified TB case finding, on admission and as needed. Any Yes is flagged."
+		+ REVIEW,
+		"columns": [
+			{"label": "Cough", "kind": "Yes or No", "reqd": 1, "alert_if_yes": 1},
+			{"label": "Fever", "kind": "Yes or No", "reqd": 1, "alert_if_yes": 1},
+			{"label": "Weight loss", "kind": "Yes or No", "reqd": 1, "alert_if_yes": 1},
+			{"label": "Night sweats", "kind": "Yes or No", "reqd": 1, "alert_if_yes": 1},
+			{
+				"label": "Reduced playfulness, lethargy or irritability (child)",
+				"kind": "Yes or No",
+				"alert_if_yes": 1,
+			},
+			{"label": "Contact of a TB case", "kind": "Yes or No", "alert_if_yes": 1},
+			{
+				"label": "TB status",
+				"kind": "Choice",
+				"options": "No signs of TB\nPresumed TB\nOn TB treatment\nTB screening not done",
+				"reqd": 1,
+			},
+			{"label": "Presumed TB result", "kind": "Text"},
+		],
+	},
+	{
+		"template_name": "Glasgow Coma Scale",
+		"sequence": 40,
+		"score_label": "GCS",
+		"score_alert_below": 9,
+		"interval_hours": 1,
+		"description": "Adults and older children. A total of 8 or less is flagged." + REVIEW,
+		"columns": [
+			{"label": "Eye opening", "kind": "Score", "options": EYE, "reqd": 1},
+			{
+				"label": "Verbal response",
+				"kind": "Score",
+				"options": "5 Oriented\n4 Confused\n3 Inappropriate words\n2 Incomprehensible sounds\n1 No response",
+				"reqd": 1,
+			},
+			{"label": "Motor response", "kind": "Score", "options": MOTOR, "reqd": 1},
+			{"label": "Pupils", "kind": "Text"},
+		],
+	},
+	{
+		"template_name": "Paediatric Glasgow Coma Scale",
+		"sequence": 41,
+		"score_label": "GCS",
+		"score_alert_below": 9,
+		"interval_hours": 1,
+		"description": "Infants and young children. A total of 8 or less is flagged." + REVIEW,
+		"columns": [
+			{"label": "Eye opening", "kind": "Score", "options": EYE, "reqd": 1},
+			{
+				"label": "Verbal response",
+				"kind": "Score",
+				"options": "5 Coos, babbles\n4 Irritable cry\n3 Cries to pain\n2 Moans to pain\n1 No response",
+				"reqd": 1,
+			},
+			{
+				"label": "Motor response",
+				"kind": "Score",
+				"options": "6 Moves spontaneously\n5 Withdraws to touch\n4 Withdraws to pain\n3 Abnormal flexion\n2 Extension\n1 No response",
+				"reqd": 1,
+			},
+		],
+	},
+	{
+		"template_name": "Thompson HIE Score",
+		"sequence": 50,
+		"score_label": "Thompson score",
+		"score_alert_above": 10,
+		"interval_hours": 24,
+		"description": "Newborns with suspected hypoxic-ischaemic encephalopathy, daily. A total above 10 is flagged."
+		+ REVIEW,
+		"columns": [
+			{
+				"label": "Tone",
+				"kind": "Score",
+				"options": "0 Normal\n1 Hypertonia\n2 Hypotonia\n3 Flaccid",
+				"reqd": 1,
+			},
+			{
+				"label": "Level of consciousness",
+				"kind": "Score",
+				"options": "0 Normal\n1 Hyperalert, stare\n2 Lethargic\n3 Comatose",
+				"reqd": 1,
+			},
+			{
+				"label": "Fits",
+				"kind": "Score",
+				"options": "0 None\n1 Fewer than 3 a day\n2 More than 2 a day",
+				"reqd": 1,
+			},
+			{
+				"label": "Posture",
+				"kind": "Score",
+				"options": "0 Normal\n1 Fisting, cycling\n2 Strong distal flexion\n3 Decerebrate",
+				"reqd": 1,
+			},
+			{"label": "Moro reflex", "kind": "Score", "options": "0 Normal\n1 Partial\n2 Absent", "reqd": 1},
+			{"label": "Grasp", "kind": "Score", "options": "0 Normal\n1 Poor\n2 Absent", "reqd": 1},
+			{"label": "Suck", "kind": "Score", "options": "0 Normal\n1 Poor\n2 Absent, bites", "reqd": 1},
+			{
+				"label": "Respiration",
+				"kind": "Score",
+				"options": "0 Normal\n1 Hyperventilation\n2 Brief apnoea\n3 Ventilated",
+				"reqd": 1,
+			},
+			{
+				"label": "Fontanelle",
+				"kind": "Score",
+				"options": "0 Normal\n1 Full, not tense\n2 Tense",
+				"reqd": 1,
+			},
+		],
+	},
+	{
+		"template_name": "NBU Observation Chart",
+		"sequence": 51,
+		"interval_hours": 3,
+		"description": "Newborn unit observations." + REVIEW,
+		"columns": [
+			{"label": "Temperature", "kind": "Number", "unit": "°C", "low": 36.5, "high": 37.5, "reqd": 1},
+			{"label": "Heart rate", "kind": "Number", "unit": "/min", "low": 100, "high": 160},
+			{"label": "Respiratory rate", "kind": "Number", "unit": "/min", "low": 30, "high": 60},
+			{"label": "SpO2", "kind": "Number", "unit": "%", "low": 90},
+			{"label": "Colour", "kind": "Choice", "options": "Pink\nPale\nCyanosed\nJaundiced"},
+			{
+				"label": "Feeding",
+				"kind": "Choice",
+				"options": "Breastfeeding\nCup feeding\nNasogastric tube\nNot feeding\nIV fluids only",
+			},
+			{"label": "Weight", "kind": "Number", "unit": "g"},
+		],
+	},
+	{
+		"template_name": "Post Operation Chart",
+		"sequence": 60,
+		"interval_hours": 1,
+		"description": "Observations after surgery until stable." + REVIEW,
+		"columns": [
+			{
+				"label": "Conscious level",
+				"kind": "Choice",
+				"options": "Alert\nResponds to voice\nResponds to pain\nUnresponsive",
+				"reqd": 1,
+			},
+			{"label": "Pulse", "kind": "Number", "unit": "/min", "low": 50, "high": 120},
+			{"label": "BP systolic", "kind": "Number", "unit": "mmHg", "low": 90, "high": 180},
+			{"label": "Respiratory rate", "kind": "Number", "unit": "/min", "low": 10, "high": 30},
+			{"label": "SpO2", "kind": "Number", "unit": "%", "low": 92},
+			{"label": "Pain score (0-10)", "kind": "Number", "high": 6},
+			{"label": "Wound", "kind": "Choice", "options": "Dry\nOozing\nSoaked\nBleeding"},
+			{"label": "Drain output", "kind": "Number", "unit": "ml", "total": 1},
+		],
+	},
+	{
+		"template_name": "Dressing Chart",
+		"sequence": 61,
+		"description": "Wound dressings.",
+		"columns": [
+			{"label": "Wound site", "kind": "Text", "reqd": 1},
+			{
+				"label": "Wound condition",
+				"kind": "Choice",
+				"options": "Clean, healing\nInflamed\nDischarging\nSloughy\nNecrotic",
+				"reqd": 1,
+			},
+			{"label": "Dressing used", "kind": "Text"},
+			{"label": "Next change due", "kind": "Text"},
+		],
+	},
+	{
+		"template_name": "Diabetic Chart",
+		"sequence": 70,
+		"description": "Blood glucose and insulin." + REVIEW,
+		"columns": [
+			{
+				"label": "Time of test",
+				"kind": "Choice",
+				"options": "Fasting\nBefore lunch\nBefore supper\nBedtime\nRandom",
+				"reqd": 1,
+			},
+			{"label": "Blood glucose", "kind": "Number", "unit": "mmol/L", "low": 4, "high": 14, "reqd": 1},
+			{"label": "Urine ketones", "kind": "Choice", "options": "Negative\nTrace\n+\n++\n+++"},
+			{"label": "Insulin", "kind": "Text"},
+			{"label": "Insulin units", "kind": "Number", "unit": "IU", "total": 1},
+		],
+	},
+	{
+		"template_name": "Oxygen Administration",
+		"sequence": 71,
+		"interval_hours": 4,
+		"description": "Oxygen given and the response." + REVIEW,
+		"columns": [
+			{
+				"label": "Device",
+				"kind": "Choice",
+				"options": "Nasal prongs\nFace mask\nNon-rebreather mask\nCPAP\nVentilator",
+				"reqd": 1,
+			},
+			{"label": "Flow", "kind": "Number", "unit": "L/min", "reqd": 1},
+			{"label": "SpO2", "kind": "Number", "unit": "%", "low": 92},
+			{"label": "Respiratory rate", "kind": "Number", "unit": "/min", "low": 10, "high": 30},
+		],
+	},
+	{
+		"template_name": "Fetal Kick Chart",
+		"sequence": 80,
+		"description": "Fetal movements counted by the mother. Fewer than 10 is flagged." + REVIEW,
+		"columns": [
+			{"label": "Kicks counted", "kind": "Number", "low": 10, "reqd": 1},
+			{"label": "Hours counted", "kind": "Number", "unit": "h"},
+		],
+	},
+)
+
+
 def seed():
 	"""The default charts, made once; afterwards the hospital's (ADR-023)."""
-	for row in SEED:
+	for row in (*SEED, *LIBRARY):
 		if not frappe.db.exists(TEMPLATE, row["template_name"]):
 			frappe.get_doc({"doctype": TEMPLATE, **row}).insert(ignore_permissions=True)

@@ -1313,7 +1313,35 @@ def patient_file(doc) -> frappe._dict:
 		fields=["name", "admitted_datetime", "discharge_datetime", "status", "primary_practitioner"],
 		order_by="admitted_datetime desc",
 	)
-	return frappe._dict(allowed=True, history=history, visits=visits, admissions=admissions)
+	return only_sections(frappe._dict(allowed=True, history=history, visits=visits, admissions=admissions))
+
+
+# The patient report: the sections chosen when printing (?sections=...,
+# Bethesda: "choose what to include in the report"). All when none chosen.
+FILE_SECTIONS = ("history", "admissions", "vitals", "consultations", "requests", "labs", "imaging")
+
+
+def only_sections(f):
+	chosen = {x.strip() for x in (frappe.form_dict.get("sections") or "").split(",") if x.strip()}
+	if not chosen:
+		return f
+	if "history" not in chosen:
+		f.history = []
+	if "admissions" not in chosen:
+		f.admissions = []
+	keys = {
+		"vitals": "vitals",
+		"consultations": "encounters",
+		"requests": "requests",
+		"labs": "labs",
+		"imaging": "imaging",
+	}
+	for v in f.visits:
+		for section, key in keys.items():
+			if section not in chosen:
+				v[key] = []
+	f.visits = [v for v in f.visits if any(v.get(k) for k in keys.values())]
+	return f
 
 
 def health_patient_file(doc):

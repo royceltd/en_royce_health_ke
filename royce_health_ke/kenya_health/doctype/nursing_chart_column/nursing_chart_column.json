@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-19 08:00:00.000000",
+ "modified": "2026-11-19 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "owner": "Administrator",
@@ -24,7 +24,7 @@
    "fieldname": "kind",
    "fieldtype": "Select",
    "label": "Kind",
-   "options": "Number\nText\nYes or No\nChoice",
+   "options": "Number\nText\nYes or No\nChoice\nScore",
    "default": "Number",
    "reqd": 1,
    "in_list_view": 1
@@ -39,8 +39,8 @@
    "fieldname": "options",
    "fieldtype": "Small Text",
    "label": "Choices",
-   "description": "One per line, for a Choice column.",
-   "depends_on": "eval:doc.kind=='Choice'"
+   "description": "One per line. For a Score column, start each line with its points, e.g. \"4 Opens eyes spontaneously\".",
+   "depends_on": "eval:['Choice','Score'].includes(doc.kind)"
   },
   {
    "fieldname": "low",
@@ -66,6 +66,12 @@
    "fieldtype": "Check",
    "label": "Total per 24 Hours",
    "depends_on": "eval:doc.kind=='Number'"
+  },
+  {
+   "fieldname": "alert_if_yes",
+   "fieldtype": "Check",
+   "label": "Alert When Yes",
+   "depends_on": "eval:doc.kind=='Yes or No'"
   }
  ],
  "permissions": [],

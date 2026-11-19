@@ -1181,6 +1181,35 @@ INPATIENT_RECORD = [
 	},
 ]
 
+# The ward's notes carry the patient's condition (Bethesda's notes, PDF (9))
+PATIENT_STATUSES = ("Stable", "Improving", "Unchanged", "Deteriorating", "Critical")
+CLINICAL_NOTE = [
+	{
+		"fieldname": "ke_patient_status",
+		"fieldtype": "Select",
+		"label": "Patient Status",
+		"options": select(PATIENT_STATUSES),
+		"insert_after": "clinical_note_type",
+		"in_list_view": 1,
+	},
+]
+
+INPATIENT_DISPOSITION = [
+	{
+		"fieldname": "ke_referred_to",
+		"fieldtype": "Data",
+		"label": "Referred To",
+		"insert_after": "ke_discharge_outcome",
+		"depends_on": "eval:doc.ke_discharge_outcome=='Referred Out'",
+	},
+	{
+		"fieldname": "ke_disposition_note",
+		"fieldtype": "Small Text",
+		"label": "Disposition Note",
+		"insert_after": "ke_referred_to",
+	},
+]
+
 INSURANCE_PAYOR = [
 	{
 		"fieldname": "ke_admission_preauth",
@@ -1795,6 +1824,8 @@ def apply():
 		COUNTER_PRESCRIPTION_ITEM,
 		INPATIENT_RECORD,
 		INSURANCE_PAYOR,
+		CLINICAL_NOTE,
+		INPATIENT_DISPOSITION,
 		*MOH.values(),
 	):
 		for field in fields:
@@ -1841,4 +1872,6 @@ def apply():
 	fields["Patient Encounter Diagnosis"] = ENCOUNTER_DIAGNOSIS
 	fields["Inpatient Record"] = [*fields.get("Inpatient Record", []), *INPATIENT_RECORD]
 	fields["Insurance Payor"] = INSURANCE_PAYOR
+	fields["Clinical Note"] = CLINICAL_NOTE
+	fields["Inpatient Record"] = [*fields["Inpatient Record"], *INPATIENT_DISPOSITION]
 	create_custom_fields(fields, update=True)

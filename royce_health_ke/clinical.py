@@ -36,6 +36,10 @@ NOTE_TYPES = (
 	"Counselling Session",
 	"Occupational Therapy Note",
 	"Physiotherapy Note",
+	# the ward (inpatient.py): the doctor's progress notes and instructions to the nurses
+	"Doctor's Note",
+	"Doctor's Instructions",
+	"Nursing Note",
 )
 
 

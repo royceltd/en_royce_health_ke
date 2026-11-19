@@ -41,7 +41,27 @@ ON_WARD = ("Admitted", "Discharge Scheduled")
 WARD_ROLES = ("Nursing User", "Physician", "Healthcare Administrator", "System Manager")
 ADMIT_ROLES = ("Nursing User", "Healthcare Administrator", "System Manager")
 DEFAULT_PROFILE = "Inpatient"
+# The default tab bar (Bethesda's ward screen, PDF (9)); a hospital edits its
+# own in Patient Workspace Profile.
 PANELS = (
+	"Patient File",
+	"Vitals",
+	"TB Screening",
+	"Diagnosis",
+	"Doctor Notes",
+	"Doctor Instructions",
+	"Nursing Notes",
+	"Nursing Care",
+	"Drug Administration",
+	"Requests",
+	"Results",
+	"Consent",
+	"Billing",
+	"Disposition",
+	"Discharge",
+)
+# v0.47's default, for sites still on it (patch v0_48.inpatient_tabs)
+PANELS_V1 = (
 	"Patient File",
 	"Vitals",
 	"Requests",
@@ -53,6 +73,10 @@ PANELS = (
 	"Billing",
 	"Discharge",
 )
+DOCTOR_NOTE, DOCTOR_INSTRUCTIONS = "Doctor's Note", "Doctor's Instructions"
+DOCTOR_TYPES = (DOCTOR_NOTE, DOCTOR_INSTRUCTIONS)
+TB_CHART = "TB Screening"
+OUTCOMES = ("Discharged", "Referred Out", "Absconded", "Died")
 
 
 def _setting(field, default=None):
@@ -511,10 +535,19 @@ def shifts():
 
 
 def _notes(ip):
+	return {"notes": _clinical_notes(ip, exclude=DOCTOR_TYPES)}
+
+
+def _clinical_notes(ip, only=None, exclude=None):
 	since = ip.admitted_datetime or ip.creation
+	filters = {"patient": ip.patient, "docstatus": ["<", 2], "creation": [">=", since]}
+	if only:
+		filters["clinical_note_type"] = ["in", only]
+	elif exclude:
+		filters["clinical_note_type"] = ["not in", exclude]
 	notes = frappe.get_all(
 		"Clinical Note",
-		filters={"patient": ip.patient, "docstatus": ["<", 2], "creation": [">=", since]},
+		filters=filters,
 		fields=[
 			"name",
 			"clinical_note_type",
@@ -526,6 +559,7 @@ def _notes(ip):
 			"fdar_data",
 			"fdar_action",
 			"fdar_response",
+			"ke_patient_status",
 		],
 		order_by="creation desc",
 		limit=200,
@@ -533,13 +567,108 @@ def _notes(ip):
 	for n in notes:
 		n.shift = shift_of(n.creation)
 		n.by = frappe.utils.get_fullname(n.user) if n.user else ""
-	return {"notes": notes}
+	return notes
 
 
 def _care(ip):
 	from royce_health_ke import charts
 
-	return charts.panel(ip)
+	return charts.panel(ip, skip=[TB_CHART])
+
+
+def _tb(ip):
+	from royce_health_ke import charts
+
+	return charts.panel(ip, only=[TB_CHART])
+
+
+def _doctor_notes(ip):
+	return {"notes": _clinical_notes(ip, only=[DOCTOR_NOTE]), "note_type": DOCTOR_NOTE}
+
+
+def _doctor_instructions(ip):
+	return {"notes": _clinical_notes(ip, only=[DOCTOR_INSTRUCTIONS]), "note_type": DOCTOR_INSTRUCTIONS}
+
+
+def _consent(ip):
+	return {
+		"consents": frappe.get_all(
+			"Surgical Consent",
+			filters={"patient": ip.patient, "docstatus": ["<", 2]},
+			fields=[
+				"name",
+				"procedure_template",
+				"consent_datetime",
+				"consent_by",
+				"consenter_name",
+				"docstatus",
+			],
+			order_by="creation desc",
+		)
+	}
+
+
+def _disposition(ip):
+	return {
+		"outcome": ip.get("ke_discharge_outcome"),
+		"referred_to": ip.get("ke_referred_to"),
+		"note": ip.get("ke_disposition_note"),
+		"outcomes": OUTCOMES,
+		"status": ip.status,
+	}
+
+
+@frappe.whitelist()
+def record_note(inpatient_record: str, note_type: str, note: str, patient_status: str | None = None) -> str:
+	"""A note on the ward: the doctor's progress note or instructions to the nurses."""
+	if note_type in DOCTOR_TYPES:
+		_check(("Physician", "Healthcare Administrator", "System Manager"))
+	else:
+		_check(WARD_ROLES)
+	if not (note or "").strip():
+		frappe.throw(_("Write the note."))
+	ip = frappe.get_doc(IR, inpatient_record)
+	ip.check_permission("read")
+	practitioner = frappe.db.get_value("Healthcare Practitioner", {"user_id": frappe.session.user}, "name")
+	doc = frappe.get_doc(
+		{
+			"doctype": "Clinical Note",
+			"patient": ip.patient,
+			"clinical_note_type": note_type,
+			"note": note.strip(),
+			"posting_date": now_datetime(),
+			"practitioner": practitioner,
+			"user": frappe.session.user,
+			"reference_doc": IR,
+			"reference_name": ip.name,
+			"ke_patient_status": patient_status or None,
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	return doc.name
+
+
+@frappe.whitelist()
+def set_disposition(
+	inpatient_record: str, outcome: str, referred_to: str | None = None, note: str | None = None
+) -> None:
+	"""How the admission ends (MOH 717 counts it): discharged, referred out
+	(and where), absconded or died."""
+	_check(("Physician", "Healthcare Administrator", "System Manager"))
+	if outcome not in OUTCOMES:
+		frappe.throw(_("Choose the outcome."))
+	if outcome == "Referred Out" and not (referred_to or "").strip():
+		frappe.throw(_("Say which facility the patient is referred to."))
+	frappe.get_doc(IR, inpatient_record).check_permission("write")
+	frappe.db.set_value(
+		IR,
+		inpatient_record,
+		{
+			"ke_discharge_outcome": outcome,
+			"ke_referred_to": (referred_to or "").strip() or None,
+			"ke_disposition_note": note,
+		},
+	)
 
 
 def _drugs(ip):
@@ -637,6 +766,11 @@ PANEL_DATA = {
 	"Diagnosis": _diagnosis,
 	"Nursing Notes": _notes,
 	"Nursing Care": _care,
+	"TB Screening": _tb,
+	"Doctor Notes": _doctor_notes,
+	"Doctor Instructions": _doctor_instructions,
+	"Consent": _consent,
+	"Disposition": _disposition,
 	"Drug Administration": _drugs,
 	"Billing": _billing,
 	"Discharge": _discharge,
@@ -1105,6 +1239,9 @@ def admission_record(ip_name):
 		vitals_count=len(vitals),
 		abnormal_vitals=sum(1 for v in vitals if v.ke_vitals_flags),
 		notes=list(reversed(notes))[-15:],
+		doctor_notes=list(reversed(_clinical_notes(ip, only=[DOCTOR_NOTE])))[-10:],
+		outcome=ip.get("ke_discharge_outcome"),
+		referred_to=ip.get("ke_referred_to"),
 		notes_count=len(notes),
 		charts=list(charts.values()),
 		medicines=[{"drug": k, "counts": v} for k, v in medicines.items()],

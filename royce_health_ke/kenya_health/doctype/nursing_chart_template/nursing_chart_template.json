@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-19 08:00:00.000000",
+ "modified": "2026-11-19 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "owner": "Administrator",
@@ -50,6 +50,33 @@
    "fieldname": "sequence",
    "fieldtype": "Int",
    "label": "Sequence"
+  },
+  {
+   "fieldname": "score_section",
+   "fieldtype": "Section Break",
+   "label": "Score",
+   "collapsible": 1,
+   "description": "For charts whose Score columns add up to a total (Glasgow Coma Scale, Thompson HIE score)."
+  },
+  {
+   "fieldname": "score_label",
+   "fieldtype": "Data",
+   "label": "Total Is Called",
+   "description": "E.g. GCS. Blank: no total."
+  },
+  {
+   "fieldname": "score_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "score_alert_below",
+   "fieldtype": "Float",
+   "label": "Alert When Total Below"
+  },
+  {
+   "fieldname": "score_alert_above",
+   "fieldtype": "Float",
+   "label": "Alert When Total Above"
   },
   {
    "fieldname": "columns_section",

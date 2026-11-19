@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-19 08:00:00.000000",
+ "modified": "2026-11-19 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "owner": "Administrator",
@@ -94,6 +94,13 @@
    "fieldtype": "Table",
    "label": "Values",
    "options": "Nursing Chart Value"
+  },
+  {
+   "fieldname": "score",
+   "fieldtype": "Float",
+   "label": "Total Score",
+   "read_only": 1,
+   "in_list_view": 1
   },
   {
    "fieldname": "note",

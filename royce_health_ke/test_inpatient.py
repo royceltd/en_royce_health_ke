@@ -18,7 +18,37 @@ def _ward():
 	for ward in wards:
 		if inpatient.vacant_beds(ward):
 			return ward
-	return None
+	return wards[0] if wards else None
+
+
+def _free_bed(ward):
+	"""A vacant bed on the ward: tests in one class don't roll back between
+	them, so they make their own bed rather than depend on the site's count."""
+	beds = inpatient.vacant_beds(ward)
+	if beds:
+		return beds[0].name
+	sample = frappe.db.get_value(
+		"Healthcare Service Unit",
+		{"parent_healthcare_service_unit": ward, "is_group": 0, "inpatient_occupancy": 1},
+		["service_unit_type", "company"],
+		as_dict=True,
+	)
+	return (
+		frappe.get_doc(
+			{
+				"doctype": "Healthcare Service Unit",
+				"healthcare_service_unit_name": f"_Test Bed {frappe.generate_hash(length=6)}",
+				"parent_healthcare_service_unit": ward,
+				"is_group": 0,
+				"inpatient_occupancy": 1,
+				"service_unit_type": sample.service_unit_type,
+				"company": sample.company,
+				"occupancy_status": "Vacant",
+			}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
 
 
 class InpatientCase(ConsultationCase):
@@ -26,7 +56,7 @@ class InpatientCase(ConsultationCase):
 		super().setUp()
 		self.ward = _ward()
 		if not self.ward:
-			self.skipTest("needs a ward with a vacant bed (the demo's General Ward)")
+			self.skipTest("needs a ward with beds (the demo's General Ward)")
 		inpatient.seed()
 		charts.seed()
 
@@ -44,7 +74,7 @@ class InpatientCase(ConsultationCase):
 
 	def admitted(self):
 		_enc, ip = self.admit_request()
-		bed = inpatient.vacant_beds(self.ward)[0].name
+		bed = _free_bed(self.ward)
 		inpatient.admit(ip, bed)
 		return ip, bed
 
@@ -294,3 +324,114 @@ class TestSellingPriceList(InpatientCase):
 
 		selling_price_list_on_admissions.execute()
 		self.assertFalse(frappe.db.get_value("Inpatient Record", ip, "price_list"))
+
+
+class TestWardScreens(InpatientCase):
+	"""v0.48: Bethesda's ward screen (PDF (9))."""
+
+	def test_score_charts_total_and_flag(self):
+		ip, _bed = self.admitted()
+		low = charts.record(
+			ip,
+			"Glasgow Coma Scale",
+			{
+				"Eye opening": "2 To pain",
+				"Verbal response": "2 Incomprehensible sounds",
+				"Motor response": "4 Withdraws from pain",
+			},
+		)
+		entry = frappe.get_doc("Nursing Chart Entry", low)
+		self.assertEqual(entry.score, 8)
+		self.assertIn("GCS 8", entry.alerts)
+		ok = frappe.get_doc(
+			"Nursing Chart Entry",
+			charts.record(
+				ip,
+				"Glasgow Coma Scale",
+				{
+					"Eye opening": "4 Opens eyes spontaneously",
+					"Verbal response": "5 Oriented",
+					"Motor response": "6 Obeys commands",
+				},
+			),
+		)
+		self.assertEqual(ok.score, 15)
+		self.assertFalse(ok.alerts)
+
+	def test_tb_screening_flags_yes_and_has_its_own_tab(self):
+		ip, _bed = self.admitted()
+		name = charts.record(
+			ip,
+			"TB Screening",
+			{
+				"Cough": "Yes",
+				"Fever": "No",
+				"Weight loss": "No",
+				"Night sweats": "No",
+				"TB status": "Presumed TB",
+			},
+		)
+		self.assertIn("Cough", frappe.db.get_value("Nursing Chart Entry", name, "alerts"))
+		tb = inpatient.panel(ip, "TB Screening")
+		self.assertEqual([c["name"] for c in tb["charts"]], ["TB Screening"])
+		self.assertNotIn("TB Screening", [c["name"] for c in inpatient.panel(ip, "Nursing Care")["charts"]])
+
+	def test_doctor_notes_and_instructions_with_status(self):
+		ip, _bed = self.admitted()
+		inpatient.record_note(ip, inpatient.DOCTOR_NOTE, "Afebrile, eating well", "Improving")
+		inpatient.record_note(ip, inpatient.DOCTOR_INSTRUCTIONS, "Encourage oral fluids")
+		inpatient.record_note(ip, "Nursing Note", "Slept well", "Stable")
+		notes = inpatient.panel(ip, "Doctor Notes")["notes"]
+		self.assertEqual(
+			[(n.note, n.ke_patient_status) for n in notes], [("Afebrile, eating well", "Improving")]
+		)
+		self.assertEqual(len(inpatient.panel(ip, "Doctor Instructions")["notes"]), 1)
+		nursing = inpatient.panel(ip, "Nursing Notes")["notes"]
+		self.assertEqual([n.note for n in nursing], ["Slept well"])
+		with self.assertRaises(frappe.ValidationError):
+			inpatient.record_note(ip, inpatient.DOCTOR_NOTE, "  ")
+
+	def test_disposition(self):
+		ip, _bed = self.admitted()
+		with self.assertRaises(frappe.ValidationError):
+			inpatient.set_disposition(ip, "Referred Out")
+		inpatient.set_disposition(ip, "Referred Out", "Moi Teaching and Referral Hospital", "For CT scan")
+		d = inpatient.panel(ip, "Disposition")
+		self.assertEqual(
+			(d["outcome"], d["referred_to"]), ("Referred Out", "Moi Teaching and Referral Hospital")
+		)
+		self.assertEqual(inpatient.admission_record(ip).outcome, "Referred Out")
+
+	def test_every_panel_answers(self):
+		ip, _bed = self.admitted()
+		for panel in inpatient.PANELS:
+			self.assertIsInstance(inpatient.panel(ip, panel), dict, panel)
+
+	def test_old_default_tabs_move_to_the_new_ones(self):
+		from royce_health_ke.patches.v0_48 import inpatient_tabs
+
+		profile = frappe.get_doc("Patient Workspace Profile", inpatient.DEFAULT_PROFILE)
+		profile.set("tabs", [{"panel": p, "label": p} for p in inpatient.PANELS_V1])
+		profile.save(ignore_permissions=True)
+		inpatient_tabs.execute()
+		profile.reload()
+		self.assertEqual(tuple(t.panel for t in profile.tabs), inpatient.PANELS)
+		# a hospital's own tab bar is kept
+		profile.set("tabs", [{"panel": "Vitals", "label": "Obs"}])
+		profile.save(ignore_permissions=True)
+		inpatient_tabs.execute()
+		profile.reload()
+		self.assertEqual([t.label for t in profile.tabs], ["Obs"])
+		frappe.db.rollback()
+
+
+class TestPatientReportSections(InpatientCase):
+	def test_only_the_chosen_sections(self):
+		from royce_health_ke import printing
+
+		self.encounter(lab=False, drug=True)
+		frappe.form_dict.sections = "history,vitals"
+		self.addCleanup(frappe.form_dict.pop, "sections", None)
+		f = printing.patient_file(frappe.get_doc("Patient", self.patient))
+		self.assertTrue(all(not v.encounters for v in f.visits))
+		self.assertEqual(f.admissions, [])

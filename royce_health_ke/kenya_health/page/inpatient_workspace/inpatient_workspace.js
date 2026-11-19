@@ -132,25 +132,23 @@ class InpatientWorkspace {
 					: ""
 			}
 		</div>`);
-		this.$banner
-			.find(".iw-preauth")
-			.on("click", () =>
-				frappe.prompt(
-					{
-						fieldname: "code",
-						fieldtype: "Data",
-						label: __("Pre-authorisation code"),
-						reqd: 1,
-					},
-					(v) =>
-						frappe
-							.xcall(IW + "record_preauth", {
-								inpatient_record: this.ip,
-								code: v.code,
-							})
-							.then(() => this.load(this.ip))
-				)
-			);
+		this.$banner.find(".iw-preauth").on("click", () =>
+			frappe.prompt(
+				{
+					fieldname: "code",
+					fieldtype: "Data",
+					label: __("Pre-authorisation code"),
+					reqd: 1,
+				},
+				(v) =>
+					frappe
+						.xcall(IW + "record_preauth", {
+							inpatient_record: this.ip,
+							code: v.code,
+						})
+						.then(() => this.load(this.ip))
+			)
+		);
 	}
 
 	nursing(action) {
@@ -214,6 +212,7 @@ class InpatientWorkspace {
 						),
 					true,
 				],
+				[__("Patient Report (choose sections)"), () => this.patient_report(d.patient)],
 				[
 					__("Admission Record"),
 					() => frappe.set_route("Form", "Inpatient Record", this.ip),
@@ -344,12 +343,163 @@ class InpatientWorkspace {
 		this.$panel.append(iw_table([__("Diagnosis"), __("Code"), __("Date"), __("By")], rows));
 	}
 
-	render_nursing_notes(d) {
+	note_dialog(note_type) {
+		frappe.prompt(
+			[
+				{ fieldname: "note", fieldtype: "Small Text", label: __(note_type), reqd: 1 },
+				{
+					fieldname: "patient_status",
+					fieldtype: "Select",
+					label: __("Patient Status"),
+					options: "\nStable\nImproving\nUnchanged\nDeteriorating\nCritical",
+				},
+			],
+			(v) =>
+				frappe
+					.xcall(IW + "record_note", { inpatient_record: this.ip, note_type, ...v })
+					.then(() => {
+						frappe.show_alert({ message: __("Saved"), indicator: "green" });
+						this.show(this.panel_name);
+					}),
+			__(note_type),
+			__("Save")
+		);
+	}
+
+	render_doctor_notes(d) {
 		this.buttons([
-			[__("Add Nursing Note"), () => this.nursing("notes"), true],
-			[__("Shift Handover"), () => this.nursing("handover")],
-			[__("Nursing Tasks"), () => this.nursing("nursing_tasks")],
+			[__("Add Doctor's Note"), () => this.note_dialog(d.note_type), true],
+			[__("Ward Round: requests or medicines"), () => this.ward_round()],
 		]);
+		this.render_note_list(d.notes, __("No doctor's notes yet."));
+	}
+
+	render_doctor_instructions(d) {
+		this.buttons([
+			[__("Add Instructions for the Nurses"), () => this.note_dialog(d.note_type), true],
+		]);
+		this.render_note_list(d.notes, __("No instructions yet."));
+	}
+
+	render_note_list(notes, empty) {
+		this.render_nursing_notes({ notes }, true, empty);
+	}
+
+	render_tb_screening(d) {
+		this.render_charts(d.charts || []);
+	}
+
+	render_consent(d) {
+		this.buttons([
+			[
+				__("New Consent"),
+				() => frappe.new_doc("Surgical Consent", { patient: this.data.patient }),
+				true,
+			],
+		]);
+		this.$panel.append(
+			iw_table(
+				[__("Consent"), __("Procedure"), __("Date"), __("Given by"), __("Status")],
+				(d.consents || []).map((c) => [
+					`<a href="/desk/surgical-consent/${encodeURIComponent(c.name)}">${iw_esc(
+						c.name
+					)}</a>`,
+					iw_esc(c.procedure_template || ""),
+					iw_when(c.consent_datetime),
+					iw_esc([c.consent_by, c.consenter_name].filter(Boolean).join(": ")),
+					c.docstatus === 1 ? __("Signed") : __("Draft"),
+				])
+			)
+		);
+	}
+
+	render_disposition(d) {
+		this.buttons([
+			[
+				__("Set Disposition"),
+				() =>
+					frappe.prompt(
+						[
+							{
+								fieldname: "outcome",
+								fieldtype: "Select",
+								label: __("Outcome"),
+								options: (d.outcomes || []).join("\n"),
+								default: d.outcome || "Discharged",
+								reqd: 1,
+							},
+							{
+								fieldname: "referred_to",
+								fieldtype: "Data",
+								label: __("Referred To (facility)"),
+								default: d.referred_to,
+								depends_on: "eval:doc.outcome=='Referred Out'",
+							},
+							{
+								fieldname: "note",
+								fieldtype: "Small Text",
+								label: __("Note"),
+								default: d.note,
+							},
+						],
+						(v) =>
+							frappe
+								.xcall(IW + "set_disposition", { inpatient_record: this.ip, ...v })
+								.then(() => this.show("Disposition")),
+						__("Disposition"),
+						__("Save")
+					),
+				true,
+			],
+			[__("Plan Discharge"), () => this.plan_discharge()],
+		]);
+		this.$panel.append(`<div class="small">
+			<p><b>${__("Outcome")}:</b> ${iw_esc(__(d.outcome || "Not set"))}${
+			d.referred_to ? ` · ${__("Referred to")} ${iw_esc(d.referred_to)}` : ""
+		}</p>
+			${d.note ? `<p>${iw_esc(d.note)}</p>` : ""}
+			<p class="text-muted">${__("MOH 717 counts the admission by this outcome.")}</p></div>`);
+	}
+
+	patient_report(patient) {
+		const sections = [
+			["history", __("Medical history")],
+			["admissions", __("Admissions")],
+			["vitals", __("Vital signs")],
+			["consultations", __("Consultations, diagnoses and medicines")],
+			["requests", __("Requests")],
+			["labs", __("Lab results")],
+			["imaging", __("Imaging reports")],
+		];
+		frappe.prompt(
+			sections.map(([fieldname, label]) => ({
+				fieldname,
+				label,
+				fieldtype: "Check",
+				default: 1,
+			})),
+			(v) => {
+				const chosen = sections.filter(([f]) => v[f]).map(([f]) => f);
+				window.open(
+					`/printview?doctype=Patient&name=${encodeURIComponent(
+						patient
+					)}&format=Patient%20File&sections=${encodeURIComponent(chosen.join(","))}`,
+					"_blank"
+				);
+			},
+			__("Patient Report: what to include"),
+			__("Open")
+		);
+	}
+
+	render_nursing_notes(d, list_only, empty) {
+		if (!list_only)
+			this.buttons([
+				[__("Add Nursing Note"), () => this.nursing("notes"), true],
+				[__("Note with Patient Status"), () => this.note_dialog("Nursing Note")],
+				[__("Shift Handover"), () => this.nursing("handover")],
+				[__("Nursing Tasks"), () => this.nursing("nursing_tasks")],
+			]);
 		const notes = (d.notes || [])
 			.map((n) => {
 				const fdar = ["fdar_focus", "fdar_data", "fdar_action", "fdar_response"]
@@ -364,7 +514,15 @@ class InpatientWorkspace {
 				return `<div class="mb-2 p-2" style="border-left:3px solid var(--border-color)">
 					<div class="small text-muted">${iw_esc(frappe.datetime.str_to_user(n.creation))} · ${iw_esc(
 					n.shift || ""
-				)} · ${iw_esc(n.by)} · ${iw_esc(n.clinical_note_type || "")}</div>
+				)} · ${iw_esc(n.by)} · ${iw_esc(n.clinical_note_type || "")}${
+					n.ke_patient_status
+						? ` · <span class="indicator-pill ${
+								{ Critical: "red", Deteriorating: "orange", Improving: "green" }[
+									n.ke_patient_status
+								] || "gray"
+						  }">${iw_esc(__(n.ke_patient_status))}</span>`
+						: ""
+				}</div>
 					<div style="white-space:pre-wrap">${
 						frappe.utils.html2text
 							? iw_esc(frappe.utils.html2text(n.note || ""))
@@ -374,9 +532,9 @@ class InpatientWorkspace {
 			.join("");
 		this.$panel.append(
 			notes ||
-				`<p class="text-muted">${__(
-					"No nursing notes yet. Record the admission assessment first."
-				)}</p>`
+				`<p class="text-muted">${
+					empty || __("No nursing notes yet. Record the admission assessment first.")
+				}</p>`
 		);
 	}
 
@@ -394,7 +552,11 @@ class InpatientWorkspace {
 				f.balance || 0
 			)} ml</b></div>`);
 		}
-		(d.charts || []).forEach((c) => {
+		this.render_charts(d.charts || []);
+	}
+
+	render_charts(charts) {
+		charts.forEach((c) => {
 			const $c = $(
 				`<div class="mb-4 p-3" style="border:1px solid var(--border-color);border-radius:8px"></div>`
 			).appendTo(this.$panel);
@@ -423,6 +585,7 @@ class InpatientWorkspace {
 						  }>${iw_esc(v.value)} ${iw_esc(v.unit || "")}</span>`
 						: "";
 				}),
+				...(c.score_label ? [`<b>${iw_esc(e.score == null ? "" : e.score)}</b>`] : []),
 				iw_esc(e.note || ""),
 				iw_esc(e.by) +
 					(e.second_check_by
@@ -433,12 +596,18 @@ class InpatientWorkspace {
 			]);
 			$c.append(
 				iw_table(
-					[__("Time"), ...c.columns.map((x) => iw_esc(x.label)), __("Note"), __("By")],
+					[
+						__("Time"),
+						...c.columns.map((x) => iw_esc(x.label)),
+						...(c.score_label ? [iw_esc(c.score_label)] : []),
+						__("Note"),
+						__("By"),
+					],
 					rows
 				)
 			);
 		});
-		if (!(d.charts || []).length)
+		if (!charts.length)
 			this.$panel.append(
 				`<p class="text-muted">${__(
 					"No charts set up. Add them in Nursing Chart Template."
@@ -461,7 +630,7 @@ class InpatientWorkspace {
 					options: "\nYes\nNo",
 					reqd: col.reqd,
 				};
-			if (col.kind === "Choice")
+			if (col.kind === "Choice" || col.kind === "Score")
 				return {
 					fieldname,
 					label,
@@ -509,7 +678,7 @@ class InpatientWorkspace {
 					.then(() => {
 						d.hide();
 						frappe.show_alert({ message: __("Recorded"), indicator: "green" });
-						this.show("Nursing Care");
+						this.show(this.panel_name);
 					});
 			},
 		});

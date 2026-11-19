@@ -12,3 +12,4 @@ royce_health_ke.patches.v0_28.dispensed_by_invoice
 royce_health_ke.patches.v0_34.height_in_cm_one_phone
 royce_health_ke.patches.v0_38.payment_status_per_order
 royce_health_ke.patches.v0_47.selling_price_list_on_admissions
+royce_health_ke.patches.v0_48.inpatient_tabs

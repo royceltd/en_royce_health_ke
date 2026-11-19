@@ -104,6 +104,22 @@
   </div>
   {% endif %}
 
+  {% if rec.doctor_notes %}
+  <div class="hx-section">
+    {{ section_title("Ward rounds") }}
+    {% for n in rec.doctor_notes %}
+      <div class="hx-small"><span class="hx-muted">{{ frappe.utils.format_datetime(n.creation, "d MMM HH:mm") }} · {{ n.by }}{% if n.ke_patient_status %} · {{ _(n.ke_patient_status) }}{% endif %}:</span> {{ frappe.utils.strip_html(n.note or "")|truncate(300) }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if rec.outcome %}
+  <div class="hx-section">
+    {{ section_title("Outcome") }}
+    <div>{{ _(rec.outcome) }}{% if rec.referred_to %}: {{ rec.referred_to }}{% endif %}</div>
+  </div>
+  {% endif %}
+
   {% if rec.notes or rec.charts %}
   <div class="hx-section">
     {{ section_title("Nursing care") }}
