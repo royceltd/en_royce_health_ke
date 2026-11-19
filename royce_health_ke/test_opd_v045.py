@@ -370,3 +370,13 @@ class TestCounterPrescription(IntegrationTestCase):
 		self.assertEqual(si.ke_prescriber_reg, "A1234")
 		self.assertEqual(si.items[0].qty, 15)
 		frappe.db.rollback()
+
+
+class TestDiagnosisIsATable(IntegrationTestCase):
+	def test_consultation_diagnosis_has_columns(self):
+		"""v0.45.1: on Marley's pill picker (Table MultiSelect) the ICD-11 setup
+		threw and the consultation opened blank; it is a table with columns."""
+		meta = frappe.get_meta("Patient Encounter")
+		self.assertEqual(meta.get_field("diagnosis").fieldtype, "Table")
+		row = frappe.get_meta("Patient Encounter Diagnosis")
+		self.assertTrue(row.get_field("ke_icd11_code").in_list_view)

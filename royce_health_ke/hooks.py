@@ -139,7 +139,10 @@ doc_events = {
 		"on_update_after_submit": "royce_health_ke.payment_status.coverage_changed",
 	},
 	"Patient Visit": {"on_update": "royce_health_ke.payment_status.visit_changed"},
-	"Inpatient Record": {"on_update": "royce_health_ke.payment_status.inpatient_changed"},
+	"Inpatient Record": {
+		"validate": "royce_health_ke.inpatient.selling_price_list",
+		"on_update": "royce_health_ke.payment_status.inpatient_changed",
+	},
 	"Kenya Health Settings": {
 		"on_update": [
 			"royce_health_ke.payment_status.settings_changed",

@@ -64,14 +64,18 @@ frappe.ui.form.on("Patient Encounter", {
 // searched, the other filled in. An ICD-11 title picked by name becomes a
 // Diagnosis record on the server, so the name column skips link validation.
 function ke_diagnosis_setup(frm) {
+	// Only on a grid (forms.py makes the diagnosis a table). Marley's pill
+	// picker (Table MultiSelect) has no grid: set_query on its rows threw and
+	// left the consultation blank (v0.45.1).
+	const grid = frm.fields_dict.diagnosis && frm.fields_dict.diagnosis.grid;
+	if (!grid) return;
 	frm.set_query("diagnosis", "diagnosis", () => ({
 		query: "royce_health_ke.diagnosis.diagnosis_query",
 	}));
 	frm.set_query("ke_icd11_code", "diagnosis", () => ({
 		query: "royce_health_ke.diagnosis.icd11_query",
 	}));
-	const grid = frm.fields_dict.diagnosis && frm.fields_dict.diagnosis.grid;
-	if (grid) grid.update_docfield_property("diagnosis", "ignore_link_validation", 1);
+	grid.update_docfield_property("diagnosis", "ignore_link_validation", 1);
 }
 
 function ke_resolve_diagnosis(frm, cdt, cdn, args) {
@@ -160,6 +164,7 @@ const KE_REQUEST_SECTIONS = {
 
 function ke_request_queries(frm) {
 	KE_REQUEST_FIELDS.forEach(([table, field, kind]) => {
+		if (!(frm.fields_dict[table] && frm.fields_dict[table].grid)) return;
 		frm.set_query(field, table, () => {
 			const category = frm.doc.ke_request_type;
 			const own = frm.__ke_request_kind;

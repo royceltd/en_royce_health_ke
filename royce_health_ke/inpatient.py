@@ -83,6 +83,22 @@ def sync_drug_charge(doc=None, method=None):
 	)
 
 
+# Admissions price from a selling price list
+
+
+def selling_price_list(doc, method=None):
+	"""Inpatient Record validate: the admission's price list sells. Marley's
+	Admit dialog offers every price list; a buying one (chosen on the demo, 19
+	Nov 2026) made every bed charge fail and the visit's bill with it."""
+	if doc.get("price_list") and not frappe.db.get_value("Price List", doc.price_list, "selling"):
+		frappe.throw(
+			_(
+				"{0} is a buying price list. Choose a selling price list for the admission (or leave it blank)."
+			).format(frappe.bold(doc.price_list)),
+			title=_("Selling price list"),
+		)
+
+
 # Wards and beds
 
 

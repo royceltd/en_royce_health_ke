@@ -19,6 +19,8 @@ elsewhere (hospital feedback on the outpatient flow, November 2026):
   Lab Test column is listed and named "Lab Test", the Observation column is
   named "Imaging" (consultation.check_lab_rows refuses anything else there).
 - Patient: "Invite as User" (a patient portal login) starts unticked.
+- Patient Encounter: the diagnosis is a table (Diagnosis and ICD-11 Code
+  columns, diagnosis.py) instead of Marley's pill picker.
 
 Each property is set only where the hospital has not set it itself, so a
 field shown again with Customize Form stays shown (ADR-023)."""
@@ -36,6 +38,10 @@ NOT_IN_LIST = {"Vital Signs": ("height",)}
 IN_LIST = {"Sales Invoice Payment": ("reference_no",), "Lab Prescription": ("lab_test_code",)}
 LABELS = {"Lab Prescription": {"lab_test_code": "Lab Test", "observation_template": "Imaging"}}
 DEFAULTS = {"Patient": {"invite_user": "0"}}
+# The consultation's diagnosis as rows with columns (Diagnosis, ICD-11 Code:
+# diagnosis.py), not Marley's pill picker, which shows one value per row and
+# has no grid (v0.45.1: the ICD-11 setup on a pill picker blanked the form).
+FIELDTYPES = {"Patient Encounter": {"diagnosis": "Table"}}
 
 
 def apply():
@@ -50,7 +56,11 @@ def apply():
 		for doctype, fieldnames in fields.items():
 			for fieldname in fieldnames:
 				_set_once(doctype, fieldname, prop, value)
-	for prop, fields, kind in (("label", LABELS, "Data"), ("default", DEFAULTS, "Text")):
+	for prop, fields, kind in (
+		("label", LABELS, "Data"),
+		("default", DEFAULTS, "Text"),
+		("fieldtype", FIELDTYPES, "Data"),
+	):
 		for doctype, values in fields.items():
 			for fieldname, value in values.items():
 				_set_once(doctype, fieldname, prop, value, kind)

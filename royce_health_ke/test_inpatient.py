@@ -277,3 +277,20 @@ class TestDischargePrint(InpatientCase):
 		html = frappe.get_print("Discharge Summary", summary.name, "Patient Discharge Summary")
 		self.assertIn("Severe malaria, needs IV artesunate", html)
 		self.assertIn("Feeding Chart", html)
+
+
+class TestSellingPriceList(InpatientCase):
+	def test_admission_refuses_a_buying_price_list(self):
+		buying = frappe.db.get_value("Price List", {"selling": 0, "buying": 1}, "name")
+		if not buying:
+			self.skipTest("needs a buying price list")
+		_enc, ip = self.admit_request()
+		doc = frappe.get_doc("Inpatient Record", ip)
+		doc.price_list = buying
+		with self.assertRaises(frappe.ValidationError):
+			doc.save(ignore_permissions=True)
+		frappe.db.set_value("Inpatient Record", ip, "price_list", buying)
+		from royce_health_ke.patches.v0_47 import selling_price_list_on_admissions
+
+		selling_price_list_on_admissions.execute()
+		self.assertFalse(frappe.db.get_value("Inpatient Record", ip, "price_list"))
