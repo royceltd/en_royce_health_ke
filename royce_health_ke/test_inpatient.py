@@ -199,11 +199,18 @@ class TestChartsAndRecord(InpatientCase):
 		}
 		with self.assertRaises(frappe.ValidationError):
 			charts.record(ip, "Blood Transfusion", values)  # needs the second nurse
-		other = frappe.db.get_value(
-			"User",
-			{"name": ["not in", ("Administrator", "Guest", frappe.session.user)], "enabled": 1},
-			"name",
-		)
+		# a fresh site (CI) has no second user: make the checking nurse
+		other = "ke.second.nurse@example.com"
+		if not frappe.db.exists("User", other):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": other,
+					"first_name": "Second",
+					"last_name": "Nurse",
+					"send_welcome_email": 0,
+				}
+			).insert(ignore_permissions=True)
 		t = frappe.get_doc(
 			"Nursing Chart Entry", charts.record(ip, "Blood Transfusion", values, second_check_by=other)
 		)
