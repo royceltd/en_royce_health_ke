@@ -26,6 +26,7 @@ COVER = {
 	"LAB-BSMPS": (90, "Automatic"),
 	"LAB-HB": (90, "Automatic"),
 	"LAB-WBC": (90, "Automatic"),
+	"LAB-FHG": (90, "Automatic"),  # Full Haemogram (lab.LIBRARY)
 	"DRG-AL20120": (90, "Automatic"),
 	"DRG-PCM500": (90, "Automatic"),
 	"DRG-AMX500": (90, "Automatic"),
@@ -100,7 +101,9 @@ def setup(company):
 			}
 		).insert(ignore_permissions=True)
 	for item_code, (cover, approval) in COVER.items():
-		if frappe.db.exists("Item Insurance Eligibility", {"insurance_plan": PLAN, "item_code": item_code}):
+		if not frappe.db.exists("Item", item_code) or frappe.db.exists(
+			"Item Insurance Eligibility", {"insurance_plan": PLAN, "item_code": item_code}
+		):
 			continue
 		frappe.get_doc(
 			{

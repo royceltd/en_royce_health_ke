@@ -28,10 +28,17 @@ class IntegrationTestInsuredBilling(IntegrationTestCase):
 			},
 			"name",
 		)
+		# two lab tests the demo plan covers (a hospital's other tests may not be)
+		covered = frappe.get_all(
+			"Item Insurance Eligibility",
+			filters={"insurance_plan": DEMO_PLAN, "is_active": 1, "item_code": ["is", "set"]},
+			pluck="item_code",
+		)
 		self.templates = frappe.get_all(
 			"Lab Test Template",
-			filters={"is_billable": 1, "disabled": 0, "item": ["is", "set"]},
+			filters={"is_billable": 1, "disabled": 0, "item": ["in", covered or [""]]},
 			pluck="name",
+			order_by="name asc",
 			limit=2,
 		)
 		self.appointment_type = frappe.db.get_value("Appointment Type", {}, "name")
