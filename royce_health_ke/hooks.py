@@ -471,6 +471,7 @@ override_whitelisted_methods = {
 	"healthcare.healthcare.utils.get_appointment_billing_item_and_rate": (
 		"royce_health_ke.fees.get_appointment_billing_item_and_rate"
 	),
+	"healthcare.healthcare.utils.get_medical_codes": "royce_health_ke.diagnosis.get_medical_codes",
 }
 
 # override_whitelisted_methods = {

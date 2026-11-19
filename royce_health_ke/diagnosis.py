@@ -165,6 +165,20 @@ def resolve(diagnosis: str | None = None, code_value: str | None = None) -> dict
 	return {"diagnosis": ensure_diagnosis(cv.name), "code_value": cv.name, "code": cv.code_value}
 
 
+@frappe.whitelist()
+def get_medical_codes(template_dt: str, template_dn: str | None = None, code_standard: str | None = None):
+	"""Marley's get_medical_codes (hooks: override_whitelisted_methods). Marley
+	asks for a diagnosis row's codes as soon as the row is added; since the
+	diagnosis is a table (v0.47.2) a new row is empty, which made Marley's
+	method fail with "missing template_dn" (Bethesda, 19 Nov 2026). An empty
+	row has no codes; the codes come on save (sync_rows)."""
+	if not template_dn:
+		return []
+	from royce_health_ke.marley import get_medical_codes as marley_codes
+
+	return marley_codes(template_dt, template_dn, code_standard)
+
+
 def sync_rows(doc, method=None):
 	"""Patient Encounter before_validate: each diagnosis row has its record and
 	its ICD-11 code, and the consultation carries the codes (claims)."""

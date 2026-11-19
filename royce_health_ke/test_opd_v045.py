@@ -187,6 +187,19 @@ class TestICD11Diagnosis(IntegrationTestCase):
 		diagnosis.sync_rows(doc)  # idempotent
 		self.assertEqual(len(doc.codification_table), 1)
 
+	def test_empty_row_has_no_codes(self):
+		# Add Row on the diagnosis table asks Marley for the codes of an empty row
+		self.assertEqual(diagnosis.get_medical_codes("Diagnosis"), [])
+		self.assertEqual(diagnosis.get_medical_codes("Diagnosis", ""), [])
+		name = diagnosis.ensure_diagnosis(self.cv)
+		codes = diagnosis.get_medical_codes("Diagnosis", name)
+		self.assertEqual([c.code for c in codes], [self.code])
+		hooks = frappe.get_hooks("override_whitelisted_methods")
+		self.assertEqual(
+			hooks["healthcare.healthcare.utils.get_medical_codes"][-1],
+			"royce_health_ke.diagnosis.get_medical_codes",
+		)
+
 
 class TestClerkingOrder(IntegrationTestCase):
 	def test_examination_last_on_the_observation_tab(self):

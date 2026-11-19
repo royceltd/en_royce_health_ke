@@ -24,6 +24,7 @@ SIGNATURES = {
 	"create_inpatient_record": ["admission_order"],
 	"get_intake_output_summary": ["patient", "hours"],
 	"make_discharge_summary": ["source_name"],
+	"get_medical_codes": ["template_dt", "template_dn", "code_standard"],
 }
 
 

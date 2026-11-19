@@ -73,6 +73,7 @@ USES = {
 		"manages_medication_stock",
 	),
 	"get_intake_output_summary": ("api.intake_output", "get_intake_output_summary"),
+	"get_medical_codes": ("utils", "get_medical_codes"),
 }
 
 
