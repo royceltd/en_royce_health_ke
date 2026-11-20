@@ -202,22 +202,21 @@ Demo records: HLC-LAB-2026-00006 (malaria slide, positive), HLC-LAB-2026-00005 (
 
    *Dr Amina's Results Inbox: David's new results, his Hb marked Abnormal.*
 3. **Diagnosis** tab: record the diagnosis.
-4. **Prescription** tab: use the **Order Drug** panel. (It is switched on in version 0.52. Until then, add each drug in the **Drug Prescription** table, with dose, frequency, duration and route; the quantity to dispense is worked out the same way.)
-   - **Single Drug:** choose a **Drug Class** (optional), then the **Drug Name**. The search shows the pharmacy's stock, and the green or red *Available* badge shows it for the chosen drug.
-   - **Fill in the order:** **Dose** and unit, then **Frequency**, or tick **Schedule dosage?** for every N hours. Then **Duration**, **Route** and the start.
-   - **Optional ticks:** **Buy Externally** if the patient buys it outside (it is printed but not dispensed or billed); **Chronic medicine** for a long-term drug.
-   - **Add to Pending.** The quantity the pharmacy will dispense shows before you add.
-   - **Drug Package:** adds every drug of a ready-made set (a Treatment Plan Template with drugs).
+4. **Prescription** tab: the drug screen.
+   - **Add Prescription** (left): **Single Drug** or **Drug Package** (a ready-made set: a Treatment Plan Template with drugs).
+     - Choose a **Drug Class** (optional), then the **Drug Name**. The search shows the pharmacy's stock, and a green or red *Available* badge shows it for the chosen drug.
+     - Fill in **Dose** and unit, **Frequency** (or tick **Schedule dosage** for every N hours), **Duration**, **Route**, **Start Date** and **Start Time**, and any **Instructions**.
+     - **Quantity** and its **Dispensing Unit** fill in from the dose. The **Medication Mapping** note says how it is dispensed, for example *Amoxicillin 5 ml TID for 10 Day will be dispensed as 2 Bottle, not 150 ml*. Change the quantity if needed.
+     - Tick **Buy Externally** if the patient buys it outside (printed, not dispensed or billed here), or **Chronic medicine** for a long-term drug.
+     - **+ Add Prescription.**
+   - **Current Prescription** (right): a table of Drug Name, Dose, Frequency, Duration, Route and Quantity, with view and delete. The list at the top chooses what it shows:
+     - **Pending:** this consultation's drugs, kept as a draft and not sent yet.
+     - **Sent:** sent to the pharmacy, with its status.
+     - **Active Prescriptions / Past:** the patient's other prescriptions, current or finished.
+     - **Chronic:** their long-term medicines. **Prescribe Again** or **Continue** fills the form again.
+   - **Save Prescription** sends the pending drugs to the pharmacy. Completing the consultation is refused while a drug is still a draft.
 
-   On the right, the drug lists:
-   - **Pending:** this consultation's drugs not sent yet.
-   - **Sent:** to the pharmacy, with its status.
-   - **Active / Past:** the patient's other prescriptions, current or finished.
-   - **Chronic:** their long-term medicines. Use **Prescribe Again** or **Continue** to refill the form.
-
-   **Save to Draft** keeps the pending drugs on the consultation without sending them. **Submit** sends them to the pharmacy now. Completing the consultation is refused while a drug is still in draft.
-
-   The **Drug Prescription** table below the panel still works: a drug added there directly is sent when the consultation is saved. The quantity to dispense is worked out from them: *4-0-4* for 3 days is 24 tablets, *1-1-1* for 3 days is 9. If the pharmacy sent a drug back, an orange note at the top of the consultation and a box on this tab show the drug and the pharmacist's note.
+   The **Drug Prescription** table below shows the same drugs. A drug added there directly is sent when the consultation is saved. *4-0-4* for 3 days is 24 tablets, *1-1-1* for 3 days is 9. If the pharmacy sent a drug back, an orange note at the top of the consultation and a box on this tab show the drug and the pharmacist's note.
 5. **Complete** tab: review notes and, if needed, **Referral** (*Referred to Another Facility* and where). Press **Complete Consultation** (the main button at the top; there is no separate Submit) and confirm. It is refused while there is no diagnosis, or while a lab test or imaging exam has no result yet: wait for the result, or cancel a request the patient won't do (**Results** tab › **Cancel Request**, with a reason; a request already started can't be cancelled, and a paid one is noted on the visit for the Cashier). Completing locks the consultation. The consultation is submitted: each drug becomes a medication request for the pharmacy, and any request not sent yet is placed. The **Where does the patient go next?** box suggests **Pharmacy** when drugs are prescribed, or *Finish visit (patient goes home)*.
 
 **The visit closes by itself** once everything is done: every consultation completed, every lab and imaging result in, every medicine dispensed (or bought outside) and nothing owed. **Complete Visit** (on the visit under **Status**, or **Close Visit** on the patient's record) is refused while anything is open and lists it. A Healthcare Administrator can close it anyway with a reason (for example *patient absconded*), and any balance stays owed. **Cancel Visit** is only for a visit where nothing has been done yet. Managers see visits open for more than a day in Kenya Health › Patients › **Visits to Close**.

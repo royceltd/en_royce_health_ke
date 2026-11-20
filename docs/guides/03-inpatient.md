@@ -61,11 +61,12 @@ Demo record: HLC-INP-2026-00004, admitted to GW Bed 03 at 08:00.
 
 ## Step 4 — Ward round and prescribing
 
-**Who:** doctor. **Where:** Inpatient › Patient Encounter, linked to the Inpatient Record.
+**Who:** doctor. **Where:** Ward › the patient › **Drug Administration** › **Prescription**.
 
-1. Start a new encounter for the admitted patient; the Inpatient Record field links it to the admission.
-2. In **Drug Prescription**, add each drug with a dosage that has set times (for example *1-1-1* gives 09:00, 14:00 and 21:00) and a period (for example *1 Day*).
-3. Submit the encounter, then click **Create › Inpatient Medication Order**, check the doses and submit.
+1. On **Add Prescription**, choose the drug and fill in the dose, frequency (or every N hours), duration, route and start, as on the consultation's drug screen. The quantity and the **Medication Mapping** note fill in. **+ Add Prescription** keeps it as a draft on today's ward round.
+2. **Save Prescription** completes the ward round. Each drug becomes the pharmacy's request and the dose schedule (an Inpatient Medication Order): doses at the frequency's times, or every N hours from the start time, for the duration.
+3. **Dispensing** shows each drug's doses waiting for the pharmacy, at the bedside, given or stopped. A doctor can **Stop** a drug here, with a reason.
+4. **Administration Log** is the treatment sheet, every dose given or not and by whom. **Medication Round** opens the nurses' dose recording (Step 6).
 
 The medication order is the ward's drug chart: one row per dose with date, time and status. Its progress bar counts doses completed.
 

@@ -1,4 +1,4 @@
-/* global healthcare */
+/* global healthcare, royce_health_ke */
 // Copyright (c) 2026, Royce Technologies LTD and contributors
 // For license information, please see license.txt
 
@@ -689,11 +689,54 @@ class InpatientWorkspace {
 		d.show();
 	}
 
+	// Drug Administration (Bethesda, 20 Nov 2026): Prescription (the drug
+	// screen, royce_health_ke.DrugOrder), Dispensing and Administration Log.
 	render_drug_administration(d) {
-		this.buttons([
-			[__("Medication Round"), () => this.nursing("medication"), true],
-			[__("Prescribe on the Ward Round"), () => this.ward_round()],
-		]);
+		const $root = this.$panel;
+		const views = [
+			["prescription", __("Prescription")],
+			["dispensing", __("Dispensing")],
+			["log", __("Administration Log")],
+		];
+		const $row = $(`<div class="row">
+			<div class="col-md-2 mb-3"><div class="list-group">${views
+				.map(
+					([k, l]) =>
+						`<a href="#" class="list-group-item list-group-item-action py-2" data-view="${k}">${l}</a>`
+				)
+				.join("")}</div></div>
+			<div class="col-md-10 iw-drug-body"></div></div>`).appendTo($root);
+		const show = (key) => {
+			this.__drug_view = key;
+			$row.find("[data-view]").removeClass("active");
+			$row.find(`[data-view="${key}"]`).addClass("active");
+			this.$panel = $row.find(".iw-drug-body").empty();
+			try {
+				this["drug_" + key](d);
+			} finally {
+				this.$panel = $root;
+			}
+		};
+		$row.find("[data-view]").on("click", (e) => {
+			e.preventDefault();
+			show($(e.currentTarget).data("view"));
+		});
+		show(this.__drug_view || "prescription");
+	}
+
+	drug_prescription() {
+		if (!(window.royce_health_ke && royce_health_ke.DrugOrder)) return;
+		new royce_health_ke.DrugOrder({
+			wrapper: $("<div></div>").appendTo(this.$panel),
+			ward: this.ip,
+			get_encounter: () =>
+				frappe.xcall("royce_health_ke.prescribing.ward_encounter", {
+					inpatient_record: this.ip,
+				}),
+		});
+	}
+
+	drug_dispensing(d) {
 		this.$panel.append(
 			`<p class="small text-muted">${
 				d.charge === "On administration"
@@ -768,6 +811,10 @@ class InpatientWorkspace {
 						.then(() => this.show("Drug Administration"))
 			);
 		});
+	}
+
+	drug_log(d) {
+		this.buttons([[__("Medication Round"), () => this.nursing("medication"), true]]);
 		const doses = (d.doses || []).map((x) => [
 			iw_esc(frappe.datetime.str_to_user(x.scheduled_time)),
 			iw_esc(x.drug_name || ""),

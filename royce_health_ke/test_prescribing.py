@@ -10,8 +10,9 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
-from royce_health_ke import consultation, pharmacy, prescribing
+from royce_health_ke import consultation, inpatient, pharmacy, prescribing
 from royce_health_ke.test_consultation import ConsultationCase
+from royce_health_ke.test_inpatient import InpatientCase
 
 
 def _mrs(encounter):
@@ -148,3 +149,87 @@ class TestOrderDrugLookups(IntegrationTestCase):
 		self.assertEqual(order.index("ke_prescribe_html"), order.index("ke_pharmacy_html") + 1)
 		self.assertLess(order.index("ke_tab_prescription"), order.index("ke_prescribe_html"))
 		self.assertLess(order.index("ke_prescribe_html"), order.index("ke_tab_complete"))
+
+
+class TestDrugScreen(ConsultationCase):
+	"""The drug screen to Bethesda's design (v0.52): add, remove, preview, save."""
+
+	def row(self, **extra):
+		return {
+			"drug_code": "DRG-PCM500",
+			"ke_dose": 1,
+			"dosage": self.dosage,
+			"period": self.period,
+			"ke_route": "Oral",
+			"ke_start_time": "08:00:00",
+			**extra,
+		}
+
+	def test_add_remove_and_save(self):
+		enc = self.encounter(lab=False)
+		r = prescribing.add_drug(enc.name, self.row())
+		self.assertEqual(len(r["pending"]), 1)
+		self.assertTrue(r["pending"][0]["draft"])
+		self.assertIn("will be dispensed as", r["mapping"]["text"])
+		self.assertEqual(r["pending"][0]["quantity"], r["mapping"]["quantity"])
+		# a package (a list) adds every drug
+		r = prescribing.add_drug(enc.name, [self.row(ke_quantity=5), self.row(ke_chronic=1)])
+		self.assertEqual(len(r["pending"]), 3)
+		self.assertEqual(r["pending"][1]["quantity"], 5)  # the doctor's quantity is kept
+		r = prescribing.remove_drug(enc.name, r["pending"][0]["name"])
+		self.assertEqual(len(r["pending"]), 2)
+		self.assertEqual(_mrs(enc.name), [])
+		self.assertEqual(prescribing.save_prescription(enc.name), {"sent": 2})
+		lists = prescribing.current(enc.name)
+		self.assertEqual((len(lists["pending"]), len(lists["sent"])), (0, 2))
+		with self.assertRaisesRegex(frappe.ValidationError, "Only a drug not sent"):
+			prescribing.remove_drug(
+				enc.name, frappe.get_doc("Patient Encounter", enc.name).drug_prescription[0].name
+			)
+
+	def test_preview(self):
+		r = prescribing.preview(self.row())
+		self.assertTrue(r["quantity"] >= 1)
+		self.assertTrue(r["text"].endswith("."))
+		self.assertIsNone(prescribing.preview(self.row(dosage=None)))
+
+
+class TestWardDrugScreen(InpatientCase):
+	def test_ward_prescription_makes_the_dose_schedule(self):
+		ip, _bed = self.admitted()
+		lists = prescribing.ward_lists(ip)
+		self.assertEqual((lists["encounter"], lists["pending"]), (None, []))
+		enc = prescribing.ward_encounter(ip)
+		self.assertEqual(prescribing.ward_encounter(ip), enc)  # the same open ward round
+		prescribing.add_drug(
+			enc,
+			{
+				"drug_code": "DRG-PCM500",
+				"ke_dose": 1,
+				"dosage_by_interval": 1,
+				"interval": 8,
+				"interval_uom": "Hour",
+				"period": prescribing.duration(2, "Day"),
+				"ke_route": "Oral",
+				"ke_start_date": today(),
+				"ke_start_time": "14:00:00",
+			},
+		)
+		self.assertEqual(len(prescribing.ward_lists(ip)["pending"]), 1)
+		self.assertEqual(prescribing.save_prescription(enc), {"sent": 1, "completed": 1})
+		self.assertEqual(frappe.db.get_value("Patient Encounter", enc, "docstatus"), 1)
+		# billed with the admission, not linked to the outpatient visit on any save
+		self.assertFalse(frappe.db.get_value("Patient Encounter", enc, "ke_patient_visit"))
+		order = frappe.get_doc("Inpatient Medication Order", {"patient_encounter": enc})
+		times = [(str(e.date), str(e.time)) for e in order.medication_orders]
+		# every 8 hours from 14:00: today 14:00 and 22:00, tomorrow 06:00, 14:00, 22:00
+		self.assertEqual([t for _d, t in times], ["14:00:00", "22:00:00", "6:00:00", "14:00:00", "22:00:00"])
+		lists = prescribing.ward_lists(ip)
+		self.assertIsNone(lists["encounter"])
+		self.assertEqual(len(lists["sent"]), 1)
+
+	def test_row_times(self):
+		row = frappe._dict(dosage_by_interval=1, interval=6, interval_uom="Hour", ke_start_time=None)
+		self.assertEqual(inpatient.row_times(row), ["00:00:00", "06:00:00", "12:00:00", "18:00:00"])
+		row.interval, row.interval_uom = 1, "Day"
+		self.assertEqual(inpatient.row_times(row), ["06:00:00"])

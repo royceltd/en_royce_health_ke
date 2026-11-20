@@ -296,7 +296,7 @@ extend_bootinfo = [
 # include js, css files in header of desk.html
 app_include_css = "/assets/royce_health_ke/css/royce_health_ke.css"
 # Success messages close by themselves (public/js/desk.js)
-app_include_js = "/assets/royce_health_ke/js/desk.js"
+app_include_js = ["/assets/royce_health_ke/js/desk.js", "/assets/royce_health_ke/js/drug_order.js"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/royce_health_ke/css/royce_health_ke.css"

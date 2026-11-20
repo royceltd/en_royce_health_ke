@@ -227,13 +227,11 @@ def _row(mr):
 	}
 
 
-@frappe.whitelist()
-def history(encounter: str) -> dict:
-	"""Sent (this consultation), Active, Past and Chronic (the patient's others)."""
-	doc = _check(encounter, "read")
+def lists(patient, sent_from=()):
+	"""Sent (from these consultations), Active, Past and Chronic (the others)."""
 	mrs = frappe.get_all(
 		MR,
-		filters={"patient": doc.patient, "docstatus": 1, "status": ["not in", pharmacy.CLOSED_MR[:3]]},
+		filters={"patient": patient, "docstatus": 1, "status": ["not in", pharmacy.CLOSED_MR[:3]]},
 		fields=[
 			"name",
 			"order_group",
@@ -259,7 +257,7 @@ def history(encounter: str) -> dict:
 	today = getdate(nowdate())
 	sent, active, past, chronic, seen = [], [], [], [], set()
 	for mr in mrs:
-		if mr.order_group == doc.name:
+		if mr.order_group in sent_from:
 			sent.append(_row(mr))
 			continue
 		stopped = mr.status == "stopped-Medication Request Status"
@@ -272,6 +270,13 @@ def history(encounter: str) -> dict:
 			seen.add(key)
 			chronic.append(_row(mr))
 	return {"sent": sent, "active": active, "past": past, "chronic": chronic}
+
+
+@frappe.whitelist()
+def history(encounter: str) -> dict:
+	"""Sent (this consultation), Active, Past and Chronic (the patient's others)."""
+	doc = _check(encounter, "read")
+	return lists(doc.patient, (doc.name,))
 
 
 @frappe.whitelist()
@@ -325,3 +330,232 @@ def check_no_drafts(doc):
 			).format(", ".join(frappe.bold(d) for d in drafts)),
 			title=_("Drugs in draft"),
 		)
+
+
+# The drug screen to Bethesda's design (feedback of 20 Nov 2026, page 3): one
+# component on the consultation and on the ward's Drug Administration tab.
+# Each drug added is saved on the consultation at once as a draft row; Save
+# Prescription sends them. On the ward, the drugs go on a ward-round
+# consultation of the admission, and submitting it makes the dose schedule
+# (inpatient.order_from_encounter) and the pharmacy's requests.
+
+EDITABLE = (
+	"drug_code",
+	"medication",
+	"ke_dose",
+	"ke_dose_uom",
+	"ke_route",
+	"dosage",
+	"period",
+	"dosage_by_interval",
+	"interval",
+	"interval_uom",
+	"ke_start_date",
+	"ke_start_time",
+	"comment",
+	"ke_quantity",
+	"ke_buy_externally",
+	"ke_chronic",
+)
+
+
+def _practitioner(ip=None):
+	from royce_health_ke.lab import my_practitioner
+
+	return my_practitioner() or (ip and ip.primary_practitioner)
+
+
+def _round_filters(ip, docstatus):
+	"""Today's ward-round consultations of the admission: not the outpatient
+	consultation that admitted the patient (linked to its visit)."""
+	return {
+		"inpatient_record": ip.name,
+		"encounter_date": nowdate(),
+		"docstatus": docstatus,
+		"ke_patient_visit": ["is", "not set"],
+		"name": ["!=", ip.admission_encounter or ""],
+	}
+
+
+@frappe.whitelist()
+def ward_encounter(inpatient_record: str) -> str:
+	"""The admission's open ward-round consultation for prescribing, made when
+	there is none."""
+	ip = frappe.get_doc("Inpatient Record", inpatient_record)
+	ip.check_permission("read")
+	frappe.has_permission(DT, "create", throw=True)
+	name = frappe.db.get_value(DT, _round_filters(ip, docstatus=0), "name", order_by="creation desc")
+	if name:
+		return name
+	practitioner = _practitioner(ip)
+	if not practitioner:
+		frappe.throw(_("Only a doctor prescribes: your user is not linked to a Healthcare Practitioner."))
+	doc = frappe.get_doc(
+		{
+			"doctype": DT,
+			"patient": ip.patient,
+			"inpatient_record": ip.name,
+			"practitioner": practitioner,
+			"company": ip.company,
+			"encounter_date": nowdate(),
+		}
+	)
+	doc.insert()
+	return doc.name
+
+
+def _pending(doc):
+	return [
+		{
+			"name": d.name,
+			"drug_code": d.drug_code,
+			"drug": d.drug_name or d.drug_code,
+			"ke_dose": d.ke_dose,
+			"ke_dose_uom": d.ke_dose_uom,
+			"dose": f"{d.ke_dose:g} {d.ke_dose_uom or ''}".strip() if d.ke_dose else "",
+			"frequency": (
+				_("every {0} {1}").format(d.interval, d.interval_uom or "")
+				if d.dosage_by_interval
+				else d.dosage
+			),
+			"duration": d.period,
+			"route": d.ke_route,
+			"quantity": d.ke_quantity,
+			"unit": d.ke_dispensing_unit,
+			"start": f"{d.ke_start_date or ''} {str(d.ke_start_time or '')[:5]}".strip(),
+			"instructions": d.comment,
+			"draft": cint(d.ke_draft),
+			"buy_externally": cint(d.ke_buy_externally),
+			"chronic": cint(d.ke_chronic),
+		}
+		for d in doc.get("drug_prescription") or []
+		if d.get("drug_code") and not d.get("medication_request")
+	]
+
+
+def mapping(row):
+	"""'Amoxicillin 5 ml TID for 10 Day will be dispensed as 1 Bottle, not 150 ml.'"""
+	result = dispensing.compute_row(frappe._dict(row))
+	if not result:
+		return None
+	drug = row.get("drug_name") or row.get("drug_code")
+	how = dispensing.instructions_text(
+		row.get("ke_dose"), row.get("ke_dose_uom"), row.get("dosage"), row.get("period")
+	)
+	if row.get("dosage_by_interval") and row.get("interval"):
+		how = f"{flt_text(row.get('ke_dose'))} {row.get('ke_dose_uom') or ''} " + _(
+			"every {0} {1} for {2}"
+		).format(row.get("interval"), row.get("interval_uom") or "", row.get("period"))
+	qty = cint(row.get("ke_quantity")) or result.quantity
+	text = _("{0} {1} will be dispensed as {2} {3}").format(drug, how.strip(), qty, result.unit or "")
+	if result.how == "dose" and result.dose_uom and result.dose_uom != result.unit:
+		text += _(", not {0} {1}").format(flt_text(result.total), result.dose_uom)
+	return {"text": text.strip() + ".", "quantity": result.quantity, "unit": result.unit}
+
+
+def flt_text(value):
+	from frappe.utils import flt
+
+	return f"{flt(value):g}"
+
+
+@frappe.whitelist()
+def preview(row: str | dict) -> dict | None:
+	"""The quantity and the mapping note, as the doctor types."""
+	_check()
+	row = frappe.parse_json(row) if isinstance(row, str) else row
+	if row.get("drug_code") and not row.get("drug_name"):
+		row["drug_name"] = frappe.db.get_value("Item", row["drug_code"], "item_name")
+	if not row.get("medication") and row.get("drug_code"):
+		row["medication"] = dispensing.medication_for_item(row["drug_code"])
+	return mapping(row)
+
+
+@frappe.whitelist()
+def current(encounter: str) -> dict:
+	"""Pending (this consultation, not sent) and the patient's other lists."""
+	doc = _check(encounter, "read")
+	out = history(encounter)
+	out["pending"] = _pending(doc)
+	out["open"] = cint(doc.docstatus == 0 and frappe.has_permission(DT, "write", doc))
+	out["ward"] = cint(bool(doc.get("inpatient_record")))
+	return out
+
+
+@frappe.whitelist()
+def add_drug(encounter: str, row: str | dict | list) -> dict:
+	"""Add a drug (or a package's drugs: a list) to the consultation, as draft."""
+	doc = _check(encounter)
+	if doc.docstatus != 0:
+		frappe.throw(_("This consultation is already completed."))
+	rows = frappe.parse_json(row) if isinstance(row, str) else row
+	rows = rows if isinstance(rows, list) else [rows]
+	added = []
+	for r in rows:
+		values = {f: r.get(f) for f in EDITABLE if r.get(f) not in (None, "")}
+		if not values.get("drug_code"):
+			frappe.throw(_("Choose the drug."))
+		values.setdefault("ke_start_date", nowdate())
+		if not values.get("medication"):
+			values["medication"] = dispensing.medication_for_item(values["drug_code"])
+		values["drug_name"] = frappe.db.get_value("Item", values["drug_code"], "item_name")
+		values["ke_draft"] = 1
+		added.append(doc.append("drug_prescription", values))
+	doc.save()
+	note = mapping(added[-1].as_dict()) if len(added) == 1 else None
+	return {"pending": _pending(doc), "mapping": note}
+
+
+@frappe.whitelist()
+def remove_drug(encounter: str, row: str) -> dict:
+	doc = _check(encounter)
+	keep = [d for d in doc.drug_prescription if not (d.name == row and not d.medication_request)]
+	if len(keep) == len(doc.drug_prescription):
+		frappe.throw(_("Only a drug not sent yet can be removed."))
+	doc.drug_prescription = keep
+	doc.save()
+	return {"pending": _pending(doc)}
+
+
+@frappe.whitelist()
+def save_prescription(encounter: str) -> dict:
+	"""Send the pending drugs: to the pharmacy from a consultation; on the ward,
+	the ward-round consultation is completed, which makes the dose schedule."""
+	doc = _check(encounter)
+	if not doc.get("inpatient_record"):
+		return submit(encounter)
+	pending = [
+		d
+		for d in doc.get("drug_prescription") or []
+		if d.get("drug_code") and not d.get("medication_request")
+	]
+	if not pending:
+		frappe.throw(_("No drugs to send: add one first."))
+	for d in pending:
+		d.ke_draft = 0
+	doc.submit()
+	return {"sent": len(pending), "completed": 1}
+
+
+@frappe.whitelist()
+def ward_lists(inpatient_record: str) -> dict:
+	"""The ward's drug screen: today's open ward-round prescription (pending),
+	what was sent from today's ward rounds, and the patient's other lists."""
+	ip = frappe.get_doc("Inpatient Record", inpatient_record)
+	ip.check_permission("read")
+	today_rounds = frappe.get_all(
+		DT,
+		filters=_round_filters(ip, docstatus=["<", 2]),
+		fields=["name", "docstatus"],
+		order_by="creation desc",
+	)
+	out = lists(ip.patient, tuple(r.name for r in today_rounds))
+	draft = next((r.name for r in today_rounds if r.docstatus == 0), None)
+	out["encounter"] = draft
+	out["pending"] = _pending(frappe.get_doc(DT, draft)) if draft else []
+	out["can_prescribe"] = cint(
+		bool(_practitioner())
+		and frappe.has_permission(DT, "create")
+		and ip.status in ("Admitted", "Discharge Scheduled")
+	)
+	return out

@@ -873,6 +873,23 @@ def money(ip, detail=False):
 DAY_START = 6  # the first dose of the day, hours
 
 
+def row_times(row):
+	"""The day's dose times of a prescription row: every N hours from its start
+	time (or 06:00) when scheduled by interval, else its frequency's times."""
+	if cint(row.get("dosage_by_interval")) and cint(row.get("interval")):
+		hours = cint(row.interval) * (24 if row.get("interval_uom") == "Day" else 1)
+		if hours >= 24:
+			first = str(row.get("ke_start_time") or f"{DAY_START:02d}:00:00")
+			return [first if len(first) == 8 else first.zfill(8)]
+		start = DAY_START
+		if row.get("ke_start_time"):
+			h, m = (int(x) for x in str(row.ke_start_time).split(":")[:2])
+			start = h + m / 60
+		times = sorted({(start + i * hours) % 24 for i in range(int(24 // hours))})
+		return [f"{int(t):02d}:{round(t % 1 * 60) % 60:02d}:00" for t in times]
+	return dose_times(row.dosage)
+
+
 def dose_times(dosage):
 	"""The times of a frequency's doses: those set on the Prescription Dosage,
 	else spread over the day from 06:00 (three a day: 06:00, 14:00, 22:00)."""
@@ -916,7 +933,13 @@ def order_from_encounter(doc, method=None):
 	from royce_health_ke.dispensing import days as duration_days
 	from royce_health_ke.dispensing import item_for
 
-	rows = [d for d in doc.drug_prescription if (d.drug_code or d.medication) and d.dosage and d.period]
+	rows = [
+		d
+		for d in doc.drug_prescription
+		if (d.drug_code or d.medication)
+		and d.period
+		and (d.dosage or (cint(d.get("dosage_by_interval")) and cint(d.get("interval"))))
+	]
 	if not rows:
 		return
 	order = frappe.new_doc("Inpatient Medication Order")
@@ -942,7 +965,7 @@ def order_from_encounter(doc, method=None):
 		quantity = dose_quantity(d)
 		for day in range(n_days):
 			date = add_days(start, day)
-			for t in dose_times(d.dosage):
+			for t in row_times(d):
 				if day == 0 and first_time and t < str(first_time):
 					continue
 				order.append(
