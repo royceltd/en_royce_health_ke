@@ -422,7 +422,7 @@
    "fieldname": "current_station",
    "fieldtype": "Select",
    "label": "Station",
-   "options": "Triage\nConsultation\nCasualty\nLaboratory\nRadiology\nPharmacy\nProcedure Room\nNursing\nCashier\nAdmission",
+   "options": "Triage\nConsultation\nCasualty\nLaboratory\nRadiology\nPharmacy\nProcedure Room\nNursing\nCashier\nAdmission\nTheatre",
    "in_standard_filter": 1,
    "read_only": 1,
    "search_index": 1
@@ -530,7 +530,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-18 22:00:00.000000",
+ "modified": "2026-11-21 11:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Patient Visit",

@@ -6,7 +6,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-18 22:00:00.000000",
+ "modified": "2026-11-21 11:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "owner": "Administrator",
@@ -54,7 +54,7 @@
    "reqd": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "options": "Laboratory\nRadiology\nProcedure Room\nNursing\nPharmacy\nCasualty\nTriage\nConsultation\nCashier\nAdmission",
+   "options": "Laboratory\nRadiology\nProcedure Room\nNursing\nPharmacy\nCasualty\nTriage\nConsultation\nCashier\nAdmission\nTheatre",
    "description": "Where these requests are done: the patient is sent there and the request shows on its worklist."
   },
   {

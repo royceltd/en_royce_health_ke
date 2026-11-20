@@ -283,7 +283,9 @@ class TestRouting(IntegrationTestCase):
 		)
 		frappe.db.set_value("Clinical Procedure Template", template.name, "item_group", original)
 		_category, point = routing.category_for("Clinical Procedure Template", template.name)
-		if original != routing.NURSING_GROUP:
+		if original == routing.SURGICAL_GROUP:
+			self.assertEqual(point, routing.THEATRE)
+		elif original != routing.NURSING_GROUP:
 			self.assertEqual(point, "Procedure Room")
 
 	def test_lab_template_routes_to_laboratory(self):

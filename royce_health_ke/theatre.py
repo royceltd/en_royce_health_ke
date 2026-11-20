@@ -100,6 +100,7 @@ PHASES = (
 
 
 def validate_booking(doc):
+	from_request(doc)
 	if not frappe.db.get_value(
 		"Healthcare Service Unit Type",
 		frappe.db.get_value("Healthcare Service Unit", doc.theatre, "service_unit_type"),
@@ -636,3 +637,105 @@ def theatre_query(doctype, txt, searchfield, start, page_len, filters):
 		start=start,
 		page_length=page_len,
 	)
+
+
+# Theatre Requests (Bethesda, 20 Nov 2026: "we send patient and get as a
+# request in the next module"): procedures requested to the Theatre service
+# point, from the consultation or the ward's Requests tab, waiting to be booked.
+
+PRIORITY = {"Routine": "Elective", "Urgent": "Urgent", "ASAP": "Urgent", "STAT": "Emergency"}
+
+
+def _priority(code):
+	"""Marley's request priority (a Code Value "Urgent-Priority") as a booking's."""
+	return PRIORITY.get((code or "").split("-")[0], "Elective")
+
+
+def from_request(doc):
+	"""A booking made from a request: the request's patient, procedure and
+	admission (its urgency is filled in by the Book button)."""
+	if not doc.service_request:
+		return
+	sr = frappe.db.get_value(
+		"Service Request",
+		doc.service_request,
+		["patient", "template_dt", "template_dn", "priority", "inpatient_record", "docstatus"],
+		as_dict=True,
+	)
+	if not sr or sr.docstatus != 1:
+		frappe.throw(_("Request {0} is not an open request.").format(doc.service_request))
+	doc.patient = doc.patient or sr.patient
+	if doc.patient != sr.patient:
+		frappe.throw(_("Request {0} is for another patient.").format(doc.service_request))
+	if sr.template_dt == "Clinical Procedure Template":
+		doc.procedure_template = doc.procedure_template or sr.template_dn
+	if not doc.inpatient_record:
+		doc.inpatient_record = sr.inpatient_record or frappe.db.get_value(
+			"Inpatient Record",
+			{"patient": doc.patient, "status": ["in", ["Admitted", "Discharge Scheduled"]]},
+			"name",
+		)
+
+
+def theatre_requests():
+	"""Requests to Theatre not yet booked (a cancelled booking puts its request
+	back on the list), the most urgent first."""
+	from royce_health_ke.lab import CLOSED_REQUEST
+	from royce_health_ke.routing import THEATRE
+
+	rows = frappe.get_all(
+		"Service Request",
+		filters={
+			"docstatus": 1,
+			"ke_service_point": THEATRE,
+			"status": ["not in", (*CLOSED_REQUEST, "completed-Request Status")],
+		},
+		fields=[
+			"name",
+			"patient",
+			"patient_name",
+			"template_dn",
+			"order_date",
+			"order_time",
+			"practitioner_name",
+			"priority",
+			"inpatient_record",
+			"comment",
+		],
+		order_by="order_date asc, order_time asc",
+		limit=500,
+	)
+	booked = set(
+		frappe.get_all(
+			"Theatre Booking",
+			filters={
+				"service_request": ["in", [r.name for r in rows] or [""]],
+				"status": ["!=", "Cancelled"],
+				"docstatus": ["<", 2],
+			},
+			pluck="service_request",
+		)
+	)
+	from royce_health_ke.inpatient import current_bed, ward_of
+
+	out = []
+	for r in rows:
+		if r.name in booked:
+			continue
+		ip = r.inpatient_record or frappe.db.get_value(
+			"Inpatient Record",
+			{"patient": r.patient, "status": ["in", ["Admitted", "Discharge Scheduled"]]},
+			"name",
+		)
+		bed = current_bed(ip) if ip else None
+		r.inpatient_record = ip
+		r.location = (
+			" · ".join(x for x in (ward_of(ip), bed.service_unit if bed else None) if x)
+			if ip
+			else _("Outpatient")
+		)
+		r.urgency = _priority(r.priority)
+		out.append(r)
+	rank = {"Emergency": 0, "Urgent": 1, "Elective": 2}
+	out.sort(key=lambda r: rank.get(r.urgency, 3))
+	return out

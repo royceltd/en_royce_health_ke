@@ -27,6 +27,8 @@ SR = "Service Request"
 NURSING = "Nursing"
 NURSING_ROLES = ("Nursing User", "Healthcare Administrator", "System Manager")
 NURSING_GROUP = "Nursing Procedures"
+THEATRE = "Theatre"
+SURGICAL_GROUP = "Surgical Procedures"
 
 # kind -> (consultation table, template field, template doctype, template's item group field)
 KINDS = {
@@ -47,6 +49,8 @@ DEFAULTS = (
 	("Laboratory", "Lab Test", None, "Laboratory", 10),
 	("Imaging", "Imaging", None, "Radiology", 20),
 	("Nursing", "Procedure", NURSING_GROUP, NURSING, 30),
+	# the procedures done in theatre: requested here, booked from Theatre Requests
+	(THEATRE, "Procedure", SURGICAL_GROUP, THEATRE, 35),
 	("Procedures", "Procedure", None, "Procedure Room", 40),
 	("Therapy and Counselling", "Therapy", None, "Procedure Room", 50),
 )
@@ -57,29 +61,50 @@ def seed():
 	once; afterwards they are the hospital's (ADR-023)."""
 	if frappe.db.count(CATEGORY):
 		return
-	if not frappe.db.exists("Item Group", NURSING_GROUP):
+	for row in DEFAULTS:
+		_make_category(*row)
+	clear_cache()
+
+
+def _item_group(name):
+	if not frappe.db.exists("Item Group", name):
 		root = frappe.db.get_value(
 			"Item Group", {"is_group": 1, "parent_item_group": ["in", ("", None)]}, "name"
 		)
 		frappe.get_doc(
 			{
 				"doctype": "Item Group",
-				"item_group_name": NURSING_GROUP,
+				"item_group_name": name,
 				"parent_item_group": root or "All Item Groups",
 				"is_group": 0,
 			}
 		).insert(ignore_permissions=True)
-	for name, kind, group, point, sequence in DEFAULTS:
-		frappe.get_doc(
-			{
-				"doctype": CATEGORY,
-				"category_name": name,
-				"request_kind": kind,
-				"item_group": group,
-				"service_point": point,
-				"sequence": sequence,
-			}
-		).insert(ignore_permissions=True)
+
+
+def _make_category(name, kind, group, point, sequence):
+	if group:
+		_item_group(group)
+	if frappe.db.exists(CATEGORY, name):
+		return
+	frappe.get_doc(
+		{
+			"doctype": CATEGORY,
+			"category_name": name,
+			"request_kind": kind,
+			"item_group": group,
+			"service_point": point,
+			"sequence": sequence,
+		}
+	).insert(ignore_permissions=True)
+
+
+def add_theatre():
+	"""The Theatre request type, once, for sites that had their types before
+	it existed (patch v0_55): skipped when one already goes to Theatre."""
+	if frappe.db.exists(CATEGORY, {"service_point": THEATRE}):
+		return
+	row = next(r for r in DEFAULTS if r[0] == THEATRE)
+	_make_category(*row)
 	clear_cache()
 
 

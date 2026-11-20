@@ -324,6 +324,7 @@ def _service_units(company, a):
 			"company": company,
 		},
 	)
+	maternity_ward(company, a, hospital.name)
 	for i in range(1, 5):
 		ensure(
 			"Healthcare Service Unit",
@@ -332,6 +333,53 @@ def _service_units(company, a):
 				"healthcare_service_unit_name": f"GW Bed 0{i}",
 				"parent_healthcare_service_unit": ward.name,
 				"service_unit_type": "General Ward Bed",
+				"inpatient_occupancy": 1,
+				"occupancy_status": "Vacant",
+				"company": company,
+			},
+		)
+
+
+def maternity_ward(company, a, hospital):
+	"""A second ward, so the demo shows a transfer (ward to maternity)."""
+	if not frappe.db.exists("Healthcare Service Unit Type", "Maternity Bed"):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Healthcare Service Unit Type",
+				"service_unit_type": "Maternity Bed",
+				"inpatient_occupancy": 1,
+				"is_billable": 1,
+				"item_code": "WARD-MAT",
+				"item_group": "Services",
+				"uom": "Nos",
+				"rate": 4500,
+				"no_of_hours": 24,
+				"minimum_billable_qty": 1,
+				"description": "Maternity ward bed, per day",
+			}
+		)
+		if doc.meta.has_field("ke_moh717_ward"):
+			doc.ke_moh717_ward = "Maternity"
+		doc.insert(ignore_permissions=True)
+		set_item_tax(company, "WARD-MAT")
+	ward = ensure(
+		"Healthcare Service Unit",
+		f"Maternity Ward - {a}",
+		{
+			"healthcare_service_unit_name": "Maternity Ward",
+			"is_group": 1,
+			"parent_healthcare_service_unit": hospital,
+			"company": company,
+		},
+	)
+	for i in (1, 2):
+		ensure(
+			"Healthcare Service Unit",
+			f"MW Bed 0{i} - {a}",
+			{
+				"healthcare_service_unit_name": f"MW Bed 0{i}",
+				"parent_healthcare_service_unit": ward.name,
+				"service_unit_type": "Maternity Bed",
 				"inpatient_occupancy": 1,
 				"occupancy_status": "Vacant",
 				"company": company,

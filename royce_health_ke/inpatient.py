@@ -316,6 +316,10 @@ def admission_list(ward: str | None = None) -> dict:
 		"ke_admission_reason",
 		"ke_preauth_status",
 		"insurance_payor",
+		"ke_transfer_to",
+		"ke_transfer_reason",
+		"ke_transfer_urgency",
+		"ke_transfer_requested_at",
 	]
 	waiting = frappe.get_all(
 		IR, filters={"status": "Admission Scheduled"}, fields=fields, order_by="creation"
@@ -324,7 +328,7 @@ def admission_list(ward: str | None = None) -> dict:
 		IR, filters={"status": ["in", ON_WARD]}, fields=fields, order_by="admitted_datetime"
 	)
 	urgency_rank = {u: i for i, u in enumerate(reversed(URGENCIES))}
-	out_waiting, out_ward = [], []
+	out_waiting, out_ward, incoming = [], [], []
 	for r in waiting:
 		if ward and r.ke_ward != ward:
 			continue
@@ -332,6 +336,8 @@ def admission_list(ward: str | None = None) -> dict:
 	out_waiting.sort(key=lambda r: (urgency_rank.get(r.ke_urgency, 9), str(r.admission_ordered_for)))
 	for r in on_ward:
 		r.ward = ward_of(r.name)
+		if r.ke_transfer_to and (not ward or r.ke_transfer_to == ward) and r.ke_transfer_to != r.ward:
+			incoming.append(r)
 		if ward and r.ward != ward:
 			continue
 		bed = current_bed(r.name)
@@ -345,8 +351,23 @@ def admission_list(ward: str | None = None) -> dict:
 				"scheduled_time": ["<=", add_to_date(now_datetime(), hours=1)],
 			},
 		)
+		r.theatre = frappe.db.get_value(
+			"Theatre Booking",
+			{
+				"inpatient_record": r.name,
+				"status": ["in", ["Scheduled", "In Theatre"]],
+				"docstatus": ["<", 2],
+			},
+			["status", "scheduled_start"],
+			as_dict=True,
+			order_by="scheduled_start asc",
+		)
 		out_ward.append(r)
-	return {"waiting": out_waiting, "on_ward": out_ward, "wards": wards()}
+	incoming.sort(key=lambda r: (urgency_rank.get(r.ke_transfer_urgency, 9), str(r.ke_transfer_requested_at)))
+	for r in incoming:
+		bed = current_bed(r.name)
+		r.bed = bed.service_unit if bed else None
+	return {"waiting": out_waiting, "on_ward": out_ward, "incoming": incoming, "wards": wards()}
 
 
 @frappe.whitelist()
@@ -358,6 +379,79 @@ def admit(inpatient_record: str, bed: str) -> str:
 		frappe.throw(_("{0} is not waiting for admission.").format(doc.patient_name))
 	doc.admit(bed, now_datetime())
 	return doc.name
+
+
+# Transfer to another ward (Bethesda, 20 Nov 2026: "we send patient and get as
+# a request in the next tab/module"): the ward the patient is on asks, and the
+# receiving ward sees the patient under Incoming Transfers and gives a bed.
+
+TRANSFER_FIELDS = (
+	"ke_transfer_to",
+	"ke_transfer_reason",
+	"ke_transfer_urgency",
+	"ke_transfer_requested_by",
+	"ke_transfer_requested_at",
+)
+
+
+@frappe.whitelist()
+def request_transfer(inpatient_record: str, ward: str, reason: str, urgency: str = "Routine") -> str:
+	_check(WARD_ROLES)
+	doc = frappe.get_doc(IR, inpatient_record)
+	doc.check_permission("read")
+	if doc.status not in ON_WARD:
+		frappe.throw(_("{0} is not on a ward.").format(doc.patient_name))
+	if ward not in wards():
+		frappe.throw(_("{0} is not a ward.").format(ward))
+	if ward == ward_of(doc.name):
+		frappe.throw(_("{0} is already on {1}.").format(doc.patient_name, ward))
+	if not (reason or "").strip():
+		frappe.throw(_("Give the reason for the transfer."))
+	if urgency not in URGENCIES:
+		frappe.throw(_("Choose the urgency."))
+	frappe.db.set_value(
+		IR,
+		doc.name,
+		{
+			"ke_transfer_to": ward,
+			"ke_transfer_reason": reason.strip(),
+			"ke_transfer_urgency": urgency,
+			"ke_transfer_requested_by": frappe.session.user,
+			"ke_transfer_requested_at": now_datetime(),
+		},
+	)
+	doc.add_comment("Info", _("Transfer to {0} requested: {1}").format(ward, reason.strip()))
+	return ward
+
+
+@frappe.whitelist()
+def cancel_transfer(inpatient_record: str) -> None:
+	_check(WARD_ROLES)
+	doc = frappe.get_doc(IR, inpatient_record)
+	doc.check_permission("read")
+	if doc.get("ke_transfer_to"):
+		doc.add_comment("Info", _("Transfer to {0} cancelled").format(doc.ke_transfer_to))
+	frappe.db.set_value(IR, doc.name, dict.fromkeys(TRANSFER_FIELDS))
+
+
+@frappe.whitelist()
+def receive_transfer(inpatient_record: str, bed: str) -> str:
+	"""The receiving ward gives a vacant bed: the old bed is left (checked out,
+	vacant) and the new one taken (Marley's transfer)."""
+	_check(ADMIT_ROLES)
+	doc = frappe.get_doc(IR, inpatient_record)
+	to = doc.get("ke_transfer_to")
+	if not to:
+		frappe.throw(_("No transfer was asked for {0}.").format(doc.patient_name))
+	if frappe.db.get_value("Healthcare Service Unit", bed, "parent_healthcare_service_unit") != to:
+		frappe.throw(_("{0} is not a bed on {1}.").format(bed, to))
+	old = current_bed(doc.name)
+	from_ward = ward_of(doc.name)
+	doc.transfer(bed, now_datetime(), leave_from=old.service_unit if old else None)
+	doc.reload()
+	doc.db_set({"ke_ward": to, **dict.fromkeys(TRANSFER_FIELDS)})
+	doc.add_comment("Info", _("Transferred from {0} to {1}, bed {2}").format(from_ward, to, bed))
+	return bed
 
 
 # The patient screen
@@ -416,6 +510,8 @@ def workspace(inpatient_record: str, booking: str | None = None) -> dict:
 		"payer": ip.insurance_payor or _("Cash"),
 		"preauth": ip.get("ke_preauth_status"),
 		"preauth_due": ip.get("ke_preauth_due"),
+		"transfer_to": ip.get("ke_transfer_to"),
+		"transfer_reason": ip.get("ke_transfer_reason"),
 		"money": money(ip),
 		"tabs": tabs,
 		"theatre": theatre,

@@ -266,7 +266,7 @@ def maybe_finish(visit_name):
 		visit = frappe.get_doc("Patient Visit", visit_name)
 	except frappe.DoesNotExistError:
 		return False
-	if visit.status != "Open" or visit.current_station == "Admission":
+	if visit.status != "Open" or visit.current_station in ("Admission", "Theatre"):
 		return False
 	if frappe.db.get_value("Patient", visit.patient, "inpatient_status"):
 		return False

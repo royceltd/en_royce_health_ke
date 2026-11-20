@@ -1230,6 +1230,55 @@ INPATIENT_RECORD = [
 		"read_only": 1,
 		"depends_on": "eval:doc.ke_preauth_status=='Pending'",
 	},
+	# a move to another ward, asked by the ward the patient is on and taken up
+	# by the receiving ward (Bethesda, 20 Nov 2026: "ward to theatre or maternity")
+	{
+		"fieldname": "ke_transfer_section",
+		"fieldtype": "Section Break",
+		"label": "Transfer Request",
+		"insert_after": "ke_preauth_due",
+		"collapsible": 1,
+		"depends_on": "ke_transfer_to",
+	},
+	{
+		"fieldname": "ke_transfer_to",
+		"fieldtype": "Link",
+		"label": "Transfer To Ward",
+		"options": "Healthcare Service Unit",
+		"insert_after": "ke_transfer_section",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "ke_transfer_reason",
+		"fieldtype": "Small Text",
+		"label": "Transfer Reason",
+		"insert_after": "ke_transfer_to",
+		"read_only": 1,
+	},
+	{"fieldname": "ke_transfer_cb", "fieldtype": "Column Break", "insert_after": "ke_transfer_reason"},
+	{
+		"fieldname": "ke_transfer_urgency",
+		"fieldtype": "Select",
+		"label": "Transfer Urgency",
+		"options": "\nRoutine\nUrgent\nEmergency",
+		"insert_after": "ke_transfer_cb",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "ke_transfer_requested_by",
+		"fieldtype": "Link",
+		"label": "Transfer Requested By",
+		"options": "User",
+		"insert_after": "ke_transfer_urgency",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "ke_transfer_requested_at",
+		"fieldtype": "Datetime",
+		"label": "Transfer Requested At",
+		"insert_after": "ke_transfer_requested_by",
+		"read_only": 1,
+	},
 ]
 
 # The ward's notes carry the patient's condition (Bethesda's notes, PDF (9))

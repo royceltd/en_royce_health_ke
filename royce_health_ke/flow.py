@@ -54,6 +54,7 @@ STATIONS = (
 	"Nursing",
 	"Cashier",
 	"Admission",
+	"Theatre",
 )
 FIRST_STATION = {
 	"Outpatient": "Triage",

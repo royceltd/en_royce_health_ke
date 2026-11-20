@@ -140,6 +140,14 @@ class InpatientWorkspace {
 					: ""
 			}
 			${
+				d.transfer_to
+					? `<div class="alert alert-info mt-2 mb-0">${__(
+							"Transfer to {0} asked ({1}). The patient stays here until that ward gives a bed.",
+							[iw_esc(d.transfer_to), iw_esc(d.transfer_reason || "")]
+					  )}</div>`
+					: ""
+			}
+			${
 				d.reason
 					? `<div class="small mt-1"><b>${__("Admitted for")}:</b> ${iw_esc(
 							d.reason
@@ -802,6 +810,9 @@ class InpatientWorkspace {
 				true,
 			],
 			[__("Plan Discharge"), () => this.plan_discharge()],
+			this.data.transfer_to
+				? [__("Cancel Transfer"), () => this.cancel_transfer()]
+				: [__("Transfer to Ward"), () => this.transfer()],
 		]);
 		this.$panel.append(`<div class="small">
 			<p><b>${__("Outcome")}:</b> ${iw_esc(__(d.outcome || "Not set"))}${
@@ -809,6 +820,61 @@ class InpatientWorkspace {
 		}</p>
 			${d.note ? `<p>${iw_esc(d.note)}</p>` : ""}
 			<p class="text-muted">${__("MOH 717 counts the admission by this outcome.")}</p></div>`);
+	}
+
+	// Transfer to another ward (Bethesda, 20 Nov 2026): asked here, received by
+	// the other ward from its Incoming Transfers (it gives the bed).
+	async transfer() {
+		const wards = ((await frappe.xcall(IW + "ward_list")) || []).filter(
+			(w) => w !== this.data.ward
+		);
+		if (!wards.length) {
+			frappe.msgprint(__("There is no other ward."));
+			return;
+		}
+		frappe.prompt(
+			[
+				{
+					fieldname: "ward",
+					fieldtype: "Select",
+					label: __("To Ward"),
+					options: wards.join("\n"),
+					default: wards[0],
+					reqd: 1,
+				},
+				{
+					fieldname: "urgency",
+					fieldtype: "Select",
+					label: __("Urgency"),
+					options: "Routine\nUrgent\nEmergency",
+					default: "Routine",
+					reqd: 1,
+				},
+				{ fieldname: "reason", fieldtype: "Small Text", label: __("Reason"), reqd: 1 },
+			],
+			(v) =>
+				frappe
+					.xcall(IW + "request_transfer", { inpatient_record: this.ip, ...v })
+					.then(() => {
+						frappe.show_alert({
+							message: __("Sent to {0}: it appears there under Incoming Transfers", [
+								v.ward,
+							]),
+							indicator: "green",
+						});
+						this.load(this.ip);
+					}),
+			__("Transfer to another ward"),
+			__("Send")
+		);
+	}
+
+	cancel_transfer() {
+		frappe.confirm(__("Cancel the transfer to {0}?", [iw_esc(this.data.transfer_to)]), () =>
+			frappe
+				.xcall(IW + "cancel_transfer", { inpatient_record: this.ip })
+				.then(() => this.load(this.ip))
+		);
 	}
 
 	patient_report(patient) {

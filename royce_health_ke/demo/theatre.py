@@ -74,7 +74,10 @@ def setup(company):
 				"doctype": "Clinical Procedure Template",
 				"template": PROCEDURE,
 				"item_code": "PROC-APPX",
-				"item_group": "Services",
+				# requested to Theatre (routing.SURGICAL_GROUP)
+				"item_group": "Surgical Procedures"
+				if frappe.db.exists("Item Group", "Surgical Procedures")
+				else "Services",
 				"medical_department": "Surgery",
 				"is_billable": 1,
 				"rate": 85000,
