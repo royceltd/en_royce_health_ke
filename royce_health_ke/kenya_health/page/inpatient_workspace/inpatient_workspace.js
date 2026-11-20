@@ -231,31 +231,124 @@ class InpatientWorkspace {
 			${d.instruction ? `<p><b>${__("Admission notes")}:</b> ${iw_esc(d.instruction)}</p>` : ""}</div>`);
 	}
 
+	// A form card on the tab, with its records in a table under it (Bethesda,
+	// 20 Nov 2026: "for every entry, its form and the records in a table").
+	entry_card(title, fields, save_label, on_save) {
+		const $card =
+			$(`<div class="p-3 mb-3" style="border:1px solid var(--border-color);border-radius:8px">
+			<div class="mb-2"><b>${iw_esc(title)}</b></div><div class="iw-form"></div>
+			<div class="text-right"><button class="btn btn-sm btn-default iw-reset mr-2">${__(
+				"Reset"
+			)}</button><button class="btn btn-sm btn-success iw-save">${iw_esc(
+				save_label || __("Save")
+			)}</button></div></div>`).appendTo(this.$panel);
+		const fg = new frappe.ui.FieldGroup({ body: $card.find(".iw-form"), fields });
+		fg.make();
+		$card
+			.find(".iw-reset")
+			.on("click", () =>
+				fg.fields_list.forEach((f) => f.df.fieldname && f.set_value(f.df.default || ""))
+			);
+		$card.find(".iw-save").on("click", async () => {
+			const values = fg.get_values();
+			if (!values) return;
+			$card.find(".iw-save").prop("disabled", true);
+			try {
+				await on_save(values, fg);
+				frappe.show_alert({ message: __("Saved"), indicator: "green" });
+				this.show(this.panel_name);
+			} finally {
+				$card.find(".iw-save").prop("disabled", false);
+			}
+		});
+		return fg;
+	}
+
+	is_doctor() {
+		return frappe.user.has_role(["Physician", "Healthcare Administrator", "System Manager"]);
+	}
+
 	render_vitals(d) {
-		this.buttons([[__("Record Vital Signs"), () => this.nursing("vitals"), true]]);
+		if (frappe.model.can_create("Vital Signs")) {
+			this.entry_card(
+				__("Record Vital Signs"),
+				[
+					{
+						fieldname: "taken_at",
+						fieldtype: "Datetime",
+						label: __("Date and Time"),
+						default: frappe.datetime.now_datetime(),
+						reqd: 1,
+					},
+					{ fieldname: "temperature", fieldtype: "Data", label: __("Temperature (°C)") },
+					{ fieldname: "pulse", fieldtype: "Data", label: __("Pulse (/min)") },
+					{ fieldtype: "Column Break" },
+					{
+						fieldname: "bp_systolic",
+						fieldtype: "Data",
+						label: __("BP Systolic (mmHg)"),
+					},
+					{
+						fieldname: "bp_diastolic",
+						fieldtype: "Data",
+						label: __("BP Diastolic (mmHg)"),
+					},
+					{
+						fieldname: "respiratory_rate",
+						fieldtype: "Data",
+						label: __("Resp. Rate (/min)"),
+					},
+					{ fieldtype: "Column Break" },
+					{ fieldname: "ke_spo2", fieldtype: "Data", label: __("SpO2 (%)") },
+					{ fieldname: "weight", fieldtype: "Float", label: __("Weight (kg)") },
+					{ fieldname: "ke_height_cm", fieldtype: "Float", label: __("Height (cm)") },
+					{ fieldtype: "Section Break" },
+					{
+						fieldname: "vital_signs_note",
+						fieldtype: "Small Text",
+						label: __("Comments"),
+					},
+				],
+				__("Save"),
+				(v) => {
+					const { taken_at, ...values } = v;
+					return frappe.xcall(IW + "record_vitals", {
+						inpatient_record: this.ip,
+						values,
+						taken_at,
+					});
+				}
+			);
+		}
 		const rows = (d.rows || [])
 			.slice()
 			.reverse()
 			.map((v) => [
 				`${iw_when(v.signs_date)} ${iw_esc((v.signs_time || "").slice(0, 5))}`,
-				iw_esc(v.temperature || ""),
+				iw_esc(v.weight || ""),
+				iw_esc(v.ke_height_cm || ""),
+				iw_esc(v.bmi ? flt(v.bmi, 1) : ""),
+				iw_esc(v.bp || (v.bp_systolic ? `${v.bp_systolic}/${v.bp_diastolic || "?"}` : "")),
 				iw_esc(v.pulse || ""),
 				iw_esc(v.respiratory_rate || ""),
-				iw_esc(v.bp || (v.bp_systolic ? `${v.bp_systolic}/${v.bp_diastolic || "?"}` : "")),
+				iw_esc(v.temperature || ""),
 				iw_esc(v.ke_spo2 || ""),
-				iw_esc(v.weight || ""),
+				iw_esc(v.vital_signs_note || ""),
 				`<span style="color:var(--red-600)">${iw_esc(v.ke_vitals_flags || "")}</span>`,
 			]);
 		this.$panel.append(
 			iw_table(
 				[
-					__("Taken"),
-					__("Temp"),
-					__("Pulse"),
-					__("Resp"),
-					__("BP"),
-					"SpO2",
+					__("Date Recorded"),
 					__("Weight"),
+					__("Height"),
+					__("BMI"),
+					__("BP (mmHg)"),
+					__("Pulse"),
+					__("Resp. Rate"),
+					__("Temp (°C)"),
+					"SpO2 (%)",
+					__("Comments"),
 					__("Flags"),
 				],
 				rows
@@ -264,9 +357,74 @@ class InpatientWorkspace {
 	}
 
 	render_requests(d) {
-		this.buttons([
-			[__("Ward Round: new requests or medicines"), () => this.ward_round(), true],
-		]);
+		if (this.is_doctor()) {
+			const fg = this.entry_card(
+				__("New Request"),
+				[
+					{
+						fieldname: "category",
+						fieldtype: "Link",
+						options: "Request Category",
+						label: __("Request Type"),
+						reqd: 1,
+						onchange: () => fg.set_value("template", ""),
+					},
+					{ fieldtype: "Column Break" },
+					{
+						fieldname: "template",
+						fieldtype: "Dynamic Link",
+						options: "template_dt",
+						get_options: () => fg.get_value("template_dt"),
+						label: __("Service"),
+						reqd: 1,
+						get_query: () => ({
+							query: "royce_health_ke.routing.template_query",
+							filters: {
+								category: fg.get_value("category") || "",
+								kind: this.__request_kind || "",
+								encounter: "",
+							},
+						}),
+					},
+					{ fieldname: "template_dt", fieldtype: "Data", hidden: 1 },
+					{ fieldtype: "Column Break" },
+					{
+						fieldname: "urgency",
+						fieldtype: "Select",
+						label: __("Urgency"),
+						options: "Routine\nUrgent\nSTAT",
+						default: "Routine",
+					},
+					{ fieldtype: "Section Break" },
+					{ fieldname: "note", fieldtype: "Small Text", label: __("Notes") },
+				],
+				__("Send Request"),
+				(v) =>
+					frappe.xcall(IW + "add_request", {
+						inpatient_record: this.ip,
+						category: v.category,
+						template: v.template,
+						urgency: v.urgency,
+						note: v.note,
+					})
+			);
+			const doctypes = {
+				"Lab Test": "Lab Test Template",
+				Imaging: "Observation Template",
+				Procedure: "Clinical Procedure Template",
+				Therapy: "Therapy Type",
+			};
+			fg.fields_dict.category.df.onchange = async () => {
+				const cat = fg.get_value("category");
+				const kind = cat
+					? (await frappe.db.get_value("Request Category", cat, "request_kind")).message
+							.request_kind
+					: "";
+				this.__request_kind = kind;
+				fg.set_value("template_dt", doctypes[kind] || "");
+				fg.set_value("template", "");
+			};
+		}
 		const rows = (d.requests || []).map((r) => [
 			`<a href="/desk/service-request/${encodeURIComponent(r.name)}">${iw_esc(
 				r.template_dn
@@ -334,7 +492,43 @@ class InpatientWorkspace {
 	}
 
 	render_diagnosis(d) {
-		this.buttons([[__("Ward Round: update the diagnosis"), () => this.ward_round(), true]]);
+		if (this.is_doctor()) {
+			const fg = this.entry_card(
+				__("Add Diagnosis"),
+				[
+					{
+						fieldname: "diagnosis",
+						fieldtype: "Link",
+						options: "Diagnosis",
+						label: __("Diagnosis"),
+						ignore_link_validation: 1,
+						get_query: () => ({ query: "royce_health_ke.diagnosis.diagnosis_query" }),
+						onchange: () =>
+							this.resolve_diagnosis(fg, { diagnosis: fg.get_value("diagnosis") }),
+					},
+					{ fieldtype: "Column Break" },
+					{
+						fieldname: "code_value",
+						fieldtype: "Link",
+						options: "Code Value",
+						label: __("ICD-11 Code"),
+						get_query: () => ({ query: "royce_health_ke.diagnosis.icd11_query" }),
+						onchange: () =>
+							this.resolve_diagnosis(fg, { code_value: fg.get_value("code_value") }),
+					},
+				],
+				__("Add Diagnosis"),
+				(v) => {
+					if (!v.diagnosis && !v.code_value)
+						frappe.throw(__("Choose the diagnosis or its ICD-11 code."));
+					return frappe.xcall(IW + "add_diagnosis", {
+						inpatient_record: this.ip,
+						diagnosis: v.diagnosis,
+						code_value: v.code_value,
+					});
+				}
+			);
+		}
 		const rows = (d.diagnoses || []).map((x) => [
 			iw_esc(x.diagnosis),
 			x.code ? `ICD-11 ${iw_esc(x.code)}` : "",
@@ -344,42 +538,149 @@ class InpatientWorkspace {
 		this.$panel.append(iw_table([__("Diagnosis"), __("Code"), __("Date"), __("By")], rows));
 	}
 
-	note_dialog(note_type) {
-		frappe.prompt(
+	// name <-> ICD-11 code, as on the consultation (royce_health_ke.diagnosis)
+	resolve_diagnosis(fg, args) {
+		if (fg.__resolving || !(args.diagnosis || args.code_value)) return;
+		frappe.xcall("royce_health_ke.diagnosis.resolve", args).then((r) => {
+			if (!r) return;
+			fg.__resolving = true;
+			const set = {};
+			if (r.diagnosis && fg.get_value("diagnosis") !== r.diagnosis)
+				set.diagnosis = r.diagnosis;
+			if (r.code_value && fg.get_value("code_value") !== r.code_value)
+				set.code_value = r.code_value;
+			fg.set_values(set).finally(() => (fg.__resolving = false));
+		});
+	}
+
+	// Doctor's notes, instructions and nursing notes: one design, kept apart
+	// (Bethesda, 20 Nov 2026). Current (the form) and Past (the notes).
+	notes_screen(d, { note_type, title, info, can_write, extra = [], empty }) {
+		const $root = this.$panel;
+		const views = [
+			["current", __("Current")],
+			["past", __("Past")],
+			...extra.map(([label]) => [label, label]),
+		];
+		const $row = $(`<div class="row">
+			<div class="col-md-2 mb-3"><div class="list-group">${views
+				.map(
+					([k, l]) =>
+						`<a href="#" class="list-group-item list-group-item-action py-2" data-view="${iw_esc(
+							k
+						)}">${iw_esc(l)}</a>`
+				)
+				.join("")}</div></div>
+			<div class="col-md-10 iw-notes-body"></div></div>`).appendTo($root);
+		const show = (key) => {
+			const action = extra.find(([label]) => label === key);
+			if (action) return action[1]();
+			$row.find("[data-view]").removeClass("active");
+			$row.find(`[data-view="${key}"]`).addClass("active");
+			this.$panel = $row.find(".iw-notes-body").empty();
+			try {
+				if (key === "current" && can_write) this.note_form(note_type, title, info);
+				else this.render_nursing_notes({ notes: d.notes }, true, empty);
+			} finally {
+				this.$panel = $root;
+			}
+		};
+		$row.find("[data-view]").on("click", (e) => {
+			e.preventDefault();
+			show($(e.currentTarget).data("view"));
+		});
+		show(can_write ? "current" : "past");
+	}
+
+	note_form(note_type, title, info) {
+		const templates = [
+			__("Patient Assessment"),
+			__("Medication Given"),
+			__("Vital Signs Recorded"),
+			__("Patient Education"),
+			__("Care Provided"),
+			__("Other Note"),
+		];
+		this.$panel.append(
+			`<div class="alert alert-success small mb-3"><b>${iw_esc(title)}</b><br>${iw_esc(
+				info
+			)}</div>`
+		);
+		const fg = this.entry_card(
+			title,
 			[
-				{ fieldname: "note", fieldtype: "Small Text", label: __(note_type), reqd: 1 },
+				{ fieldname: "note", fieldtype: "Text Editor", label: __(title), reqd: 1 },
+				{
+					fieldname: "posting_date",
+					fieldtype: "Datetime",
+					label: __("Date"),
+					reqd: 1,
+					default: frappe.datetime.now_datetime(),
+				},
+				{ fieldtype: "Column Break" },
 				{
 					fieldname: "patient_status",
 					fieldtype: "Select",
 					label: __("Patient Status"),
 					options: "\nStable\nImproving\nUnchanged\nDeteriorating\nCritical",
 				},
+				{
+					fieldname: "notes_by",
+					fieldtype: "Data",
+					label: __("Notes By"),
+					read_only: 1,
+					default: frappe.session.user_fullname,
+				},
+				{ fieldtype: "Section Break", label: __("Quick Note Templates") },
+				{ fieldname: "templates", fieldtype: "HTML" },
 			],
+			__("Save"),
 			(v) =>
-				frappe
-					.xcall(IW + "record_note", { inpatient_record: this.ip, note_type, ...v })
-					.then(() => {
-						frappe.show_alert({ message: __("Saved"), indicator: "green" });
-						this.show(this.panel_name);
-					}),
-			__(note_type),
-			__("Save")
+				frappe.xcall(IW + "record_note", {
+					inpatient_record: this.ip,
+					note_type,
+					note: v.note,
+					patient_status: v.patient_status,
+					posting_date: v.posting_date,
+				})
 		);
+		fg.fields_dict.templates.$wrapper.html(
+			templates
+				.map(
+					(t) =>
+						`<button class="btn btn-xs btn-default mr-2 mb-2 iw-template">${iw_esc(
+							t
+						)}</button>`
+				)
+				.join("")
+		);
+		fg.fields_dict.templates.$wrapper.find(".iw-template").on("click", (e) => {
+			const heading = $(e.currentTarget).text();
+			fg.set_value(
+				"note",
+				`${fg.get_value("note") || ""}<p><b>${iw_esc(heading)}:</b> </p>`
+			);
+		});
 	}
 
 	render_doctor_notes(d) {
-		this.buttons([
-			[__("Add Doctor's Note"), () => this.note_dialog(d.note_type), true],
-			[__("Ward Round: requests or medicines"), () => this.ward_round()],
-		]);
-		this.render_note_list(d.notes, __("No doctor's notes yet."));
+		this.notes_screen(d, {
+			note_type: d.note_type,
+			title: __("Doctor's Notes"),
+			info: __("The ward round: the patient's progress, findings and plan."),
+			can_write: this.is_doctor(),
+			empty: __("No doctor's notes yet."),
+		});
 	}
 
 	render_doctor_instructions(d) {
-		this.buttons([
-			[__("Add Instructions for the Nurses"), () => this.note_dialog(d.note_type), true],
-		]);
-		this.render_note_list(d.notes, __("No instructions yet."));
+		this.notes_screen(d, {
+			note_type: d.note_type,
+			title: __("Doctor's Instructions"),
+			info: __("Instructions for the nurses: what to do, watch and report."),
+			can_write: this.is_doctor(),
+			empty: __("No instructions yet."),
+		});
 	}
 
 	render_note_list(notes, empty) {
@@ -495,12 +796,20 @@ class InpatientWorkspace {
 
 	render_nursing_notes(d, list_only, empty) {
 		if (!list_only)
-			this.buttons([
-				[__("Add Nursing Note"), () => this.nursing("notes"), true],
-				[__("Note with Patient Status"), () => this.note_dialog("Nursing Note")],
-				[__("Shift Handover"), () => this.nursing("handover")],
-				[__("Nursing Tasks"), () => this.nursing("nursing_tasks")],
-			]);
+			return this.notes_screen(d, {
+				note_type: "Nursing Note",
+				title: __("Nursing Notes"),
+				info: __(
+					"Record patient observations, care provided, patient response and any other relevant nursing information."
+				),
+				can_write: true,
+				extra: [
+					[__("Nursing Care"), () => this.show("Nursing Care")],
+					[__("Shift Handover"), () => this.nursing("handover")],
+					[__("Nursing Tasks"), () => this.nursing("nursing_tasks")],
+				],
+				empty: __("No nursing notes yet. Record the admission assessment first."),
+			});
 		const notes = (d.notes || [])
 			.map((n) => {
 				const fdar = ["fdar_focus", "fdar_data", "fdar_action", "fdar_response"]
@@ -556,70 +865,56 @@ class InpatientWorkspace {
 		this.render_charts(d.charts || []);
 	}
 
+	// Nursing charts (Bethesda, 20 Nov 2026): the charts listed on the left;
+	// the chosen chart's form, with its entries in a table under it.
 	render_charts(charts) {
-		charts.forEach((c) => {
-			const $c = $(
-				`<div class="mb-4 p-3" style="border:1px solid var(--border-color);border-radius:8px"></div>`
-			).appendTo(this.$panel);
-			const totals = Object.entries(c.totals || {})
-				.map(([k, v]) => `${iw_esc(k)}: <b>${iw_esc(v)}</b>`)
-				.join(" · ");
-			$c.append(`<div class="d-flex justify-content-between align-items-center mb-2">
-				<div><b>${iw_esc(c.name)}</b> ${
-				c.second_check
-					? `<span class="small text-muted ml-1">${__(
-							"Counter-checked by a second nurse"
-					  )}</span>`
-					: ""
-			}
-				${c.due ? `<span class="small text-muted ml-2">${__("Next due")}: ${iw_when(c.due)}</span>` : ""}
-				${totals ? `<div class="small">${__("Last 24 hours")}: ${totals}</div>` : ""}</div>
-				<button class="btn btn-xs btn-primary">${__("Add Entry")}</button></div>`);
-			$c.find("button").on("click", () => this.chart_entry(c));
-			const rows = (c.entries || []).map((e) => [
-				`${iw_esc(
-					frappe.datetime.str_to_user(e.recorded_at)
-				)}<div class="text-muted">${iw_esc(e.shift || "")}</div>`,
-				...c.columns.map((col) => {
-					const v = (e.readings || {})[col.label];
-					return v
-						? `<span${
-								v.flag ? ' style="color:var(--red-600);font-weight:600"' : ""
-						  }>${iw_esc(v.value)} ${iw_esc(v.unit || "")}</span>`
-						: "";
-				}),
-				...(c.score_label ? [`<b>${iw_esc(e.score == null ? "" : e.score)}</b>`] : []),
-				iw_esc(e.note || ""),
-				iw_esc(e.by) +
-					(e.second_check_by
-						? `<div class="text-muted">${__("Checked")}: ${iw_esc(
-								e.second_check_by
-						  )}</div>`
-						: ""),
-			]);
-			$c.append(
-				iw_table(
-					[
-						__("Time"),
-						...c.columns.map((x) => iw_esc(x.label)),
-						...(c.score_label ? [iw_esc(c.score_label)] : []),
-						__("Note"),
-						__("By"),
-					],
-					rows
-				)
-			);
-		});
-		if (!charts.length)
+		if (!charts.length) {
 			this.$panel.append(
 				`<p class="text-muted">${__(
 					"No charts set up. Add them in Nursing Chart Template."
 				)}</p>`
 			);
+			return;
+		}
+		if (charts.length === 1) return this.chart_view(charts[0]);
+		const $root = this.$panel;
+		const $row = $(`<div class="row">
+			<div class="col-md-3 mb-3"><div class="list-group">${charts
+				.map(
+					(c, i) =>
+						`<a href="#" class="list-group-item list-group-item-action py-2" data-i="${i}">${iw_esc(
+							c.name
+						)}${
+							c.due
+								? `<div class="small text-muted">${__("Next due")}: ${iw_when(
+										c.due
+								  )}</div>`
+								: ""
+						}</a>`
+				)
+				.join("")}</div></div>
+			<div class="col-md-9 iw-chart-body"></div></div>`).appendTo($root);
+		const show = (i) => {
+			this.__chart = charts[i].name;
+			$row.find("[data-i]").removeClass("active");
+			$row.find(`[data-i="${i}"]`).addClass("active");
+			this.$panel = $row.find(".iw-chart-body").empty();
+			try {
+				this.chart_view(charts[i]);
+			} finally {
+				this.$panel = $root;
+			}
+		};
+		$row.find("[data-i]").on("click", (e) => {
+			e.preventDefault();
+			show($(e.currentTarget).data("i"));
+		});
+		const last = charts.findIndex((c) => c.name === this.__chart);
+		show(last >= 0 ? last : 0);
 	}
 
-	chart_entry(c) {
-		const fields = c.columns.map((col) => {
+	chart_fields(c) {
+		return c.columns.map((col) => {
 			const fieldname = "c_" + col.label.replace(/[^a-z0-9]/gi, "_").toLowerCase();
 			col.fieldname = fieldname;
 			const label = col.label + (col.unit ? ` (${col.unit})` : "");
@@ -643,50 +938,106 @@ class InpatientWorkspace {
 				};
 			return { fieldname, label, fieldtype: "Data", reqd: col.reqd };
 		});
-		fields.push({
-			fieldname: "recorded_at",
-			fieldtype: "Datetime",
-			label: __("Time"),
-			default: frappe.datetime.now_datetime(),
-		});
-		if (c.second_check)
-			fields.push({
-				fieldname: "second_check_by",
-				fieldtype: "Link",
-				options: "User",
-				label: __("Counter Checked By"),
-				description: __("A second nurse, not you, checks the patient and the blood unit."),
-				reqd: 1,
-			});
-		fields.push({ fieldname: "note", fieldtype: "Small Text", label: __("Note") });
-		const d = new frappe.ui.Dialog({
-			title: c.name,
-			fields,
-			primary_action_label: __("Save"),
-			primary_action: (v) => {
+	}
+
+	chart_view(c) {
+		const totals = Object.entries(c.totals || {})
+			.map(([k, v]) => `${iw_esc(k)}: <b>${iw_esc(v)}</b>`)
+			.join(" · ");
+		this.$panel.append(`<div class="mb-2"><h5 class="mb-1">${iw_esc(c.name)}</h5>
+			${c.description ? `<div class="small text-muted">${iw_esc(c.description)}</div>` : ""}
+			${
+				c.second_check
+					? `<div class="small text-muted">${__(
+							"Counter-checked by a second nurse"
+					  )}</div>`
+					: ""
+			}
+			${totals ? `<div class="small">${__("Last 24 hours")}: ${totals}</div>` : ""}</div>`);
+		if (frappe.model.can_create("Nursing Chart Entry")) {
+			const fields = this.chart_fields(c);
+			// two columns, as on the paper chart
+			const half = Math.ceil(fields.length / 2);
+			const layout = [
+				{
+					fieldname: "recorded_at",
+					fieldtype: "Datetime",
+					label: __("Observation Date and Time"),
+					default: frappe.datetime.now_datetime(),
+					reqd: 1,
+				},
+				{ fieldtype: "Section Break" },
+				...fields.slice(0, half),
+				{ fieldtype: "Column Break" },
+				...fields.slice(half),
+				{ fieldtype: "Section Break" },
+				...(c.second_check
+					? [
+							{
+								fieldname: "second_check_by",
+								fieldtype: "Link",
+								options: "User",
+								label: __("Counter Checked By"),
+								description: __(
+									"A second nurse, not you, checks the patient and the blood unit."
+								),
+								reqd: 1,
+							},
+							{ fieldtype: "Column Break" },
+					  ]
+					: []),
+				{ fieldname: "note", fieldtype: "Small Text", label: __("Remarks") },
+			];
+			this.entry_card(__("New Entry"), layout, __("Save"), (v) => {
 				const values = {};
 				c.columns.forEach((col) => {
 					const value = v[col.fieldname];
 					if (value !== undefined && value !== null && value !== "")
 						values[col.label] = value;
 				});
-				frappe
-					.xcall("royce_health_ke.charts.record", {
-						inpatient_record: this.ip,
-						template: c.name,
-						values,
-						note: v.note,
-						second_check_by: v.second_check_by,
-						recorded_at: v.recorded_at,
-					})
-					.then(() => {
-						d.hide();
-						frappe.show_alert({ message: __("Recorded"), indicator: "green" });
-						this.show(this.panel_name);
-					});
-			},
-		});
-		d.show();
+				return frappe.xcall("royce_health_ke.charts.record", {
+					inpatient_record: this.ip,
+					template: c.name,
+					values,
+					note: v.note,
+					second_check_by: v.second_check_by,
+					recorded_at: v.recorded_at,
+				});
+			});
+		}
+		const rows = (c.entries || []).map((e) => [
+			`${iw_esc(frappe.datetime.str_to_user(e.recorded_at))}<div class="text-muted">${iw_esc(
+				e.shift || ""
+			)}</div>`,
+			...c.columns.map((col) => {
+				const v = (e.readings || {})[col.label];
+				return v
+					? `<span${
+							v.flag ? ' style="color:var(--red-600);font-weight:600"' : ""
+					  }>${iw_esc(v.value)} ${iw_esc(v.unit || "")}</span>`
+					: "";
+			}),
+			...(c.score_label ? [`<b>${iw_esc(e.score == null ? "" : e.score)}</b>`] : []),
+			iw_esc(e.note || ""),
+			iw_esc(e.by) +
+				(e.second_check_by
+					? `<div class="text-muted">${__("Checked")}: ${iw_esc(
+							e.second_check_by
+					  )}</div>`
+					: ""),
+		]);
+		this.$panel.append(
+			iw_table(
+				[
+					__("Time"),
+					...c.columns.map((x) => iw_esc(x.label)),
+					...(c.score_label ? [iw_esc(c.score_label)] : []),
+					__("Remarks"),
+					__("By"),
+				],
+				rows
+			)
+		);
 	}
 
 	// Drug Administration (Bethesda, 20 Nov 2026): Prescription (the drug

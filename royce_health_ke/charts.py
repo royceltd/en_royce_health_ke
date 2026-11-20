@@ -221,6 +221,83 @@ def panel(ip, only=None, skip=None):
 	return {"charts": out, "fluid": fluid}
 
 
+# Bethesda's chart designs (feedback of 20 Nov 2026): the fields their paper
+# charts have that ours did not. Added to the existing charts once (seed), as
+# columns at the end; a hospital that changed a chart keeps its changes.
+TRANSFUSION_V053 = [
+	{"label": "Diagnosis", "kind": "Text"},
+	{"label": "Blood group", "kind": "Choice", "options": "A\nB\nAB\nO"},
+	{"label": "Rhesus", "kind": "Choice", "options": "Positive\nNegative"},
+	{"label": "Expiry date", "kind": "Text"},
+	{"label": "Started by", "kind": "Text"},
+	{"label": "Rate", "kind": "Number", "unit": "ml/min"},
+	{"label": "BP diastolic", "kind": "Number", "unit": "mmHg", "low": 50, "high": 110},
+	{"label": "Respiratory rate", "kind": "Number", "unit": "/min", "low": 10, "high": 30},
+	{"label": "Reaction details", "kind": "Text"},
+	{"label": "Intervention drugs", "kind": "Text"},
+]
+FETAL_KICK_V053 = [
+	{"label": "Start time", "kind": "Text"},
+	{"label": "End time", "kind": "Text"},
+	{"label": "Kicks per hour", "kind": "Number"},
+	{"label": "Maternal condition", "kind": "Choice", "options": "Stable\nUnwell\nIn labour", "reqd": 1},
+	{"label": "Next review", "kind": "Text"},
+]
+DIABETIC_V053 = [
+	{"label": "FBS", "kind": "Number", "unit": "mg/dl", "low": 70, "high": 126},
+	{"label": "RBS", "kind": "Number", "unit": "mg/dl", "low": 70, "high": 200},
+	{"label": "Respiratory rate", "kind": "Number", "unit": "/min", "low": 10, "high": 30},
+	{"label": "Urinalysis", "kind": "Text"},
+	{"label": "Drug type", "kind": "Text"},
+	{"label": "Dose", "kind": "Text"},
+	{"label": "Blood sugar frequency", "kind": "Text"},
+]
+POSITIONS = "Supine\nLeft Lateral\nRight Lateral\nProne\nSemi-Fowler's\nFowler's"
+CHARTS_V053 = (
+	{
+		"template_name": "Fluid Balance Chart",
+		"sequence": 15,
+		"description": "Intake (parenteral and alimentary) and output, with 24-hour totals.",
+		"columns": [
+			{
+				"label": "Parenteral type",
+				"kind": "Choice",
+				"options": "Normal Saline\nRinger's Lactate\nDextrose 5%\nDextrose 10%\nBlood\nOther",
+			},
+			{"label": "Bottle", "kind": "Number", "unit": "ml"},
+			{"label": "Infused", "kind": "Number", "unit": "ml", "total": 1},
+			{"label": "Alimentary type", "kind": "Text"},
+			{"label": "Alimentary amount", "kind": "Number", "unit": "ml", "total": 1},
+			{"label": "Vomit", "kind": "Number", "unit": "ml", "total": 1},
+			{"label": "Stool", "kind": "Yes or No"},
+			{"label": "Nasogastric aspirate", "kind": "Number", "unit": "ml", "total": 1},
+			{"label": "Other output", "kind": "Number", "unit": "ml", "total": 1},
+			{"label": "Urine", "kind": "Number", "unit": "ml", "total": 1},
+			{"label": "Urine specific gravity", "kind": "Number", "low": 1.005, "high": 1.03},
+			{"label": "Intravenous infusion", "kind": "Text"},
+			{"label": "Others", "kind": "Text"},
+		],
+	},
+	{
+		"template_name": "Turning Chart",
+		"sequence": 31,
+		"interval_hours": 2,
+		"description": "Repositioning to prevent pressure injuries. Common positions: Supine, Left Lateral, "
+		"Right Lateral, Prone, Semi-Fowler's, Fowler's.",
+		"columns": [
+			{"label": "Position before", "kind": "Choice", "options": POSITIONS, "reqd": 1},
+			{"label": "Position turned to", "kind": "Choice", "options": POSITIONS, "reqd": 1},
+		],
+	},
+)
+EXTRA_COLUMNS_V053 = {
+	"Blood Transfusion": TRANSFUSION_V053,
+	"Fetal Kick Chart": FETAL_KICK_V053,
+	"Diabetic Chart": DIABETIC_V053,
+}
+CHARTS_VERSION_KEY = "ke_chart_library_version"
+
+
 SEED = (
 	{
 		"template_name": "Feeding Chart",
@@ -257,6 +334,7 @@ SEED = (
 			{"label": "Pulse", "kind": "Number", "unit": "/min", "low": 50, "high": 120},
 			{"label": "BP systolic", "kind": "Number", "unit": "mmHg", "low": 90, "high": 180},
 			{"label": "Reaction", "kind": "Yes or No", "reqd": 1},
+			*TRANSFUSION_V053,
 		],
 	},
 	{
@@ -474,6 +552,7 @@ LIBRARY = (
 			{"label": "Urine ketones", "kind": "Choice", "options": "Negative\nTrace\n+\n++\n+++"},
 			{"label": "Insulin", "kind": "Text"},
 			{"label": "Insulin units", "kind": "Number", "unit": "IU", "total": 1},
+			*DIABETIC_V053,
 		],
 	},
 	{
@@ -500,13 +579,28 @@ LIBRARY = (
 		"columns": [
 			{"label": "Kicks counted", "kind": "Number", "low": 10, "reqd": 1},
 			{"label": "Hours counted", "kind": "Number", "unit": "h"},
+			*FETAL_KICK_V053,
 		],
 	},
 )
 
 
 def seed():
-	"""The default charts, made once; afterwards the hospital's (ADR-023)."""
-	for row in (*SEED, *LIBRARY):
+	"""The default charts, made once; afterwards the hospital's (ADR-023). The
+	columns added in v0.53 are appended once to charts made before."""
+	for row in (*SEED, *LIBRARY, *CHARTS_V053):
 		if not frappe.db.exists(TEMPLATE, row["template_name"]):
 			frappe.get_doc({"doctype": TEMPLATE, **row}).insert(ignore_permissions=True)
+	if cint(frappe.db.get_default(CHARTS_VERSION_KEY)) >= 53:
+		return
+	for name, columns in EXTRA_COLUMNS_V053.items():
+		if not frappe.db.exists(TEMPLATE, name):
+			continue
+		doc = frappe.get_doc(TEMPLATE, name)
+		have = {c.label for c in doc.columns}
+		for col in columns:
+			if col["label"] not in have:
+				doc.append("columns", col)
+		doc.flags.ignore_permissions = True
+		doc.save()
+	frappe.db.set_default(CHARTS_VERSION_KEY, 53)

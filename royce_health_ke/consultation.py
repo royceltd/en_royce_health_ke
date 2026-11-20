@@ -684,6 +684,7 @@ VITALS = (
 	"bmi",
 	"ke_vitals_status",
 	"ke_vitals_flags",
+	"vital_signs_note",
 )
 
 

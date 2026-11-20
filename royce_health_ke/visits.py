@@ -300,6 +300,9 @@ def open_visit_for(patient, on=None):
 
 
 def link_vital_signs(doc, method=None):
+	# ward vitals belong to the admission, not to the outpatient visit (v0.53)
+	if doc.get("inpatient_record"):
+		return
 	if not doc.get("ke_patient_visit"):
 		doc.ke_patient_visit = open_visit_for(doc.patient, doc.get("signs_date"))
 

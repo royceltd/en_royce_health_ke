@@ -619,7 +619,13 @@ def _disposition(ip):
 
 
 @frappe.whitelist()
-def record_note(inpatient_record: str, note_type: str, note: str, patient_status: str | None = None) -> str:
+def record_note(
+	inpatient_record: str,
+	note_type: str,
+	note: str,
+	patient_status: str | None = None,
+	posting_date: str | None = None,
+) -> str:
 	"""A note on the ward: the doctor's progress note or instructions to the nurses."""
 	if note_type in DOCTOR_TYPES:
 		_check(("Physician", "Healthcare Administrator", "System Manager"))
@@ -636,7 +642,7 @@ def record_note(inpatient_record: str, note_type: str, note: str, patient_status
 			"patient": ip.patient,
 			"clinical_note_type": note_type,
 			"note": note.strip(),
-			"posting_date": now_datetime(),
+			"posting_date": posting_date or now_datetime(),
 			"practitioner": practitioner,
 			"user": frappe.session.user,
 			"reference_doc": IR,
@@ -1273,3 +1279,114 @@ def admission_record(ip_name):
 		procedures=procedures,
 		money=money(ip),
 	)
+
+
+# "A form and a table for every entry" on the patient screen (Bethesda, 20 Nov
+# 2026): vitals, diagnosis and requests are entered on the tab itself.
+
+VITAL_FIELDS = {
+	"temperature": "temperature",
+	"pulse": "pulse",
+	"respiratory_rate": "respiratory_rate",
+	"bp_systolic": "bp_systolic",
+	"bp_diastolic": "bp_diastolic",
+	"ke_spo2": "ke_spo2",
+	"weight": "weight",
+	"ke_height_cm": "ke_height_cm",
+	"vital_signs_note": "vital_signs_note",
+}
+
+
+@frappe.whitelist()
+def record_vitals(inpatient_record: str, values: str | dict, taken_at: str | None = None) -> str:
+	"""Vital signs from the Vitals tab's form (in place of the Nursing Dialog)."""
+	_check(WARD_ROLES)
+	frappe.has_permission("Vital Signs", "create", throw=True)
+	ip = frappe.get_doc(IR, inpatient_record)
+	ip.check_permission("read")
+	values = frappe.parse_json(values) if isinstance(values, str) else values or {}
+	given = {f: values.get(f) for f in VITAL_FIELDS if values.get(f) not in (None, "")}
+	if not set(given) - {"vital_signs_note"}:
+		frappe.throw(_("Enter at least one reading."))
+	when = get_datetime(taken_at) if taken_at else now_datetime()
+	doc = frappe.get_doc(
+		{
+			"doctype": "Vital Signs",
+			"patient": ip.patient,
+			"inpatient_record": ip.name,
+			"company": ip.company,
+			"signs_date": when.date(),
+			"signs_time": when.strftime("%H:%M:%S"),
+			**{VITAL_FIELDS[f]: v for f, v in given.items()},
+		}
+	)
+	if not frappe.get_meta("Vital Signs").has_field("ke_spo2"):
+		doc.pop("ke_spo2", None)
+	doc.insert()
+	doc.submit()
+	return doc.name
+
+
+def _ward_round(ip):
+	from royce_health_ke.prescribing import ward_encounter
+
+	return frappe.get_doc("Patient Encounter", ward_encounter(ip.name))
+
+
+@frappe.whitelist()
+def add_diagnosis(inpatient_record: str, diagnosis: str | None = None, code_value: str | None = None) -> str:
+	"""A diagnosis on today's ward round, from the Diagnosis tab."""
+	_check(("Physician", "Healthcare Administrator", "System Manager"))
+	ip = frappe.get_doc(IR, inpatient_record)
+	ip.check_permission("read")
+	from royce_health_ke import diagnosis as dx
+
+	resolved = dx.resolve(diagnosis=diagnosis, code_value=code_value) or {}
+	name = resolved.get("diagnosis") or diagnosis
+	if not name:
+		frappe.throw(_("Choose the diagnosis or its ICD-11 code."))
+	doc = _ward_round(ip)
+	doc.append("diagnosis", {"diagnosis": name, "ke_icd11_code": resolved.get("code_value") or code_value})
+	doc.save()
+	return doc.name
+
+
+REQUEST_TABLES = {
+	"Lab Test": ("lab_test_prescription", "lab_test_code", "lab_test_comment"),
+	"Imaging": ("lab_test_prescription", "observation_template", "lab_test_comment"),
+	"Procedure": ("procedure_prescription", "procedure", "comments"),
+	"Therapy": ("therapies", "therapy_type", None),
+}
+URGENCY_CODES = ("Routine", "Urgent", "ASAP", "STAT")
+
+
+@frappe.whitelist()
+def add_request(
+	inpatient_record: str,
+	category: str,
+	template: str,
+	urgency: str | None = None,
+	note: str | None = None,
+) -> str:
+	"""A lab, imaging, procedure or therapy request from the Requests tab: put on
+	today's ward round and sent at once (to its service point)."""
+	_check(("Physician", "Healthcare Administrator", "System Manager"))
+	ip = frappe.get_doc(IR, inpatient_record)
+	ip.check_permission("read")
+	kind = frappe.db.get_value("Request Category", category, "request_kind")
+	if kind not in REQUEST_TABLES:
+		frappe.throw(_("Choose the request type."))
+	table, field, comment = REQUEST_TABLES[kind]
+	row = {field: template}
+	if comment and note:
+		row[comment] = note
+	# Marley's request priorities are Code Values named "Urgent-Priority"
+	code = urgency in URGENCY_CODES and frappe.db.exists("Code Value", f"{urgency}-Priority")
+	if code:
+		row["priority"] = code
+	doc = _ward_round(ip)
+	doc.ke_request_type = category
+	doc.append(table, row)
+	doc.submit_orders_on_save = 1
+	doc.save()
+	return doc.name

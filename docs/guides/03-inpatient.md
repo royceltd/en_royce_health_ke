@@ -100,7 +100,7 @@ Demo record: HLC-IME-2026-00001 moves Mary's 6 doses from Stores to GW Bed 03.
 
 ## Step 6 — Give medicine and record each dose
 
-**Who:** nurse. **Where:** Inpatient Record › **Nursing Dialog** › Medication.
+**Who:** nurse. **Where:** Ward › the patient › **Drug Administration** › **Administration Log** › **Medication Round** (Marley's Nursing Dialog). Vital signs, notes and charts are recorded on their own tabs of the patient screen, each a form with its records in a table under it.
 
 1. Open the Nursing Dialog. The header shows the patient, bed, blood group and allergies; the right panel lists **Medication Due** (due doses in red).
 2. Go to **Medication**. Each due dose has an **Actions** button.
