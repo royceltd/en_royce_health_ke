@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-19 15:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "owner": "Administrator",
@@ -17,7 +17,7 @@
    "fieldname": "panel",
    "fieldtype": "Select",
    "label": "Panel",
-   "options": "Patient File\nVitals\nTB Screening\nRequests\nResults\nDiagnosis\nDoctor Notes\nDoctor Instructions\nNursing Notes\nNursing Care\nDrug Administration\nConsent\nBilling\nDisposition\nDischarge",
+   "options": "Patient File\nVitals\nTB Screening\nRequests\nResults\nDiagnosis\nDoctor Notes\nDoctor Instructions\nNursing Notes\nNursing Care\nDrug Administration\nConsent\nBilling\nDisposition\nDischarge\nTheatre Doctor Notes",
    "reqd": 1,
    "in_list_view": 1
   },

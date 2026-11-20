@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-08 22:00:00.000000",
+ "modified": "2026-11-21 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Labour Observation",
@@ -156,7 +156,7 @@
   {
    "fieldname": "temperature",
    "fieldtype": "Float",
-   "label": "Temperature (\u00b0C)"
+   "label": "Temperature (°C)"
   },
   {
    "fieldname": "urine_protein",
@@ -186,6 +186,12 @@
    "fieldname": "contraction_duration_sec",
    "fieldtype": "Int",
    "label": "Duration of Contractions (s)"
+  },
+  {
+   "fieldname": "contraction_intensity",
+   "fieldtype": "Select",
+   "label": "Contraction Intensity",
+   "options": "\nMild\nModerate\nStrong"
   },
   {
    "fieldname": "cb_p",
@@ -262,6 +268,11 @@
    "fieldname": "remarks",
    "fieldtype": "Data",
    "label": "Remarks"
+  },
+  {
+   "fieldname": "drugs_and_fluids",
+   "fieldtype": "Small Text",
+   "label": "Drugs and Fluids Given"
   }
  ],
  "field_order": [
@@ -295,6 +306,7 @@
   "progress_section",
   "contractions_per_10min",
   "contraction_duration_sec",
+  "contraction_intensity",
   "cb_p",
   "cervical_dilatation_cm",
   "descent",
@@ -309,7 +321,8 @@
   "cb_m",
   "iv_fluid_type",
   "iv_fluid_volume_ml",
-  "remarks"
+  "remarks",
+  "drugs_and_fluids"
  ],
  "istable": 1,
  "editable_grid": 1,

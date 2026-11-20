@@ -124,7 +124,18 @@ def progress_alerts(rows):
 	return out
 
 
+def hb_flag(hb):
+	"""WHO anaemia in pregnancy: under 7 g/dL severe, under 11 anaemia."""
+	hb = flt(hb)
+	if not hb:
+		return ""
+	if hb < 7:
+		return _("Severe anaemia")
+	return _("Anaemia") if hb < 11 else _("Normal")
+
+
 def validate_pregnancy(doc):
+	doc.hb_flag = hb_flag(doc.haemoglobin)
 	sex = frappe.db.get_value("Patient", doc.patient, "sex")
 	if sex and sex != "Female":
 		frappe.throw(
@@ -165,9 +176,12 @@ def validate_anc_visit(doc):
 
 def validate_delivery(doc):
 	pregnancy = active_pregnancy(doc.pregnancy_record)
-	if get_datetime(doc.delivery_datetime) > now_datetime():
-		frappe.throw(_("Delivery date and time can't be in the future."))
-	doc.gestation_weeks = gestation_weeks(pregnancy.lmp, get_datetime(doc.delivery_datetime).date())
+	# A draft is kept through labour (the partograph); the delivery itself is
+	# required when it is completed (before_submit_delivery).
+	if doc.delivery_datetime:
+		if get_datetime(doc.delivery_datetime) > now_datetime():
+			frappe.throw(_("Delivery date and time can't be in the future."))
+		doc.gestation_weeks = gestation_weeks(pregnancy.lmp, get_datetime(doc.delivery_datetime).date())
 	doc.number_of_babies = len(doc.babies)
 	from royce_health_ke.packages import choose_package
 
@@ -180,6 +194,18 @@ def validate_delivery(doc):
 			alerts.append(slow[id(row)])
 		row.alert = ", ".join(alerts)
 		row.recorded_by = row.recorded_by or frappe.session.user
+
+
+def before_submit_delivery(doc):
+	missing = [
+		doc.meta.get_label(f)
+		for f in ("delivery_datetime", "mode_of_delivery", "maternal_condition")
+		if not doc.get(f)
+	]
+	if not doc.babies:
+		missing.append(_("at least one baby"))
+	if missing:
+		frappe.throw(_("To complete the delivery, record: {0}.").format(", ".join(missing)))
 
 
 def on_submit_delivery(doc):

@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-07 18:00:00.000000",
+ "modified": "2026-11-21 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Pregnancy Record",
@@ -94,6 +94,12 @@
    "description": "Births + abortions, e.g. 1+0."
   },
   {
+   "fieldname": "previous_cs",
+   "fieldtype": "Select",
+   "label": "Previous Caesarean Section",
+   "options": "\nYes\nNo"
+  },
+  {
    "fieldname": "cb2",
    "fieldtype": "Column Break"
   },
@@ -129,6 +135,13 @@
    "fieldname": "haemoglobin",
    "fieldtype": "Float",
    "label": "Haemoglobin (g/dL)"
+  },
+  {
+   "fieldname": "hb_flag",
+   "fieldtype": "Data",
+   "label": "Hb Flag",
+   "read_only": 1,
+   "description": "From the haemoglobin: under 7 severe anaemia, 7 to 10.9 anaemia (WHO, pregnancy)"
   },
   {
    "fieldname": "hepatitis_b",
@@ -200,6 +213,7 @@
   "obstetric_section",
   "gravida",
   "parity",
+  "previous_cs",
   "cb2",
   "lmp",
   "edd",
@@ -207,6 +221,7 @@
   "screening_section",
   "blood_group",
   "haemoglobin",
+  "hb_flag",
   "hepatitis_b",
   "cb3",
   "hiv_status",

@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-19 08:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "owner": "Administrator",
@@ -24,7 +24,7 @@
    "fieldname": "care_setting",
    "fieldtype": "Select",
    "label": "Care Setting",
-   "options": "Inpatient\nCasualty\nMaternity\nICU\nOther",
+   "options": "Inpatient\nCasualty\nMaternity\nICU\nTheatre\nOther",
    "in_list_view": 1
   },
   {

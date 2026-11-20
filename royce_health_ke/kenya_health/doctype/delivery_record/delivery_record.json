@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-08 22:00:00.000000",
+ "modified": "2026-11-21 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Delivery Record",
@@ -119,6 +119,49 @@
    "label": "Partograph / Labour Care Guide used"
   },
   {
+   "fieldname": "stages_section",
+   "fieldtype": "Section Break",
+   "label": "Stages of Labour"
+  },
+  {
+   "fieldname": "first_stage_hours",
+   "fieldtype": "Float",
+   "label": "First Stage (hours)"
+  },
+  {
+   "fieldname": "second_stage_minutes",
+   "fieldtype": "Int",
+   "label": "Second Stage (minutes)"
+  },
+  {
+   "fieldname": "cb_stages",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "third_stage_minutes",
+   "fieldtype": "Int",
+   "label": "Third Stage (minutes)"
+  },
+  {
+   "fieldname": "fourth_stage_hours",
+   "fieldtype": "Float",
+   "label": "Fourth Stage (hours)"
+  },
+  {
+   "fieldname": "cb_exams",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vaginal_exams",
+   "fieldtype": "Int",
+   "label": "Number of Vaginal Examinations"
+  },
+  {
+   "fieldname": "vaginal_exam_outcome",
+   "fieldtype": "Data",
+   "label": "Vaginal Examinations Outcome"
+  },
+  {
    "fieldname": "labour_observations",
    "fieldtype": "Table",
    "label": "Labour Observations",
@@ -138,14 +181,12 @@
    "fieldname": "delivery_datetime",
    "fieldtype": "Datetime",
    "label": "Delivery Date and Time",
-   "reqd": 1,
    "in_list_view": 1
   },
   {
    "fieldname": "mode_of_delivery",
    "fieldtype": "Select",
    "label": "Mode of Delivery",
-   "reqd": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "options": "Spontaneous vaginal delivery\nAssisted vaginal delivery\nBreech delivery\nCaesarean section"
@@ -179,6 +220,11 @@
    "options": "\nOxytocin\nCarbetocin\nMisoprostol\nNone"
   },
   {
+   "fieldname": "amtsl",
+   "fieldtype": "Check",
+   "label": "AMTSL (active management of the third stage)"
+  },
+  {
    "fieldname": "blood_loss_ml",
    "fieldtype": "Int",
    "label": "Blood Loss (ml)"
@@ -188,6 +234,11 @@
    "fieldtype": "Select",
    "label": "Perineum",
    "options": "\nIntact\n1st degree tear\n2nd degree tear\n3rd/4th degree tear\nEpisiotomy"
+  },
+  {
+   "fieldname": "perineum_repaired",
+   "fieldtype": "Check",
+   "label": "Tear / Episiotomy Repaired"
   },
   {
    "fieldname": "complications_section",
@@ -251,6 +302,21 @@
    "reqd": 1
   },
   {
+   "fieldname": "mother_pulse",
+   "fieldtype": "Int",
+   "label": "Pulse after Delivery"
+  },
+  {
+   "fieldname": "mother_resp_rate",
+   "fieldtype": "Int",
+   "label": "Respiratory Rate after Delivery"
+  },
+  {
+   "fieldname": "mother_temperature",
+   "fieldtype": "Float",
+   "label": "Temperature after Delivery (°C)"
+  },
+  {
    "fieldname": "maternal_death_audited",
    "fieldtype": "Check",
    "label": "Death Audited",
@@ -265,8 +331,7 @@
    "fieldname": "babies",
    "fieldtype": "Table",
    "label": "Babies",
-   "options": "Delivery Newborn",
-   "reqd": 1
+   "options": "Delivery Newborn"
   },
   {
    "fieldname": "number_of_babies",
@@ -340,6 +405,15 @@
   "cb2",
   "duration_of_labour_hours",
   "lcg_used",
+  "stages_section",
+  "first_stage_hours",
+  "second_stage_minutes",
+  "cb_stages",
+  "third_stage_minutes",
+  "fourth_stage_hours",
+  "cb_exams",
+  "vaginal_exams",
+  "vaginal_exam_outcome",
   "labour_observations",
   "labour_care_guide",
   "delivery_section",
@@ -350,8 +424,10 @@
   "cb3",
   "placenta_complete",
   "uterotonic",
+  "amtsl",
   "blood_loss_ml",
   "perineum",
+  "perineum_repaired",
   "complications_section",
   "aph",
   "pph",
@@ -364,6 +440,9 @@
   "other_complications",
   "mother_section",
   "maternal_condition",
+  "mother_pulse",
+  "mother_resp_rate",
+  "mother_temperature",
   "maternal_death_audited",
   "babies_section",
   "babies",

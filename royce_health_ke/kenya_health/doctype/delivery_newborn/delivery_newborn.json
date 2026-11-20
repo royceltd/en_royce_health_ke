@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-08 09:00:00.000000",
+ "modified": "2026-11-21 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Delivery Newborn",
@@ -29,6 +29,16 @@
    "reqd": 1,
    "in_list_view": 1,
    "columns": 1
+  },
+  {
+   "fieldname": "length_cm",
+   "fieldtype": "Float",
+   "label": "Length (cm)"
+  },
+  {
+   "fieldname": "head_circumference_cm",
+   "fieldtype": "Float",
+   "label": "Head Circumference (cm)"
   },
   {
    "fieldname": "outcome",
@@ -65,6 +75,11 @@
    "label": "Resuscitated"
   },
   {
+   "fieldname": "asphyxia",
+   "fieldtype": "Check",
+   "label": "Asphyxia"
+  },
+  {
    "fieldname": "deformity",
    "fieldtype": "Data",
    "label": "Deformity"
@@ -90,6 +105,17 @@
    "label": "Chlorhexidine to Cord"
   },
   {
+   "fieldname": "infant_prophylaxis",
+   "fieldtype": "Select",
+   "label": "Infant Prophylaxis (ARV)",
+   "options": "\nGiven\nNot given\nNot applicable"
+  },
+  {
+   "fieldname": "drugs_given",
+   "fieldtype": "Small Text",
+   "label": "Drugs Given"
+  },
+  {
    "fieldname": "kangaroo_care",
    "fieldtype": "Check",
    "label": "Kangaroo Mother Care"
@@ -111,6 +137,12 @@
    "description": "For perinatal (0-7 days) and neonatal (0-28 days) deaths on MOH 711."
   },
   {
+   "fieldname": "cause_of_death",
+   "fieldtype": "Select",
+   "label": "Cause of Neonatal Death",
+   "options": "\nAsphyxia\nPrematurity\nSepsis\nCongenital anomaly\nOther"
+  },
+  {
    "fieldname": "birth_notification_number",
    "fieldtype": "Data",
    "label": "Birth Notification No."
@@ -128,19 +160,25 @@
  "field_order": [
   "sex",
   "birth_weight_g",
+  "length_cm",
+  "head_circumference_cm",
   "outcome",
   "apgar_1",
   "apgar_5",
   "apgar_10",
   "resuscitated",
+  "asphyxia",
   "deformity",
   "breastfeeding_1hr",
   "vitamin_k",
   "teo",
   "chlorhexidine",
+  "infant_prophylaxis",
+  "drugs_given",
   "kangaroo_care",
   "condition_at_discharge",
   "died_on",
+  "cause_of_death",
   "birth_notification_number",
   "baby_patient"
  ],

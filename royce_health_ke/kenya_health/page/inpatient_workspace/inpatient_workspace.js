@@ -19,8 +19,10 @@ frappe.pages["inpatient-workspace"].on_page_load = function (wrapper) {
 };
 
 frappe.pages["inpatient-workspace"].on_page_show = function (wrapper) {
-	const ip = frappe.get_route()[1];
-	if (wrapper.iw && ip) wrapper.iw.load(ip);
+	const route = frappe.get_route();
+	// inpatient-workspace/<admission>[/<theatre booking>]: with a booking, the
+	// theatre's tabs (opened from the Theatre List)
+	if (wrapper.iw && route[1]) wrapper.iw.load(route[1], route[2] || null);
 };
 
 function iw_esc(v) {
@@ -47,7 +49,11 @@ function iw_table(headers, rows) {
 class InpatientWorkspace {
 	constructor(page) {
 		this.page = page;
-		page.set_secondary_action(__("Ward"), () => frappe.set_route("ward"));
+		page.set_secondary_action(__("Ward"), () =>
+			this.booking
+				? frappe.set_route("query-report", "Theatre List")
+				: frappe.set_route("ward")
+		);
 		this.$banner = $(`<div class="mb-3"></div>`).appendTo(page.main);
 		this.$tabs = $(`<ul class="nav nav-tabs mb-3" style="flex-wrap:wrap"></ul>`).appendTo(
 			page.main
@@ -59,10 +65,19 @@ class InpatientWorkspace {
 		});
 	}
 
-	async load(ip) {
+	async load(ip, booking) {
+		if (booking !== undefined) this.booking = booking;
 		this.ip = ip;
-		this.data = await frappe.xcall(IW + "workspace", { inpatient_record: ip });
+		this.data = await frappe.xcall(IW + "workspace", {
+			inpatient_record: ip,
+			booking: this.booking,
+		});
 		this.page.set_title(this.data.patient_name);
+		this.page.set_secondary_action(this.booking ? __("Theatre List") : __("Ward"), () =>
+			this.booking
+				? frappe.set_route("query-report", "Theatre List")
+				: frappe.set_route("ward")
+		);
 		this.render_banner();
 		this.$tabs.html(
 			this.data.tabs
@@ -102,11 +117,28 @@ class InpatientWorkspace {
 						? `${frappe.datetime.str_to_user(d.admitted)} (${d.days} ${__("day(s)")})`
 						: ""
 				)}
-				${chip(__("Doctor"), d.practitioner)}
+				${chip(__("Doctor"), d.practitioner_name || d.practitioner)}
 				${chip(__("Payer"), d.payer)}
 				${chip(__("Allergies"), d.allergies, "red")}
 				${chip(__("Status"), __(d.status))}
 			</div>
+			${
+				d.theatre
+					? `<div class="small mt-1"><b>${__("Theatre")}:</b> ${iw_esc(
+							[
+								d.theatre.procedure,
+								d.theatre.theatre,
+								d.theatre.scheduled_start
+									? frappe.datetime.str_to_user(d.theatre.scheduled_start)
+									: "",
+								d.theatre.surgeon,
+								__(d.theatre.status),
+							]
+								.filter(Boolean)
+								.join(" · ")
+					  )} <a class="iw-booking">${iw_esc(d.theatre.name)}</a></div>`
+					: ""
+			}
 			${
 				d.reason
 					? `<div class="small mt-1"><b>${__("Admitted for")}:</b> ${iw_esc(
@@ -133,6 +165,9 @@ class InpatientWorkspace {
 					: ""
 			}
 		</div>`);
+		this.$banner
+			.find(".iw-booking")
+			.on("click", () => frappe.set_route("Form", "Theatre Booking", d.theatre.name));
 		this.$banner.find(".iw-preauth").on("click", () =>
 			frappe.prompt(
 				{
@@ -180,7 +215,11 @@ class InpatientWorkspace {
 		this.$tabs.find("a").removeClass("active");
 		this.$tabs.find(`a[data-panel="${panel}"]`).addClass("active");
 		this.$panel.html(`<p class="text-muted">${__("Loading...")}</p>`);
-		const data = await frappe.xcall(IW + "panel", { inpatient_record: this.ip, panel });
+		const data = await frappe.xcall(IW + "panel", {
+			inpatient_record: this.ip,
+			panel,
+			booking: this.booking,
+		});
 		const render = this["render_" + panel.toLowerCase().replace(/ /g, "_")];
 		this.$panel.html("");
 		if (render) render.call(this, data || {});
@@ -252,6 +291,15 @@ class InpatientWorkspace {
 		$card.find(".iw-save").on("click", async () => {
 			const values = fg.get_values();
 			if (!values) return;
+			// an empty number box reads as 0: send only what was entered
+			Object.values(fg.fields_dict).forEach((f) => {
+				if (
+					["Int", "Float", "Currency", "Percent"].includes(f.df.fieldtype) &&
+					f.$input &&
+					!String(f.$input.val() || "").trim()
+				)
+					delete values[f.df.fieldname];
+			});
 			$card.find(".iw-save").prop("disabled", true);
 			try {
 				await on_save(values, fg);
@@ -890,6 +938,10 @@ class InpatientWorkspace {
 										c.due
 								  )}</div>`
 								: ""
+						}${
+							c.status
+								? `<div class="small text-muted">${iw_esc(c.status)}</div>`
+								: ""
 						}</a>`
 				)
 				.join("")}</div></div>
@@ -941,6 +993,7 @@ class InpatientWorkspace {
 	}
 
 	chart_view(c) {
+		if (c.kind === "partograph") return this.partograph_view();
 		const totals = Object.entries(c.totals || {})
 			.map(([k, v]) => `${iw_esc(k)}: <b>${iw_esc(v)}</b>`)
 			.join(" · ");
@@ -1037,6 +1090,377 @@ class InpatientWorkspace {
 				],
 				rows
 			)
+		);
+	}
+
+	// Theatre Doctor Notes (Bethesda, 20 Nov 2026): procedure notes, any
+	// complications, date and time, by whom; kept on the booking's continuation
+	// notes (added, never changed). Server side: theatre.doctor_notes / add_note.
+	render_theatre_doctor_notes(d) {
+		if (d.no_booking) {
+			this.$panel.append(
+				`<p class="text-muted">${__("Open the patient from the Theatre List.")}</p>`
+			);
+			return;
+		}
+		if (d.can_write)
+			this.entry_card(
+				__("Theatre Doctor Note"),
+				[
+					{
+						fieldname: "noted_at",
+						fieldtype: "Datetime",
+						label: __("Date and Time"),
+						default: frappe.datetime.now_datetime(),
+						reqd: 1,
+					},
+					{ fieldtype: "Column Break" },
+					{
+						fieldname: "practitioner",
+						fieldtype: "Link",
+						options: "Healthcare Practitioner",
+						label: __("By (Doctor)"),
+						default: d.practitioner,
+						reqd: 1,
+					},
+					{ fieldtype: "Column Break" },
+					{
+						fieldname: "stage",
+						fieldtype: "Select",
+						label: __("Stage"),
+						options: "In theatre\nRecovery\nBack to ward",
+						default: "In theatre",
+					},
+					{ fieldtype: "Section Break" },
+					{
+						fieldname: "note",
+						fieldtype: "Small Text",
+						label: __("Procedure Notes"),
+						reqd: 1,
+					},
+					{ fieldtype: "Column Break" },
+					{
+						fieldname: "complications",
+						fieldtype: "Small Text",
+						label: __("Complications"),
+						description: __("Leave empty if none."),
+					},
+				],
+				__("Save Note"),
+				(v) =>
+					frappe.xcall("royce_health_ke.theatre.add_note", {
+						booking: d.booking,
+						note: v.note,
+						stage: v.stage,
+						noted_at: v.noted_at,
+						complications: v.complications,
+						practitioner: v.practitioner,
+					})
+			);
+		this.$panel.append(
+			iw_table(
+				[
+					__("Date and Time"),
+					__("Stage"),
+					__("Procedure Notes"),
+					__("Complications"),
+					__("By"),
+				],
+				(d.notes || []).map((n) => [
+					iw_esc(frappe.datetime.str_to_user(n.noted_at)),
+					iw_esc(__(n.stage || "")),
+					iw_esc(n.note).replace(/\n/g, "<br>"),
+					n.complications
+						? `<span style="color:var(--red-600)">${iw_esc(n.complications).replace(
+								/\n/g,
+								"<br>"
+						  )}</span>`
+						: `<span class="text-muted">${__("None")}</span>`,
+					`${iw_esc(n.doctor)}${
+						n.by && n.by !== n.doctor
+							? `<div class="text-muted">${__("Entered by")}: ${iw_esc(n.by)}</div>`
+							: ""
+					}`,
+				])
+			)
+		);
+	}
+
+	// Partograph (Bethesda's 7-section form, 20 Nov 2026): one form that saves
+	// a labour observation each time, and the delivery and the baby once, on
+	// the admission's Delivery Record. Server side: royce_health_ke/partograph.py.
+	async partograph_view() {
+		const $panel = this.$panel;
+		const d = await frappe.xcall("royce_health_ke.partograph.get", {
+			inpatient_record: this.ip,
+		});
+		const root = this.$panel;
+		this.$panel = $panel;
+		try {
+			this.partograph_render(d);
+		} finally {
+			this.$panel = root;
+		}
+	}
+
+	partograph_render(d) {
+		const v = d.values || {};
+		const yn = "\nYes\nNo";
+		const opt = (f) => "\n" + ((d.options || {})[f] || "").replace(/^\n+/, "");
+		const keep = (df) => (v[df.fieldname] != null ? { ...df, default: v[df.fieldname] } : df);
+		const F = (fieldname, label, fieldtype, extra) => ({
+			fieldname,
+			label,
+			fieldtype: fieldtype || "Data",
+			...(extra || {}),
+		});
+		const S = (f, label) => F(f, label, "Select", { options: opt(f) });
+		// [section label, fields, kept between saves]
+		const sections = [
+			[
+				__("Patient Information"),
+				[
+					F("gravida", __("Gravida"), "Int"),
+					F("parity", __("Para")),
+					F("previous_cs", __("Previous C-Section"), "Select", { options: yn }),
+					F("membranes_ruptured_hours", __("Ruptured Membranes (hours ago)"), "Float", {
+						description: v.membranes_ruptured_datetime
+							? __("Recorded: ruptured at {0}", [
+									frappe.datetime.str_to_user(v.membranes_ruptured_datetime),
+							  ])
+							: "",
+					}),
+				],
+				true,
+			],
+			[
+				__("Blood Group / Rh Factor"),
+				[
+					F("blood_group", __("Blood Group"), "Select", { options: "\nA\nB\nAB\nO" }),
+					F("rhesus", __("Rhesus"), "Select", { options: "\nPositive\nNegative" }),
+					F("haemoglobin", __("Hb (g/dL)"), "Float"),
+					F("hb_flag", __("Hb Flag"), "Data", { read_only: 1 }),
+				],
+				true,
+			],
+			[
+				__("Labour Progression"),
+				[
+					F("cervical_dilatation_cm", __("Cervical Dilation (cm)"), "Float"),
+					S("descent", __("Descent of Head (fifths palpable)")),
+					F("fetal_heart_rate", __("Fetal Heart Rate (bpm)"), "Int"),
+					F("contractions_per_10min", __("Contractions per 10 min"), "Int"),
+					F("contraction_duration_sec", __("Contraction Duration (seconds)"), "Int"),
+					S("contraction_intensity", __("Intensity")),
+					S("liquor", __("Amniotic Fluid")),
+					S("moulding", __("Moulding")),
+					F("oxytocin_rate", __("Oxytocin (drops/min)"), "Int"),
+					F("drugs_and_fluids", __("Drugs and Fluids Given"), "Small Text"),
+				],
+				false,
+			],
+			[
+				__("Vital Signs"),
+				[
+					F("bp_systolic", __("BP Systolic"), "Int"),
+					F("bp_diastolic", __("BP Diastolic"), "Int"),
+					F("temperature", __("Temp (°C)"), "Float"),
+					F("maternal_pulse", __("Pulse Rate"), "Int"),
+					S("urine_protein", __("Urine Protein")),
+					S("urine_acetone", __("Urine Acetone")),
+				],
+				false,
+			],
+			[
+				__("Delivery Details"),
+				[
+					F("induction", __("Induction of Labour"), "Select", { options: yn }),
+					F("first_stage_hours", __("First Stage Duration (hours)"), "Float"),
+					F("second_stage_minutes", __("Second Stage Duration (minutes)"), "Int"),
+					F("third_stage_minutes", __("Third Stage Duration (minutes)"), "Int"),
+					F("fourth_stage_hours", __("Fourth Stage Duration (hours)"), "Float"),
+					F("vaginal_exams", __("Number of Vaginal Examinations"), "Int"),
+					F("vaginal_exam_outcome", __("Vaginal Examinations Outcome")),
+					S("mode_of_delivery", __("Mode of Delivery")),
+					S("maternal_condition", __("Mother Status")),
+					F("amtsl", __("AMTSL"), "Select", { options: yn }),
+					S("uterotonic", __("Uterotonic")),
+					F("blood_loss_ml", __("Blood Loss (ml)"), "Int"),
+					F("placenta_complete", __("Placenta Complete"), "Select", { options: yn }),
+					S("perineum", __("Episiotomy / Tear")),
+					F("perineum_repaired", __("Repair"), "Select", { options: yn }),
+					F("mother_pulse", __("Pulse"), "Int"),
+					F("mother_temperature", __("Temperature (°C)"), "Float"),
+					F("mother_resp_rate", __("Respiration Rate"), "Int"),
+					F("complication", __("Delivery Complication"), "Select", {
+						options:
+							"\nAPH\nPPH\nEclampsia\nRuptured uterus\nObstructed labour\nSepsis",
+					}),
+					F("other_complications", __("Other Complications"), "Small Text"),
+				],
+				true,
+			],
+			[
+				__("Baby Information"),
+				[
+					S("outcome", __("Birth Outcome (alive)")),
+					S("sex", __("Sex")),
+					F("apgar_1", __("APGAR Score (1 minute)"), "Int"),
+					F("apgar_5", __("APGAR Score (5 minutes)"), "Int"),
+					F("apgar_10", __("APGAR Score (10 minutes)"), "Int"),
+					F("birth_weight_g", __("Birth Weight (grams)"), "Int"),
+					F("length_cm", __("Birth Length (cm)"), "Float"),
+					F("head_circumference_cm", __("Head Circumference (cm)"), "Float"),
+					F("deformity", __("Deformity (describe)")),
+					F("teo", __("TEO (tetracycline) Given at Birth"), "Select", { options: yn }),
+					F("chlorhexidine", __("Chlorhexidine Applied"), "Select", { options: yn }),
+					F("vitamin_k", __("Vitamin K Given"), "Select", { options: yn }),
+					S("infant_prophylaxis", __("Infant Prophylaxis")),
+					F("asphyxia", __("Baby with Asphyxia"), "Select", { options: yn }),
+					F("resuscitated", __("Baby Successfully Resuscitated"), "Select", {
+						options: yn,
+					}),
+					S("cause_of_death", __("Cause of Neonatal Death")),
+					F("drugs_given", __("Drugs Given"), "Small Text"),
+				],
+				true,
+			],
+			[
+				__("Additional Notes"),
+				[
+					F("delivery_datetime", __("Date & Time of Delivery"), "Datetime"),
+					F("birth_notification_number", __("Birth Notification Number")),
+					F("delivered_by", __("Delivered By"), "Link", {
+						options: "Healthcare Practitioner",
+					}),
+				],
+				true,
+			],
+		];
+
+		const done = d.docstatus === 1;
+		const buttons = [];
+		if (d.delivery && !done)
+			buttons.push([__("Complete Delivery"), () => this.partograph_complete(), true]);
+		if (d.delivery) {
+			buttons.push([
+				__("Open Delivery Record"),
+				() => frappe.set_route("Form", "Delivery Record", d.delivery),
+			]);
+			buttons.push([
+				__("Labour Care Guide"),
+				() =>
+					window.open(
+						`/printview?doctype=Delivery%20Record&name=${encodeURIComponent(
+							d.delivery
+						)}&format=${encodeURIComponent(
+							"Labour Care Guide"
+						)}&no_letterhead=1&trigger_print=1`,
+						"_blank"
+					),
+			]);
+		}
+		this.$panel.append(`<div class="mb-2"><h5 class="mb-1">${__("Partograph")}</h5>
+			<div class="small text-muted">${
+				done
+					? __("Delivery completed: {0}", [iw_esc(d.delivery)])
+					: d.delivery
+					? __(
+							"In labour. Each save adds an observation; delivery and baby details are kept and can be corrected until the delivery is completed."
+					  )
+					: __("Not started. The first save opens the labour record.")
+			}</div></div>`);
+		if (buttons.length) this.buttons(buttons);
+
+		if (!done && frappe.model.can_create("Delivery Record")) {
+			const layout = [
+				{
+					fieldname: "observation_time",
+					fieldtype: "Datetime",
+					label: __("Observation Time"),
+					default: frappe.datetime.now_datetime(),
+					reqd: 1,
+				},
+			];
+			sections.forEach(([label, fields, kept]) => {
+				layout.push({ fieldtype: "Section Break", label });
+				const per = Math.ceil(fields.length / 3);
+				fields.forEach((df, i) => {
+					if (i && i % per === 0) layout.push({ fieldtype: "Column Break" });
+					layout.push(kept ? keep(df) : df);
+				});
+			});
+			this.entry_card(__("Partograph"), layout, __("Save"), (vals, fg) => {
+				delete vals.hb_flag;
+				return frappe.xcall("royce_health_ke.partograph.record", {
+					inpatient_record: this.ip,
+					values: vals,
+				});
+			});
+		}
+
+		const o = d.observations || [];
+		const cell = (r, f) => iw_esc(r[f] == null ? "" : r[f]);
+		this.$panel.append(`<div class="mb-1"><b>${__("Labour observations")}</b></div>`);
+		this.$panel.append(
+			iw_table(
+				[
+					__("Time"),
+					__("Cervix (cm)"),
+					__("Descent"),
+					__("FHR"),
+					__("Contractions /10 min"),
+					__("Liquor"),
+					__("Moulding"),
+					__("BP"),
+					__("Pulse"),
+					__("Temp"),
+					__("Urine P / A"),
+					__("Oxytocin"),
+					__("Drugs and fluids"),
+					__("Alert"),
+					__("By"),
+				],
+				o.map((r) => [
+					iw_esc(frappe.datetime.str_to_user(r.time)),
+					cell(r, "cervical_dilatation_cm"),
+					cell(r, "descent"),
+					cell(r, "fetal_heart_rate"),
+					`${cell(r, "contractions_per_10min")} ${cell(r, "contraction_intensity")}`,
+					cell(r, "liquor"),
+					cell(r, "moulding"),
+					r.bp_systolic ? `${cell(r, "bp_systolic")}/${cell(r, "bp_diastolic")}` : "",
+					cell(r, "maternal_pulse"),
+					cell(r, "temperature"),
+					[r.urine_protein, r.urine_acetone].filter(Boolean).map(iw_esc).join(" / "),
+					cell(r, "oxytocin_rate"),
+					cell(r, "drugs_and_fluids"),
+					r.alert
+						? `<span style="color:var(--red-600);font-weight:600">${iw_esc(
+								r.alert
+						  )}</span>`
+						: "",
+					iw_esc(r.by),
+				])
+			)
+		);
+	}
+
+	partograph_complete() {
+		frappe.confirm(
+			__(
+				"Complete the delivery? The record is then final, the pregnancy is marked delivered and each live baby gets a patient record."
+			),
+			async () => {
+				const name = await frappe.xcall("royce_health_ke.partograph.complete", {
+					inpatient_record: this.ip,
+				});
+				frappe.show_alert({
+					message: __("Delivery {0} completed", [name]),
+					indicator: "green",
+				});
+				this.show(this.panel_name);
+			}
 		);
 	}
 

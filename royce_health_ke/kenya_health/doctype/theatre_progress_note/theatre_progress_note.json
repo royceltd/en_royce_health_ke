@@ -1,7 +1,7 @@
 {
  "actions": [],
  "creation": "2026-11-11 16:00:00.000000",
- "modified": "2026-11-11 16:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -38,7 +38,22 @@
    "label": "Note",
    "reqd": 1,
    "in_list_view": 1,
-   "columns": 5
+   "columns": 3
+  },
+  {
+   "fieldname": "complications",
+   "fieldtype": "Small Text",
+   "label": "Complications",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "practitioner",
+   "fieldtype": "Link",
+   "options": "Healthcare Practitioner",
+   "label": "By (Doctor)",
+   "in_list_view": 1,
+   "columns": 1
   },
   {
    "fieldname": "recorded_by",
@@ -53,13 +68,15 @@
    "label": "By",
    "read_only": 1,
    "in_list_view": 1,
-   "columns": 2
+   "columns": 1
   }
  ],
  "field_order": [
   "noted_at",
   "stage",
   "note",
+  "complications",
+  "practitioner",
   "recorded_by",
   "recorded_by_name"
  ]

@@ -10,6 +10,9 @@ class DeliveryRecord(Document):
 	def validate(self):
 		maternity.validate_delivery(self)
 
+	def before_submit(self):
+		maternity.before_submit_delivery(self)
+
 	def on_submit(self):
 		maternity.on_submit_delivery(self)
 

@@ -41,6 +41,9 @@ ON_WARD = ("Admitted", "Discharge Scheduled")
 WARD_ROLES = ("Nursing User", "Physician", "Healthcare Administrator", "System Manager")
 ADMIT_ROLES = ("Nursing User", "Healthcare Administrator", "System Manager")
 DEFAULT_PROFILE = "Inpatient"
+THEATRE_PROFILE = "Theatre"
+# The theatre's patient screen (opened from the Theatre List), Bethesda 20 Nov 2026
+THEATRE_PANELS = ("Theatre Doctor Notes", "Drug Administration", "Vitals", "Results", "Patient File")
 # The default tab bar (Bethesda's ward screen, PDF (9)); a hospital edits its
 # own in Patient Workspace Profile.
 PANELS = (
@@ -361,24 +364,34 @@ def admit(inpatient_record: str, bed: str) -> str:
 
 
 @frappe.whitelist()
-def workspace(inpatient_record: str) -> dict:
-	"""The banner and the tab bar of one admission."""
+def workspace(inpatient_record: str, booking: str | None = None) -> dict:
+	"""The banner and the tab bar of one admission; with a theatre booking,
+	the theatre's tabs."""
 	_check(WARD_ROLES)
 	ip = frappe.get_doc(IR, inpatient_record)
 	ip.check_permission("read")
+	theatre = None
+	if booking:
+		from royce_health_ke.theatre import booking_banner
+
+		theatre = booking_banner(booking, ip.patient)
 	from royce_health_ke.visits import age_label
 
 	patient = frappe.db.get_value(
 		"Patient", ip.patient, ["patient_name", "sex", "dob", "allergies", "blood_group"], as_dict=True
 	)
 	bed = current_bed(ip.name)
-	profile = _setting("inpatient_workspace_profile", DEFAULT_PROFILE)
+	profile = (
+		_setting("theatre_workspace_profile", THEATRE_PROFILE)
+		if theatre
+		else _setting("inpatient_workspace_profile", DEFAULT_PROFILE)
+	)
 	tabs = frappe.get_all(
 		"Patient Workspace Tab",
 		filters={"parent": profile, "parenttype": "Patient Workspace Profile", "hidden": 0},
 		fields=["panel", "label"],
 		order_by="idx",
-	) or [{"panel": p, "label": p} for p in PANELS]
+	) or [{"panel": p, "label": p} for p in (THEATRE_PANELS if theatre else PANELS)]
 	return {
 		"name": ip.name,
 		"patient": ip.patient,
@@ -393,6 +406,11 @@ def workspace(inpatient_record: str) -> dict:
 		"admitted": ip.admitted_datetime,
 		"days": _days(ip.admitted_datetime),
 		"practitioner": ip.primary_practitioner,
+		"practitioner_name": frappe.db.get_value(
+			"Healthcare Practitioner", ip.primary_practitioner, "practitioner_name"
+		)
+		if ip.primary_practitioner
+		else None,
 		"urgency": ip.get("ke_urgency"),
 		"reason": ip.get("ke_admission_reason"),
 		"payer": ip.insurance_payor or _("Cash"),
@@ -400,6 +418,7 @@ def workspace(inpatient_record: str) -> dict:
 		"preauth_due": ip.get("ke_preauth_due"),
 		"money": money(ip),
 		"tabs": tabs,
+		"theatre": theatre,
 	}
 
 
@@ -414,11 +433,18 @@ def admission_encounters(ip):
 
 
 @frappe.whitelist()
-def panel(inpatient_record: str, panel: str) -> dict:
+def panel(inpatient_record: str, panel: str, booking: str | None = None) -> dict:
 	"""One tab's data."""
 	_check(WARD_ROLES)
 	ip = frappe.get_doc(IR, inpatient_record)
 	ip.check_permission("read")
+	if panel == "Theatre Doctor Notes":
+		from royce_health_ke import theatre
+
+		if not booking:
+			return {"notes": [], "no_booking": 1}
+		theatre.booking_banner(booking, ip.patient)
+		return theatre.doctor_notes(booking)
 	handler = PANEL_DATA.get(panel)
 	return handler(ip) if handler else {}
 
@@ -571,9 +597,12 @@ def _clinical_notes(ip, only=None, exclude=None):
 
 
 def _care(ip):
-	from royce_health_ke import charts
+	from royce_health_ke import charts, partograph
 
-	return charts.panel(ip, skip=[TB_CHART])
+	out = charts.panel(ip, skip=[TB_CHART])
+	if partograph.applies(ip):
+		out["charts"].append(partograph.entry(ip))
+	return out
 
 
 def _tb(ip):
@@ -1184,20 +1213,25 @@ def notify_over_deposit():
 
 
 def seed():
-	"""The default patient screen (once; afterwards the hospital's)."""
-	if frappe.db.exists("Patient Workspace Profile", DEFAULT_PROFILE):
-		return
-	frappe.get_doc(
-		{
-			"doctype": "Patient Workspace Profile",
-			"profile_name": DEFAULT_PROFILE,
-			"care_setting": "Inpatient",
-			"tabs": [{"panel": p, "label": p} for p in PANELS],
-		}
-	).insert(ignore_permissions=True)
-	if not frappe.db.get_single_value(SETTINGS, "inpatient_workspace_profile"):
-		frappe.db.set_single_value(SETTINGS, "inpatient_workspace_profile", DEFAULT_PROFILE)
-	if not frappe.get_all("Nursing Shift", filters={"parenttype": SETTINGS}, limit=1):
+	"""The default patient screens, ward and theatre (each once; afterwards the
+	hospital's)."""
+	first = not frappe.db.exists("Patient Workspace Profile", DEFAULT_PROFILE)
+	for name, setting, care_setting, panels in (
+		(DEFAULT_PROFILE, "inpatient_workspace_profile", "Inpatient", PANELS),
+		(THEATRE_PROFILE, "theatre_workspace_profile", "Theatre", THEATRE_PANELS),
+	):
+		if not frappe.db.exists("Patient Workspace Profile", name):
+			frappe.get_doc(
+				{
+					"doctype": "Patient Workspace Profile",
+					"profile_name": name,
+					"care_setting": care_setting,
+					"tabs": [{"panel": p, "label": p} for p in panels],
+				}
+			).insert(ignore_permissions=True)
+		if not frappe.db.get_single_value(SETTINGS, setting):
+			frappe.db.set_single_value(SETTINGS, setting, name)
+	if first and not frappe.get_all("Nursing Shift", filters={"parenttype": SETTINGS}, limit=1):
 		settings = frappe.get_single(SETTINGS)
 		settings.append(
 			"nursing_shifts", {"shift_name": "Day", "start_time": "07:00:00", "end_time": "19:00:00"}

@@ -124,7 +124,7 @@ def validate_booking(doc):
 
 # Continuation notes (the paper continuation sheet): added, never changed.
 
-NOTE_FIELDS = ("noted_at", "stage", "note")
+NOTE_FIELDS = ("noted_at", "stage", "note", "complications", "practitioner")
 
 
 def lock_progress_notes(doc):
@@ -154,16 +154,100 @@ def lock_progress_notes(doc):
 
 
 @frappe.whitelist()
-def add_note(booking: str, note: str, stage: str = "In theatre", noted_at: str | None = None):
+def add_note(
+	booking: str,
+	note: str,
+	stage: str = "In theatre",
+	noted_at: str | None = None,
+	complications: str | None = None,
+	practitioner: str | None = None,
+):
 	doc = frappe.get_doc("Theatre Booking", booking)
 	doc.check_permission("write")
 	if not (note or "").strip():
 		frappe.throw(_("Write the note."))
 	doc.append(
-		"progress_notes", {"note": note.strip(), "stage": stage, "noted_at": noted_at or now_datetime()}
+		"progress_notes",
+		{
+			"note": note.strip(),
+			"stage": stage,
+			"noted_at": noted_at or now_datetime(),
+			"complications": (complications or "").strip() or None,
+			"practitioner": practitioner,
+		},
 	)
 	doc.save()
 	return len(doc.progress_notes)
+
+
+# The patient screen opened from the Theatre List (Bethesda, 20 Nov 2026: "at
+# theatre list when we select patient ... horizontal tabs for drug
+# administration, theatre doctor notes"): the ward's patient screen with the
+# Theatre tab profile, for the admission the booking belongs to.
+
+
+def booking_admission(booking):
+	"""The admission a booking's patient is on: the booking's own, else the
+	patient's current one."""
+	b = frappe.db.get_value("Theatre Booking", booking, ["patient", "inpatient_record"], as_dict=True)
+	if not b:
+		return None
+	if b.inpatient_record:
+		return b.inpatient_record
+	return frappe.db.get_value(
+		"Inpatient Record",
+		{"patient": b.patient, "status": ["in", ["Admitted", "Discharge Scheduled"]]},
+		"name",
+		order_by="admitted_datetime desc",
+	)
+
+
+def booking_banner(booking, patient):
+	b = frappe.get_doc("Theatre Booking", booking)
+	b.check_permission("read")
+	if b.patient != patient:
+		frappe.throw(_("Theatre booking {0} is for another patient.").format(booking))
+	return {
+		"name": b.name,
+		"procedure": b.procedure_template,
+		"theatre": b.theatre,
+		"scheduled_start": b.scheduled_start,
+		"status": b.status,
+		"surgeon": frappe.db.get_value("Healthcare Practitioner", b.surgeon, "practitioner_name")
+		if b.surgeon
+		else None,
+		"priority": b.priority,
+	}
+
+
+def doctor_notes(booking):
+	"""The Theatre Doctor Notes tab: the booking's notes, newest first."""
+	b = frappe.get_doc("Theatre Booking", booking)
+	b.check_permission("read")
+	names = {}
+	notes = []
+	for r in sorted(b.progress_notes, key=lambda r: get_datetime(r.noted_at), reverse=True):
+		if r.practitioner and r.practitioner not in names:
+			names[r.practitioner] = frappe.db.get_value(
+				"Healthcare Practitioner", r.practitioner, "practitioner_name"
+			)
+		notes.append(
+			{
+				"noted_at": r.noted_at,
+				"stage": r.stage,
+				"note": r.note,
+				"complications": r.complications,
+				"doctor": names.get(r.practitioner) or "",
+				"by": r.recorded_by_name or "",
+			}
+		)
+	mine = frappe.db.get_value("Healthcare Practitioner", {"user_id": frappe.session.user}, "name")
+	return {
+		"booking": b.name,
+		"notes": notes,
+		"practitioner": mine or b.surgeon,
+		"can_write": frappe.has_permission("Theatre Booking", "write", b),
+	}
 
 
 def check_clashes(doc):

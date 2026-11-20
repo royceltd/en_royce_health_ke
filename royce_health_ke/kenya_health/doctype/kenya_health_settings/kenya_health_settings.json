@@ -87,6 +87,7 @@
   "inpatient_section",
   "ward_drug_charge",
   "inpatient_workspace_profile",
+  "theatre_workspace_profile",
   "inpatient_cb",
   "admission_deposit",
   "over_deposit_action",
@@ -620,6 +621,13 @@
    "description": "Which tabs the ward's patient screen shows, in which order."
   },
   {
+   "fieldname": "theatre_workspace_profile",
+   "fieldtype": "Link",
+   "options": "Patient Workspace Profile",
+   "label": "Theatre Patient Screen Tabs",
+   "description": "The tabs a patient opened from the Theatre List shows (Drug Administration, Theatre Doctor Notes, ...)."
+  },
+  {
    "fieldname": "inpatient_cb",
    "fieldtype": "Column Break"
   },
@@ -652,7 +660,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-19 08:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

@@ -2,11 +2,15 @@
 # For license information, please see license.txt
 
 """The day's theatre list: what is booked where, with whom, and whether
-consent, checklist and anaesthesia record are in place."""
+consent, checklist and anaesthesia record are in place. The patient's name
+opens their theatre screen (Drug Administration, Theatre Doctor Notes; see
+theatre.booking_admission)."""
 
 import frappe
 from frappe import _
 from frappe.utils import getdate
+
+from royce_health_ke.theatre import booking_admission
 
 
 def execute(filters=None):
@@ -67,6 +71,7 @@ def execute(filters=None):
 			else _("Not started")
 		)
 		b.anaesthesia = "Yes" if b.anaesthesia_record else "No"
+		b.admission = booking_admission(b.name)
 	columns = [
 		{"fieldname": "scheduled_start", "label": _("Start"), "fieldtype": "Datetime", "width": 150},
 		{
