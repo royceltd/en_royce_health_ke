@@ -235,7 +235,7 @@ doctype_js = {
 	"Vital Signs": "public/js/vital_signs.js",
 	"Patient Appointment": "public/js/patient_appointment.js",
 	"Sales Invoice": "public/js/sales_invoice.js",
-	"Patient Encounter": "public/js/patient_encounter.js",
+	"Patient Encounter": ["public/js/patient_encounter.js", "public/js/prescribe_panel.js"],
 }
 
 doctype_list_js = {"Vital Signs": "public/js/vital_signs_list.js"}

@@ -58,7 +58,8 @@ TABS = (
 OUR_TABS = {tab for tab, _sections in TABS}
 # Bumped when our default order changes. v2 (v0.45): the clerking order CC,
 # HPI, ROS, PMH/PSH, FH, SH, OBS/Gynae, examination last; the Request Type.
-LAYOUT_VERSION = 2
+# v3 (v0.50): the Order Drug panel on the Prescription tab.
+LAYOUT_VERSION = 3
 LAYOUT_KEY = "ke_consultation_layout"
 
 
@@ -189,12 +190,7 @@ def _placing_orders(doc):
 def new_orders(doc):
 	"""The order rows not placed yet: requests and medicines."""
 	rows = [r for table in ORDER_TABLES for r in doc.get(table) or [] if not r.get("service_request")]
-	rows += [
-		d
-		for d in doc.get("drug_prescription") or []
-		if (d.get("medication") or d.get("drug_code")) and not d.get("medication_request")
-	]
-	return rows
+	return rows + new_drugs(doc)
 
 
 def _is_imaging_template(template):
@@ -284,10 +280,13 @@ def _setting(field):
 
 
 def new_drugs(doc):
+	"""Drugs to be sent: not ordered yet, and not held in draft (prescribing.py)."""
 	return [
 		d
 		for d in doc.get("drug_prescription") or []
-		if (d.get("medication") or d.get("drug_code")) and not d.get("medication_request")
+		if (d.get("medication") or d.get("drug_code"))
+		and not d.get("medication_request")
+		and not d.get("ke_draft")
 	]
 
 
@@ -407,7 +406,10 @@ def saving_sends(doc, exempt):
 
 def before_validate(doc, method=None):
 	"""Patient Encounter before_validate (before Marley places the orders)."""
+	from royce_health_ke.prescribing import check_no_drafts
+
 	check_lab_rows(doc)
+	check_no_drafts(doc)
 	if not _rules_on():
 		return
 	cancel_removed_requests(doc)

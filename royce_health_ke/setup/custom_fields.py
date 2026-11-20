@@ -473,6 +473,12 @@ CONSULTATION_TABS = [
 		"insert_after": "ke_pharmacy_section",
 	},
 	{
+		"fieldname": "ke_prescribe_html",
+		"fieldtype": "HTML",
+		"label": "Order Drug",
+		"insert_after": "ke_pharmacy_html",
+	},
+	{
 		"fieldname": "ke_tab_complete",
 		"fieldtype": "Tab Break",
 		"label": "Complete",
@@ -946,6 +952,29 @@ DRUG_PRESCRIPTION = [
 		"insert_after": "ke_quantity",
 		"read_only": 1,
 	},
+	# The Order Drug panel (prescribing.py)
+	{
+		"fieldname": "ke_buy_externally",
+		"fieldtype": "Check",
+		"label": "Buy Externally",
+		"insert_after": "ke_dispensing_unit",
+		"description": "The patient buys it outside: on the prescription, not dispensed or billed here.",
+	},
+	{
+		"fieldname": "ke_chronic",
+		"fieldtype": "Check",
+		"label": "Chronic",
+		"insert_after": "ke_buy_externally",
+		"description": "A long-term medicine: listed under Chronic on the patient's next consultations.",
+	},
+	{
+		"fieldname": "ke_draft",
+		"fieldtype": "Check",
+		"label": "Draft",
+		"insert_after": "ke_chronic",
+		"read_only": 1,
+		"description": "Saved to draft on the Order Drug panel: not sent to the pharmacy until Submit.",
+	},
 ]
 
 MEDICATION_REQUEST_DOSE = [
@@ -983,6 +1012,13 @@ MEDICATION_REQUEST_DOSE = [
 		"fieldtype": "Datetime",
 		"label": "Start",
 		"insert_after": "ke_dose_cb",
+		"read_only": 1,
+	},
+	{
+		"fieldname": "ke_chronic",
+		"fieldtype": "Check",
+		"label": "Chronic",
+		"insert_after": "ke_start",
 		"read_only": 1,
 	},
 ]

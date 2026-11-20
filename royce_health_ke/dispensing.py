@@ -249,7 +249,18 @@ class DrugPrescriptionQuantity:
 
 class EncounterOrders:
 	"""Patient Encounter (extend_doctype_class): the dose, route and start go
-	on the Medication Request Marley makes from each prescription row."""
+	on the Medication Request Marley makes from each prescription row. Rows
+	saved to draft on the Order Drug panel (prescribing.py) are not ordered."""
+
+	def make_medication_request(self):
+		rows = self.get("drug_prescription") or []
+		if not any(d.get("ke_draft") for d in rows):
+			return super().make_medication_request()
+		self.drug_prescription = [d for d in rows if not d.get("ke_draft")]
+		try:
+			return super().make_medication_request()
+		finally:
+			self.drug_prescription = rows
 
 	def get_order_details(self, template_doc, line_item, medication_request=False):
 		order = super().get_order_details(template_doc, line_item, medication_request)
@@ -267,6 +278,13 @@ class EncounterOrders:
 			)
 			if not order.get("comment") and line_item.get("comment"):
 				order.comment = line_item.comment
+			order.ke_chronic = cint(line_item.get("ke_chronic"))
+			if cint(line_item.get("ke_buy_externally")):
+				# on the prescription, neither dispensed nor billed (prescribing.py)
+				from royce_health_ke.pharmacy import BUY_OUTSIDE
+
+				order.ke_pharmacy_status = BUY_OUTSIDE
+				order.ke_pharmacy_note = _("Prescribed to buy outside")
 			# Marley's Medication Request works its quantity out again on
 			# validate (strengths x days): keep the one in dispensing units
 			order.flags.ke_quantity = order.quantity
