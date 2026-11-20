@@ -557,9 +557,12 @@ def run(company):
 			"to_confirmed": 1,
 			"to_antibiotic": "Yes",
 			"to_imaging": "Not applicable",
-			"to_surgeon_events": 1,
-			"to_anaesthetist_concerns": 1,
-			"to_nursing_sterility": 1,
+			"to_procedure_type": "Routine",
+			"to_duration": "60 minutes",
+			"to_blood_loss": "200 ml",
+			"to_anaesthetist": "No",
+			"to_sterility": "Yes",
+			"to_equipment": "No",
 			"time_out_by": "Dr Brian Kiprotich",
 		}
 	)

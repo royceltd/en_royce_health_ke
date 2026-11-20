@@ -178,7 +178,9 @@ The booking turns **In Theatre**, and the operation note (a Clinical Procedure) 
 1. **Time Out:**
    - team introduced, and patient, site and procedure confirmed
    - antibiotic in the last 60 minutes and essential imaging displayed
-   - the surgeon's, anaesthetist's and nurses' concerns reviewed
+   - **Surgeon:** the procedure steps (*Critical*, *Non-routine* or *Routine*), the **Expected Duration** and the **Anticipated Blood Loss**
+   - **Anaesthetist:** patient-specific concerns, *Yes* or *No*; a *Yes* needs the concerns written in
+   - **Nursing:** sterility confirmed, *Yes* or *No*; equipment issues or concerns, *Yes* or *No*, and a *Yes* needs them written in
 2. Time Out can only be done after Sign In, and Sign Out only after Time Out.
 3. On the Anaesthesia Record, record:
    - type of anaesthesia, airway and E.T.T. size, and position

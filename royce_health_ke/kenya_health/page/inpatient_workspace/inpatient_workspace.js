@@ -1,3 +1,4 @@
+/* global healthcare */
 // Copyright (c) 2026, Royce Technologies LTD and contributors
 // For license information, please see license.txt
 
@@ -566,7 +567,9 @@ class InpatientWorkspace {
 			$c.append(`<div class="d-flex justify-content-between align-items-center mb-2">
 				<div><b>${iw_esc(c.name)}</b> ${
 				c.second_check
-					? `<span class="indicator-pill orange">${__("Second nurse checks")}</span>`
+					? `<span class="small text-muted ml-1">${__(
+							"Counter-checked by a second nurse"
+					  )}</span>`
 					: ""
 			}
 				${c.due ? `<span class="small text-muted ml-2">${__("Next due")}: ${iw_when(c.due)}</span>` : ""}
@@ -651,7 +654,8 @@ class InpatientWorkspace {
 				fieldname: "second_check_by",
 				fieldtype: "Link",
 				options: "User",
-				label: __("Checked by (second nurse)"),
+				label: __("Counter Checked By"),
+				description: __("A second nurse, not you, checks the patient and the blood unit."),
 				reqd: 1,
 			});
 		fields.push({ fieldname: "note", fieldtype: "Small Text", label: __("Note") });

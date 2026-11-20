@@ -43,10 +43,19 @@ TIME_OUT = (
 	"to_confirmed",
 	"to_antibiotic",
 	"to_imaging",
-	"to_surgeon_events",
-	"to_anaesthetist_concerns",
-	"to_nursing_sterility",
+	# separate questions (Bethesda, 20 Nov 2026), each answered
+	"to_procedure_type",
+	"to_duration",
+	"to_blood_loss",
+	"to_anaesthetist",
+	"to_sterility",
+	"to_equipment",
 	"time_out_by",
+)
+# A "Yes" needs its details.
+TIME_OUT_DETAILS = (
+	("to_anaesthetist", "to_anaesthetist_detail", _("the anaesthetist's concerns")),
+	("to_equipment", "to_equipment_detail", _("the equipment issues or concerns")),
 )
 SIGN_OUT = (
 	"so_procedure_recorded",
@@ -367,6 +376,10 @@ def validate_checklist(doc):
 			doc.wp_received_time = now_datetime()
 
 	validate_counts(doc)
+
+	for answer, detail, what in TIME_OUT_DETAILS:
+		if doc.get(answer) == "Yes" and not (doc.get(detail) or "").strip():
+			frappe.throw(_("Time Out: describe {0}.").format(what))
 
 	previous_done = True
 	for status_field, time_field, fields, label in PHASES:

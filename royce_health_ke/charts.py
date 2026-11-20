@@ -86,9 +86,13 @@ def validate_entry(doc):
 		frappe.throw(_("{0} has no column {1}.").format(template.template_name, ", ".join(sorted(unknown))))
 	if cint(template.needs_second_signature):
 		if not doc.second_check_by:
-			frappe.throw(_("{0}: a second nurse checks each entry.").format(template.template_name))
+			frappe.throw(
+				_("{0}: fill in Counter Checked By (a second nurse checks each entry).").format(
+					template.template_name
+				)
+			)
 		if doc.second_check_by == doc.recorded_by:
-			frappe.throw(_("The second check is by another nurse."))
+			frappe.throw(_("Counter Checked By must be another nurse, not you."))
 	doc.alerts = "; ".join(alerts)
 
 

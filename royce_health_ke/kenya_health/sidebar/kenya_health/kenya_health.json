@@ -1055,6 +1055,22 @@
    "icon": "",
    "indent": 0,
    "keep_closed": 0,
+   "label": "OPD Patients by Payment Mode",
+   "link_to": "OPD Patients by Payment Mode",
+   "link_type": "Report",
+   "parentfield": "items",
+   "parenttype": "Sidebar",
+   "show_arrow": 0,
+   "type": "Link",
+   "idx": 67
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "doctype": "Sidebar Item",
+   "icon": "",
+   "indent": 0,
+   "keep_closed": 0,
    "label": "Turnaround Time",
    "link_to": "Turnaround Time",
    "link_type": "Report",
@@ -1062,7 +1078,7 @@
    "parenttype": "Sidebar",
    "show_arrow": 0,
    "type": "Link",
-   "idx": 67
+   "idx": 68
   },
   {
    "child": 1,
@@ -1078,7 +1094,7 @@
    "label": "Clinical Alert Summary",
    "link_type": "Report",
    "link_to": "Clinical Alert Summary",
-   "idx": 68
+   "idx": 69
   },
   {
    "child": 1,
@@ -1094,14 +1110,14 @@
    "label": "Quality Measures",
    "link_type": "Report",
    "link_to": "Quality Measures",
-   "idx": 69
+   "idx": 70
   },
   {
    "child": 0,
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "settings",
-   "idx": 70,
+   "idx": 71,
    "indent": 1,
    "keep_closed": 0,
    "label": "Setup",
@@ -1116,7 +1132,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 71,
+   "idx": 72,
    "indent": 0,
    "keep_closed": 0,
    "label": "Kenya Health Settings",
@@ -1132,7 +1148,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 72,
+   "idx": 73,
    "indent": 0,
    "keep_closed": 0,
    "label": "Compliance Check",
@@ -1148,7 +1164,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 73,
+   "idx": 74,
    "indent": 0,
    "keep_closed": 0,
    "label": "Patient Data Requests",
@@ -1164,7 +1180,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 74,
+   "idx": 75,
    "indent": 0,
    "keep_closed": 0,
    "label": "Data Breach Register",
@@ -1180,7 +1196,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 75,
+   "idx": 76,
    "indent": 0,
    "keep_closed": 0,
    "label": "Patient Consent Log",
@@ -1205,14 +1221,14 @@
    "parenttype": "Sidebar",
    "show_arrow": 0,
    "type": "Link",
-   "idx": 76
+   "idx": 77
   },
   {
    "child": 1,
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 77,
+   "idx": 78,
    "indent": 0,
    "keep_closed": 0,
    "label": "Patient Record Access",
@@ -1228,7 +1244,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 78,
+   "idx": 79,
    "indent": 0,
    "keep_closed": 0,
    "label": "Maternity Package",
@@ -1244,7 +1260,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 79,
+   "idx": 80,
    "indent": 0,
    "keep_closed": 0,
    "label": "Diet Type",
@@ -1260,7 +1276,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 80,
+   "idx": 81,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 705 Indicator",
@@ -1276,7 +1292,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 81,
+   "idx": 82,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 706 Indicator",
@@ -1301,7 +1317,7 @@
    "label": "Clinical Alert Rule",
    "link_type": "DocType",
    "link_to": "Clinical Alert Rule",
-   "idx": 82
+   "idx": 83
   },
   {
    "child": 1,
@@ -1317,12 +1333,12 @@
    "label": "Quality Measure",
    "link_type": "DocType",
    "link_to": "Quality Measure",
-   "idx": 83
+   "idx": 84
   }
  ],
  "module": "Kenya Health",
  "name": "Kenya Health",
  "standard": 1,
  "title": "Kenya Health",
- "modified": "2026-11-19 08:00:00.000000"
+ "modified": "2026-11-20 21:00:00.000000"
 }

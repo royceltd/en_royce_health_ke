@@ -1,0 +1,35 @@
+/* Copyright (c) 2026, Royce Technologies LTD and contributors */
+
+/* Our full-page screens (worklists, ward, inpatient screen): the page body is
+   kept off the sidebar and wide tables scroll inside the page instead of
+   running under it (Bethesda, 20 Nov 2026). */
+body[data-route^="lab-worklist"] .layout-main-section,
+body[data-route^="pharmacy-worklist"] .layout-main-section,
+body[data-route^="nursing-worklist"] .layout-main-section,
+body[data-route^="results-inbox"] .layout-main-section,
+body[data-route^="patient-bills"] .layout-main-section,
+body[data-route^="visit-station"] .layout-main-section,
+body[data-route^="ward"] .layout-main-section,
+body[data-route^="inpatient-workspace"] .layout-main-section {
+	padding: var(--padding-md) var(--padding-lg);
+	overflow-x: auto;
+	min-width: 0;
+}
+
+@media (max-width: 767px) {
+	body[data-route^="lab-worklist"] .layout-main-section,
+	body[data-route^="pharmacy-worklist"] .layout-main-section,
+	body[data-route^="nursing-worklist"] .layout-main-section,
+	body[data-route^="results-inbox"] .layout-main-section,
+	body[data-route^="patient-bills"] .layout-main-section,
+	body[data-route^="visit-station"] .layout-main-section,
+	body[data-route^="ward"] .layout-main-section,
+	body[data-route^="inpatient-workspace"] .layout-main-section {
+		padding: var(--padding-sm);
+	}
+}
+
+/* Consultation Observation tab: two fields side by side (consultation.py) */
+.ke-two-col .form-column {
+	min-width: 0;
+}

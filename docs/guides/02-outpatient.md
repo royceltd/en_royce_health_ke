@@ -71,14 +71,23 @@ The consultation has tabs in the order the doctor works: **Patient → Observati
 
 ![The consultation tabs](images/outpatient/15-consultation-tabs.png)
 
-*The Observation tab: presenting complaint and examination, then the medical history.*
+*The Observation tab: the history and examination, two fields side by side.*
 
 1. **Patient:** the patient, doctor, department and insurance fill in from the visit or the appointment. Symptoms, appointment type and source are taken at reception and are not on the consultation.
-2. **Observation:** under **Presenting Complaint**, write the **Chief Complaint** (in the patient's words, with how long), the **History of Presenting Illness**, **Review of Systems** and **Physical Examination**. Fill these **before requesting tests or prescribing**: Send Requests and Complete Consultation are refused while the required ones are empty (by default Chief Complaint, History of Presenting Illness and Physical Examination; the hospital chooses in Kenya Health Settings). Casualty visits and inpatients are not held back.
-3. **Medical History** (same tab) shows the patient's allergies, current medication, past medical and surgical history, family and social history from the patient's record. Correct or add to them here: when you save, the patient's record is updated, and the patient shows a note naming this consultation. The next clinician starts from the updated history. To clear a line, write *None* rather than leaving it blank (a blank field is refilled from the record).
-4. For a woman, **Obstetric and Gynaecological History** has an **OBS/Gynae** box: LMP, gravida/para, contraception, menstrual and gynaecological history. It is not shown for male patients.
-5. **Requests:** add the lab tests in the **Lab Test** column (for example malaria slide, Hb, WBC), imaging exams in the **Imaging** column (one test or one exam per row: a row with both is refused), and procedures, then **Save**: saving sends the new requests (cash ones go on the visit's draft bill, insured ones straight to the lab or radiology). Without the observation, the consultation is saved and the requests wait, with an orange note. **Send Requests** does the same in one click. Add more tests at any time and save again: a second round is sent the same way. Deleting the row of a request that hasn't started cancels it. If a request has no price for this patient, the next box says so: the Cashier can't bill it until the administrator sets its price. Each request goes on the visit's bill and to its service point, and **the consultation stays open** for the results.
-6. A box asks **Where does the patient go next?** For a cash patient whose requests aren't paid, the **Cashier** is suggested first (the requests reach the lab only once paid); otherwise the Laboratory or Radiology. Add a note if useful and **Send**, or choose *Stay with me* to keep the patient.
+2. **Observation:** one form, two fields side by side, in this order:
+   - **Chief Complaint** (in the patient's words, with how long) | **History of Presenting Illness**
+   - **Review of Systems** | **Past Medical History** and **Past Surgical History**
+   - **Family History** | **Social History**
+   - **OBS/Gynae**, for women only: LMP, gravida/para, contraception, menstrual and gynaecological history.
+   - **Physical Examination**, last.
+
+   Fill these **before requesting tests or prescribing**. Send Requests and Complete Consultation are refused while the required ones are empty. By default these are Chief Complaint, History of Presenting Illness and Physical Examination; the hospital chooses in Kenya Health Settings. Casualty visits and inpatients are not held back.
+3. **The patient's history** starts from the patient's record:
+   - **Updates:** whatever you correct or add here is saved back to the record, and the next clinician starts from it.
+   - **Clearing a line:** write *None* rather than leaving it blank (a blank field is refilled from the record).
+   - **Allergies and current medication** stay on the patient's record and are not asked here.
+4. **Requests:** add the lab tests in the **Lab Test** column (for example malaria slide, Hb, WBC), imaging exams in the **Imaging** column (one test or one exam per row: a row with both is refused), and procedures, then **Save**: saving sends the new requests (cash ones go on the visit's draft bill, insured ones straight to the lab or radiology). Without the observation, the consultation is saved and the requests wait, with an orange note. **Send Requests** does the same in one click. Add more tests at any time and save again: a second round is sent the same way. Deleting the row of a request that hasn't started cancels it. If a request has no price for this patient, the next box says so: the Cashier can't bill it until the administrator sets its price. Each request goes on the visit's bill and to its service point, and **the consultation stays open** for the results.
+5. A box asks **Where does the patient go next?** For a cash patient whose requests aren't paid, the **Cashier** is suggested first (the requests reach the lab only once paid); otherwise the Laboratory or Radiology. Add a note if useful and **Send**, or choose *Stay with me* to keep the patient.
 
 ![Where does the patient go next?](images/outpatient/16-next-station.png)
 
@@ -193,7 +202,7 @@ Demo records: HLC-LAB-2026-00006 (malaria slide, positive), HLC-LAB-2026-00005 (
 
    *Dr Amina's Results Inbox: David's new results, his Hb marked Abnormal.*
 3. **Diagnosis** tab: record the diagnosis.
-4. **Prescription** tab: use the **Order Drug** panel.
+4. **Prescription** tab: use the **Order Drug** panel. (It is switched on in version 0.52. Until then, add each drug in the **Drug Prescription** table, with dose, frequency, duration and route; the quantity to dispense is worked out the same way.)
    - **Single Drug:** choose a **Drug Class** (optional), then the **Drug Name**. The search shows the pharmacy's stock, and the green or red *Available* badge shows it for the chosen drug.
    - **Fill in the order:** **Dose** and unit, then **Frequency**, or tick **Schedule dosage?** for every N hours. Then **Duration**, **Route** and the start.
    - **Optional ticks:** **Buy Externally** if the patient buys it outside (it is printed but not dispensed or billed); **Chronic medicine** for a long-term drug.

@@ -10,7 +10,8 @@ elsewhere (hospital feedback on the outpatient flow, November 2026):
   reception (the visit's Service Type fills the consultation's appointment
   type, visits.link_encounter), so the doctor does not see them.
 - Vital Signs: height is taken in centimetres (ke_height_cm); Marley's Height
-  in metres is worked out from it and hidden.
+  in metres is worked out from it and hidden. Tongue, Abdomen and Reflexes
+  are examination findings, not triage (Bethesda, 20 Nov 2026): hidden.
 - Sales Invoice payments: the Reference No (M-Pesa or card code) is a column
   of the payments table, where the cashier types it (cashier.py requires it).
 - Consultation lab requests (Lab Prescription): Marley lists only its
@@ -30,7 +31,7 @@ import frappe
 HIDDEN = {
 	"Patient": ("phone",),
 	"Patient Encounter": ("symptoms", "symptoms_in_print", "appointment_type", "sb_source", "source"),
-	"Vital Signs": ("height",),
+	"Vital Signs": ("height", "tongue", "abdomen", "reflexes"),
 }
 # Hidden fields a hospital can't fill in must not be mandatory either.
 NOT_REQUIRED = {"Patient Encounter": ("appointment_type",)}

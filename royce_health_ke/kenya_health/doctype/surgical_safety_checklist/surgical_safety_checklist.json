@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-10 09:00:00.000000",
+ "modified": "2026-11-20 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Surgical Safety Checklist",
@@ -427,6 +427,10 @@
    "label": "Surgeon, anaesthetist and nurse confirm patient, site and procedure"
   },
   {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "to_antibiotic",
    "fieldtype": "Select",
    "label": "Antibiotic prophylaxis given within the last 60 minutes",
@@ -439,23 +443,77 @@
    "options": "\nYes\nNot applicable"
   },
   {
-   "fieldname": "cb2",
+   "fieldname": "to_surgeon_section",
+   "fieldtype": "Section Break",
+   "label": "Surgeon"
+  },
+  {
+   "fieldname": "to_procedure_type",
+   "fieldtype": "Select",
+   "label": "Procedure Steps",
+   "options": "\nCritical\nNon-routine\nRoutine",
+   "description": "Critical or non-routine steps reviewed, or a routine procedure."
+  },
+  {
+   "fieldname": "to_duration",
+   "fieldtype": "Data",
+   "label": "Expected Duration",
+   "description": "e.g. 90 minutes"
+  },
+  {
+   "fieldname": "to_cb_surgeon",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "to_surgeon_events",
-   "fieldtype": "Check",
-   "label": "Surgeon: critical or non-routine steps, duration, anticipated blood loss reviewed"
+   "fieldname": "to_blood_loss",
+   "fieldtype": "Data",
+   "label": "Anticipated Blood Loss",
+   "description": "e.g. 300 ml"
   },
   {
-   "fieldname": "to_anaesthetist_concerns",
-   "fieldtype": "Check",
-   "label": "Anaesthetist: patient-specific concerns reviewed"
+   "fieldname": "to_team_section",
+   "fieldtype": "Section Break",
+   "label": "Anaesthetist and Nursing"
   },
   {
-   "fieldname": "to_nursing_sterility",
-   "fieldtype": "Check",
-   "label": "Nursing: sterility confirmed, equipment issues or concerns raised"
+   "fieldname": "to_anaesthetist",
+   "fieldtype": "Select",
+   "label": "Anaesthetist: Patient-Specific Concerns",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "to_anaesthetist_detail",
+   "fieldtype": "Small Text",
+   "label": "Anaesthetist's Concerns",
+   "depends_on": "eval:doc.to_anaesthetist=='Yes'",
+   "mandatory_depends_on": "eval:doc.to_anaesthetist=='Yes'"
+  },
+  {
+   "fieldname": "to_cb_team",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "to_sterility",
+   "fieldtype": "Select",
+   "label": "Nursing: Sterility Confirmed",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "to_equipment",
+   "fieldtype": "Select",
+   "label": "Nursing: Equipment Issues or Concerns",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "to_equipment_detail",
+   "fieldtype": "Small Text",
+   "label": "Equipment Issues or Concerns",
+   "depends_on": "eval:doc.to_equipment=='Yes'",
+   "mandatory_depends_on": "eval:doc.to_equipment=='Yes'"
+  },
+  {
+   "fieldname": "to_led_section",
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "time_out_by",
@@ -797,12 +855,22 @@
   "time_out_section",
   "to_team_introduced",
   "to_confirmed",
+  "cb2",
   "to_antibiotic",
   "to_imaging",
-  "cb2",
-  "to_surgeon_events",
-  "to_anaesthetist_concerns",
-  "to_nursing_sterility",
+  "to_surgeon_section",
+  "to_procedure_type",
+  "to_duration",
+  "to_cb_surgeon",
+  "to_blood_loss",
+  "to_team_section",
+  "to_anaesthetist",
+  "to_anaesthetist_detail",
+  "to_cb_team",
+  "to_sterility",
+  "to_equipment",
+  "to_equipment_detail",
+  "to_led_section",
   "time_out_by",
   "time_out_time",
   "counts_tab",

@@ -35,7 +35,13 @@ TABS = (
 	("ke_tab_patient", (None, "insurance_section")),
 	(
 		"ke_tab_observation",
-		("ke_clerking_section", "ke_history_section", "ke_obs_section", "ke_exam_section"),
+		(
+			"ke_clerking_section",
+			"ke_history_section",
+			"ke_social_section",
+			"ke_obs_section",
+			"ke_exam_section",
+		),
 	),
 	(
 		"ke_tab_requests",
@@ -58,8 +64,9 @@ TABS = (
 OUR_TABS = {tab for tab, _sections in TABS}
 # Bumped when our default order changes. v2 (v0.45): the clerking order CC,
 # HPI, ROS, PMH/PSH, FH, SH, OBS/Gynae, examination last; the Request Type.
-# v3 (v0.50): the Order Drug panel on the Prescription tab.
-LAYOUT_VERSION = 3
+# v3 (v0.50): the Order Drug panel on the Prescription tab. v4 (v0.51): the
+# Observation tab two fields side by side, without headings.
+LAYOUT_VERSION = 4
 LAYOUT_KEY = "ke_consultation_layout"
 
 

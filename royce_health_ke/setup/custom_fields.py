@@ -384,7 +384,7 @@ CONSULTATION_TABS = [
 	{
 		"fieldname": "ke_obs_section",
 		"fieldtype": "Section Break",
-		"label": "Obstetric and Gynaecological History",
+		"label": "",
 		"insert_after": "ke_hx_social",
 		"depends_on": "eval:doc.patient_sex != 'Male'",
 	},
@@ -400,7 +400,7 @@ CONSULTATION_TABS = [
 	{
 		"fieldname": "ke_exam_section",
 		"fieldtype": "Section Break",
-		"label": "Physical Examination",
+		"label": "",
 		"insert_after": "ke_obs_gynae",
 	},
 	{
@@ -511,11 +511,14 @@ ENCOUNTER = [
 		"read_only": 1,
 		"description": "The day's open visit, linked on save.",
 	},
-	# Clerking, before Marley's symptoms and diagnosis
+	# Clerking, before Marley's symptoms and diagnosis. Two fields side by side
+	# in Bethesda's order, one continuous form without headings (20 Nov 2026):
+	# Chief Complaint | HPI, Review of Systems | Past Medical and Surgical
+	# History, Family | Social History; then OBS/Gynae and the examination.
 	{
 		"fieldname": "ke_clerking_section",
 		"fieldtype": "Section Break",
-		"label": "Presenting Complaint",
+		"label": "",
 		"insert_after": "submit_orders_on_save",
 	},
 	{
@@ -526,58 +529,70 @@ ENCOUNTER = [
 		"in_preview": 1,
 		"description": "In the patient's words, with how long (e.g. fever and headache for 3 days).",
 	},
+	{"fieldname": "ke_clerking_cb", "fieldtype": "Column Break", "insert_after": "ke_chief_complaint"},
 	{
 		"fieldname": "ke_hpi",
 		"fieldtype": "Text",
 		"label": "History of Presenting Illness",
-		"insert_after": "ke_chief_complaint",
+		"insert_after": "ke_clerking_cb",
 	},
-	{"fieldname": "ke_clerking_cb", "fieldtype": "Column Break", "insert_after": "ke_hpi"},
+	# The patient's history is shown and editable here and saved back to the
+	# patient (visits.py), without saying so on the form.
+	{
+		"fieldname": "ke_history_section",
+		"fieldtype": "Section Break",
+		"label": "",
+		"description": "",
+		"insert_after": "ke_hpi",
+	},
 	{
 		"fieldname": "ke_review_of_systems",
 		"fieldtype": "Small Text",
 		"label": "Review of Systems",
-		"insert_after": "ke_clerking_cb",
+		"insert_after": "ke_history_section",
 	},
-	# The patient's history, shown and editable here; saved back to the patient
+	{"fieldname": "ke_history_cb", "fieldtype": "Column Break", "insert_after": "ke_review_of_systems"},
+	*[
+		{
+			"fieldname": f"ke_hx_{field}",
+			"fieldtype": "Small Text",
+			"label": label,
+			"insert_after": after,
+			"fetch_from": f"patient.{source}",
+			"fetch_if_empty": 1,
+			"hidden": hidden,
+		}
+		for field, source, label, after, hidden in (
+			("medical", "medical_history", "Past Medical History", "ke_history_cb", 0),
+			("surgical", "surgical_history", "Past Surgical History", "ke_hx_medical", 0),
+			# kept on the patient's record, not asked on the consultation
+			("allergies", "allergies", "Allergies", "ke_hx_surgical", 1),
+			("medication", "medication", "Current Medication", "ke_hx_allergies", 1),
+		)
+	],
 	{
-		"fieldname": "ke_history_section",
+		"fieldname": "ke_social_section",
 		"fieldtype": "Section Break",
-		"label": "Medical History",
-		"insert_after": "ke_review_of_systems",
-		"description": "From the patient's record. Changes made here update the patient's record when you save.",
+		"label": "",
+		"insert_after": "ke_hx_medication",
 	},
-	*[
-		{
-			"fieldname": f"ke_hx_{field}",
-			"fieldtype": "Small Text",
-			"label": label,
-			"insert_after": after,
-			"fetch_from": f"patient.{source}",
-			"fetch_if_empty": 1,
-		}
-		for field, source, label, after in (
-			("allergies", "allergies", "Allergies", "ke_history_section"),
-			("medication", "medication", "Current Medication", "ke_hx_allergies"),
-			("medical", "medical_history", "Past Medical History", "ke_hx_medication"),
-		)
-	],
-	{"fieldname": "ke_history_cb", "fieldtype": "Column Break", "insert_after": "ke_hx_medical"},
-	*[
-		{
-			"fieldname": f"ke_hx_{field}",
-			"fieldtype": "Small Text",
-			"label": label,
-			"insert_after": after,
-			"fetch_from": f"patient.{source}",
-			"fetch_if_empty": 1,
-		}
-		for field, source, label, after in (
-			("surgical", "surgical_history", "Past Surgical History", "ke_history_cb"),
-			("family", "ke_family_history", "Family History", "ke_hx_surgical"),
-			("social", "ke_social_history", "Social History", "ke_hx_family"),
-		)
-	],
+	{
+		"fieldname": "ke_hx_family",
+		"fieldtype": "Small Text",
+		"label": "Family History",
+		"insert_after": "ke_social_section",
+		"fetch_from": "patient.ke_family_history",
+		"fetch_if_empty": 1,
+	},
+	{"fieldname": "ke_social_cb", "fieldtype": "Column Break", "insert_after": "ke_hx_family"},
+	{
+		"fieldname": "ke_hx_social",
+		"fieldtype": "Small Text",
+		"label": "Social History",
+		"insert_after": "ke_social_cb",
+		"fetch_from": "patient.ke_social_history",
+		"fetch_if_empty": 1,
+	},
 	*CONSULTATION_TABS,
 ]
 

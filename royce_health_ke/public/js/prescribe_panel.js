@@ -22,9 +22,17 @@ frappe.ui.form.on("Patient Encounter", {
 	},
 });
 
+// Off until v0.52 reworks the panel to Bethesda's page-3 design (feedback of
+// 20 Nov 2026), so their testers see the drug screen once, in its final form.
+const KE_RX_ON = false;
+
 function ke_rx_panel(frm) {
 	const field = frm.fields_dict.ke_prescribe_html;
 	if (!field) return;
+	if (!KE_RX_ON) {
+		field.$wrapper.empty();
+		return;
+	}
 	const $w = field.$wrapper.empty();
 	if (frm.is_new()) {
 		$w.html(

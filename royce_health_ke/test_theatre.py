@@ -24,6 +24,12 @@ ANSWERS = {
 	"si_blood_loss_risk": "No",
 	"to_antibiotic": "Yes",
 	"to_imaging": "Not applicable",
+	"to_procedure_type": "Routine",
+	"to_duration": "60 minutes",
+	"to_blood_loss": "200 ml",
+	"to_anaesthetist": "No",
+	"to_sterility": "Yes",
+	"to_equipment": "No",
 	"so_specimen_labelled": "Yes",
 	"wp_dentures": "None",
 	"wp_fasting": "Yes",
@@ -38,6 +44,15 @@ def answered(fields):
 
 
 class IntegrationTestTheatre(IntegrationTestCase):
+	def test_time_out_yes_needs_details(self):
+		checklist = frappe.new_doc("Surgical Safety Checklist")
+		checklist.update({**answered(SIGN_IN), **answered(TIME_OUT), "to_equipment": "Yes"})
+		with self.assertRaisesRegex(frappe.ValidationError, "equipment issues"):
+			validate_checklist(checklist)
+		checklist.to_equipment_detail = "Diathermy pad lead loose; replaced"
+		validate_checklist(checklist)
+		self.assertEqual(checklist.time_out_status, "Done")
+
 	def test_phases_done_in_order_with_times(self):
 		checklist = frappe.new_doc("Surgical Safety Checklist")
 		checklist.update(answered(SIGN_IN))

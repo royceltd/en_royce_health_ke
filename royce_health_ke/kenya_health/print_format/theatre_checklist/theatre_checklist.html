@@ -110,9 +110,12 @@
           ("Patient, site and procedure confirmed", doc.to_confirmed),
           ("Antibiotic prophylaxis in the last 60 min: " ~ (doc.to_antibiotic or ""), doc.to_antibiotic),
           ("Essential imaging displayed: " ~ (doc.to_imaging or ""), doc.to_imaging),
-          ("Surgeon: critical steps, duration, blood loss", doc.to_surgeon_events),
-          ("Anaesthetist: patient-specific concerns", doc.to_anaesthetist_concerns),
-          ("Nursing: sterility, equipment", doc.to_nursing_sterility),
+          ("Surgeon: procedure steps: " ~ (doc.to_procedure_type or ""), doc.to_procedure_type),
+          ("Expected duration: " ~ (doc.to_duration or ""), doc.to_duration),
+          ("Anticipated blood loss: " ~ (doc.to_blood_loss or ""), doc.to_blood_loss),
+          ("Anaesthetist: patient-specific concerns: " ~ (doc.to_anaesthetist or "") ~ ((" - " ~ doc.to_anaesthetist_detail) if doc.to_anaesthetist_detail else ""), doc.to_anaesthetist),
+          ("Nursing: sterility confirmed: " ~ (doc.to_sterility or ""), doc.to_sterility),
+          ("Equipment issues or concerns: " ~ (doc.to_equipment or "") ~ ((" - " ~ doc.to_equipment_detail) if doc.to_equipment_detail else ""), doc.to_equipment),
       ], checks=True) }}
       <div class="hx-small hx-muted">{{ doc.time_out_by or "" }} {{ c.time_out }}</div>
     </td>

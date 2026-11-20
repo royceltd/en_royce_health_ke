@@ -111,8 +111,8 @@ PAGES = {
 	"Nursing User": ("patient_history", "nursing-worklist", "ward", "inpatient-workspace"),
 }
 REPORTS = {
-	"Receptionist": ("Patients by Residence", *EVERYONE_REPORTS),
-	"Cashier": EVERYONE_REPORTS,
+	"Receptionist": ("Patients by Residence", "OPD Patients by Payment Mode", *EVERYONE_REPORTS),
+	"Cashier": ("OPD Patients by Payment Mode", *EVERYONE_REPORTS),
 	"Physician": (
 		"Quality Measures",
 		"Clinical Alert Summary",
