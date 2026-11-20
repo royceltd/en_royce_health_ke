@@ -43,6 +43,8 @@ def execute(filters=None):
 			"ke_radiographer",
 			"ke_reported_by",
 			"service_request",
+			"patient",
+			"ke_pacs_link",
 		],
 	)
 	# A cash patient's exam not paid yet is left out until the Cashier takes payment.
@@ -55,8 +57,11 @@ def execute(filters=None):
 	]
 	rows = [r for r in rows if r not in awaiting]
 	now = now_datetime()
+	from royce_health_ke.radiology import viewer_url
+
 	for r in rows:
 		r.waiting_hours = round(time_diff_in_hours(now, r.creation), 1)
+		r.images = viewer_url(r)
 	rows.sort(key=lambda r: (PRIORITY.get(r.ke_priority, 3), r.creation))
 	columns = [
 		{"fieldname": "ke_accession_number", "label": _("Accession"), "fieldtype": "Data", "width": 150},
@@ -73,6 +78,7 @@ def execute(filters=None):
 		{"fieldname": "ke_modality", "label": _("Modality"), "fieldtype": "Data", "width": 100},
 		{"fieldname": "ke_exam_status", "label": _("Status"), "fieldtype": "Data", "width": 100},
 		{"fieldname": "waiting_hours", "label": _("Waiting (h)"), "fieldtype": "Float", "width": 90},
+		{"fieldname": "images", "label": _("Images"), "fieldtype": "Data", "width": 80},
 		{
 			"fieldname": "healthcare_practitioner",
 			"label": _("Requested By"),

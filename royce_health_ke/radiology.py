@@ -52,6 +52,34 @@ def before_insert_observation(doc, method=None):
 	)
 
 
+def viewer_url(exam):
+	"""The link to an exam's images: the one typed on the exam, else the
+	hospital's viewer link (Kenya Health Settings) with the accession number
+	and patient ID filled in. None when neither is there or the exam has no
+	images yet (still Requested)."""
+	from urllib.parse import quote
+
+	if exam.get("ke_pacs_link"):
+		link = exam.get("ke_pacs_link")
+	else:
+		if exam.get("ke_exam_status") in (None, "", "Requested") or not exam.get("ke_accession_number"):
+			return None
+		template = (frappe.db.get_single_value("Kenya Health Settings", "pacs_viewer_url") or "").strip()
+		if not template:
+			return None
+		link = template.replace("{accession}", quote(exam.get("ke_accession_number") or "", safe="")).replace(
+			"{patient}", quote(exam.get("patient") or "", safe="")
+		)
+	return link if link.lower().startswith(("http://", "https://")) else None
+
+
+@frappe.whitelist()
+def images_link(observation: str) -> str | None:
+	doc = frappe.get_doc("Observation", observation)
+	doc.check_permission("read")
+	return viewer_url(doc)
+
+
 def _imaging(name):
 	doc = frappe.get_doc("Observation", name)
 	doc.check_permission("write")

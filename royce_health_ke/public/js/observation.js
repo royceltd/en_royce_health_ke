@@ -11,6 +11,10 @@ frappe.ui.form.on("Observation", {
 				frm.reload_doc();
 			});
 		const status = frm.doc.ke_exam_status;
+		// The exam's images in the hospital's viewer (radiology.viewer_url)
+		frappe.xcall("royce_health_ke.radiology.images_link", { observation: frm.doc.name }).then((link) => {
+			if (link) frm.add_custom_button(__("View Images"), () => window.open(link, "_blank", "noopener"));
+		});
 		if (status === "Requested") {
 			frm.add_custom_button(__("Exam Performed"), () =>
 				frappe.prompt(

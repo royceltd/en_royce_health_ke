@@ -51,14 +51,14 @@
   "cashier_before_service",
   "consultation_needs_check_in",
   "default_consultation_item",
-  "auto_bill_insured",
-  "auto_bill_cash",
-  "insured_pay_uncovered",
-  "waiver_account",
   "cashier_section",
   "only_cashiers_take_payment",
   "cashier_cb",
   "require_cashier_shift",
+  "auto_bill_insured",
+  "auto_bill_cash",
+  "insured_pay_uncovered",
+  "waiver_account",
   "consultation_section",
   "observation_before_requests",
   "vitals_send_to_doctor",
@@ -92,7 +92,9 @@
   "admission_deposit",
   "over_deposit_action",
   "shifts_section",
-  "nursing_shifts"
+  "nursing_shifts",
+  "imaging_section",
+  "pacs_viewer_url"
  ],
  "fields": [
   {
@@ -656,11 +658,23 @@
    "label": "Shifts",
    "options": "Nursing Shift",
    "description": "Nursing notes and charts are grouped by shift."
+  },
+  {
+   "fieldname": "imaging_section",
+   "fieldtype": "Section Break",
+   "label": "Imaging (PACS)",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "pacs_viewer_url",
+   "fieldtype": "Small Text",
+   "label": "Image Viewer Link",
+   "description": "The link that opens an exam's images in the hospital's viewer, with {accession} (the exam's accession number) and {patient} (the patient ID) filled in. Orthanc Explorer 2: http://<orthanc-address>:8042/ui/app/#/filtered-studies?AccessionNumber={accession} . OHIF: http://<viewer-address>/?accession={accession} . The viewer runs on the hospital network: it opens from staff computers there. Leave empty to use only the link typed on each exam."
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-21 10:00:00.000000",
+ "modified": "2026-11-21 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

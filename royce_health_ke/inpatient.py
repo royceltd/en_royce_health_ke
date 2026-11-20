@@ -595,9 +595,22 @@ def _results(ip):
 			"creation": [">=", since],
 			"ke_exam_status": ["is", "set"],
 		},
-		fields=["name", "observation_template", "ke_exam_status", "result", "ke_impression"],
+		fields=[
+			"name",
+			"observation_template",
+			"ke_exam_status",
+			"result",
+			"ke_impression",
+			"ke_accession_number",
+			"ke_pacs_link",
+			"patient",
+		],
 		order_by="creation desc",
 	)
+	from royce_health_ke.radiology import viewer_url
+
+	for i in imaging:
+		i.images = viewer_url(i)
 	return {"labs": labs, "imaging": imaging}
 
 

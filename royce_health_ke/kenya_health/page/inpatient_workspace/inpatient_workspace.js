@@ -532,6 +532,14 @@ class InpatientWorkspace {
 					)}</b> <span class="indicator-pill gray">${iw_esc(
 						__(o.ke_exam_status)
 					)}</span>${
+						o.images
+							? ` <a href="${iw_esc(
+									o.images
+							  )}" target="_blank" rel="noopener noreferrer" class="small ml-2">${__(
+									"View Images"
+							  )}</a>`
+							: ""
+					}${
 						o.ke_impression
 							? `<div class="small"><b>${__("Impression")}:</b> ${iw_esc(
 									o.ke_impression

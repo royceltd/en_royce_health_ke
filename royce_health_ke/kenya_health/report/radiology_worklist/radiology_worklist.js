@@ -18,4 +18,12 @@ frappe.query_reports["Radiology Worklist"] = {
 			options: ["", "X-ray", "Ultrasound", "CT", "MRI", "Mammography", "Fluoroscopy", "Contrast study"],
 		},
 	],
+	// Images: the exam's viewer link (radiology.viewer_url), opened on the hospital network
+	formatter(value, row, column, data, default_formatter) {
+		if (column.fieldname === "images")
+			return value
+				? `<a href="${frappe.utils.escape_html(value)}" target="_blank" rel="noopener noreferrer">${__("View")}</a>`
+				: "";
+		return default_formatter(value, row, column, data);
+	},
 };
