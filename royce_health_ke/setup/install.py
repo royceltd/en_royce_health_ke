@@ -54,9 +54,19 @@ def run():
 	routing.seed()
 	inpatient.seed()
 	charts.seed()
+	seed_moh_registers()
 	inpatient.sync_drug_charge()
 	consultation.apply_layout()
 	security.apply_baseline()
+
+
+def seed_moh_registers():
+	"""MOH commodity report forms (F-CDRR) and the immunisation schedule, once."""
+	from royce_health_ke import immunisation
+	from royce_health_ke.moh import commodities
+
+	commodities.seed()
+	immunisation.seed()
 
 
 def seed_moh705():

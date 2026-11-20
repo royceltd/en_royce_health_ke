@@ -1,0 +1,163 @@
+{
+ "name": "Immunisation",
+ "actions": [],
+ "creation": "2026-11-21 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-21 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "given_on",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "IMM-.YYYY.-",
+   "default": "IMM-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "label": "Patient",
+   "options": "Patient",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "fetch_from": "patient.patient_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "dose",
+   "fieldtype": "Link",
+   "label": "Dose",
+   "options": "Immunisation Dose",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "given_on",
+   "fieldtype": "Date",
+   "label": "Given On",
+   "default": "Today",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "given_here",
+   "fieldtype": "Check",
+   "label": "Given at This Facility",
+   "default": "1",
+   "description": "Untick for a dose copied from the child's card: it completes the schedule but MOH 710 does not count it."
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "batch_number",
+   "fieldtype": "Data",
+   "label": "Batch Number"
+  },
+  {
+   "fieldname": "age_days",
+   "fieldtype": "Int",
+   "label": "Age at Dose (days)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "age_label",
+   "fieldtype": "Data",
+   "label": "Age at Dose",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "given_by",
+   "fieldtype": "Link",
+   "label": "Given By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "field_order": [
+  "naming_series",
+  "patient",
+  "patient_name",
+  "dose",
+  "given_on",
+  "given_here",
+  "cb1",
+  "batch_number",
+  "age_days",
+  "age_label",
+  "given_by",
+  "company",
+  "notes"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1
+  }
+ ],
+ "autoname": "naming_series:",
+ "description": "One dose given to a patient (the child welfare clinic's immunisation register).",
+ "title_field": "patient_name"
+}

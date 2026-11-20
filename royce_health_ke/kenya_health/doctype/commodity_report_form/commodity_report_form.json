@@ -1,0 +1,130 @@
+{
+ "name": "Commodity Report Form",
+ "actions": [],
+ "creation": "2026-11-21 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-21 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "form_name",
+ "sort_order": "ASC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "form_name",
+   "fieldtype": "Data",
+   "label": "Form",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "e.g. MOH 747A"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "program",
+   "fieldtype": "Select",
+   "label": "Programme",
+   "options": "Family Planning\nHIV\nTB and Leprosy\nMalaria\nNutrition\nOther",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "months_of_stock",
+   "fieldtype": "Float",
+   "label": "Months of Stock to Hold",
+   "default": "3",
+   "description": "Quantity requested = this many months of the period's use, less the physical count."
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Commodities"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Commodities",
+   "options": "Commodity Report Item"
+  }
+ ],
+ "field_order": [
+  "form_name",
+  "title",
+  "program",
+  "cb1",
+  "months_of_stock",
+  "disabled",
+  "notes",
+  "items_section",
+  "items"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Pharmacist",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "field:form_name",
+ "description": "A facility consumption data report and request (F-CDRR) as data: its commodity lines, each mapped to the hospital's stock item. The Commodity Report fills in the columns from stock.",
+ "title_field": "form_name"
+}

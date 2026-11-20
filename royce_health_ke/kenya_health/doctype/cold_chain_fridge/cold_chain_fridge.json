@@ -1,0 +1,113 @@
+{
+ "name": "Cold Chain Fridge",
+ "actions": [],
+ "creation": "2026-11-21 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-21 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "fridge_name",
+ "sort_order": "ASC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "fridge_name",
+   "fieldtype": "Data",
+   "label": "Fridge",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "model",
+   "fieldtype": "Data",
+   "label": "Make and Model",
+   "in_list_view": 1,
+   "description": "e.g. Electrolux RCW 50 EG"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Where It Stands"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "min_temp",
+   "fieldtype": "Float",
+   "label": "Lowest Safe (°C)",
+   "default": "2"
+  },
+  {
+   "fieldname": "max_temp",
+   "fieldtype": "Float",
+   "label": "Highest Safe (°C)",
+   "default": "8"
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  }
+ ],
+ "field_order": [
+  "fridge_name",
+  "model",
+  "location",
+  "cb1",
+  "min_temp",
+  "max_temp",
+  "disabled"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Pharmacist",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "field:fridge_name",
+ "description": "A vaccine fridge whose temperature is recorded twice a day.",
+ "title_field": "fridge_name"
+}

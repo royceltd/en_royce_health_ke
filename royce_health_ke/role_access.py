@@ -126,6 +126,9 @@ REPORTS = {
 		"MOH 711 Integrated Summary",
 		"MOH 717 Service Workload",
 		"MOH 705 Outpatient Summary",
+		"MOH 710 Immunization Summary",
+		"Commodity Report",
+		"Fridge Temperature Sheet",
 		"Emergency Triage Queue",
 		"Diagnosis Trends",
 		"Inpatient Medication Orders",
@@ -139,7 +142,12 @@ REPORTS = {
 		"Lab Test Report",
 		*EVERYONE_REPORTS,
 	),
-	"Pharmacist": ("Pharmacy Stock Status", *EVERYONE_REPORTS),
+	"Pharmacist": (
+		"Pharmacy Stock Status",
+		"Commodity Report",
+		"Fridge Temperature Sheet",
+		*EVERYONE_REPORTS,
+	),
 	"Healthcare Administrator": None,  # every Kenya Health and Healthcare report
 	"Nursing User": (
 		"Linen Status",
@@ -147,6 +155,9 @@ REPORTS = {
 		"Radiology Worklist",
 		"Theatre List",
 		"Theatre Requests",
+		"MOH 710 Immunization Summary",
+		"Commodity Report",
+		"Fridge Temperature Sheet",
 		"Emergency Triage Queue",
 		"Diagnosis Trends",
 		"Inpatient Medication Orders",

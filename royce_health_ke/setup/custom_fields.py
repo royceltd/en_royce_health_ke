@@ -1533,6 +1533,17 @@ CLAIM_COVERAGE = [
 
 
 MOH = {
+	# MOH commodity reports (moh/commodities.py): a Stock Entry of this type is a
+	# loss (expired, damaged, lost), not use
+	"Stock Entry Type": [
+		{
+			"fieldname": "ke_counts_as_loss",
+			"fieldtype": "Check",
+			"label": "Counts as a Loss on MOH Commodity Reports",
+			"insert_after": "purpose",
+			"description": "Expired, damaged or lost stock: the F-CDRR's Losses column instead of Dispensed.",
+		}
+	],
 	"Medical Department": [
 		{
 			"fieldname": "ke_moh717_clinic",

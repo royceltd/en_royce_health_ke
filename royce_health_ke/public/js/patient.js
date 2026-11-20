@@ -1,3 +1,4 @@
+/* global royce_health_ke */
 // Copyright (c) 2026, Royce Technologies LTD and contributors
 // For license information, please see license.txt
 
@@ -60,6 +61,10 @@ frappe.ui.form.on("Patient", {
 		}
 		ke_contact_required(frm);
 		if (frm.is_new()) return;
+		// The immunisation schedule (child welfare clinic, MOH 710): immunisation.py
+		if (frappe.model.can_read("Immunisation")) {
+			frm.add_custom_button(__("Immunisations"), () => ke_immunisations(frm.doc.name));
+		}
 		// Today's open visit: close it from the patient's record (visit_close.py)
 		frappe.db
 			.get_list("Patient Visit", {
@@ -432,4 +437,97 @@ function ke_offer_sub_counties(frm) {
 		field.ke_awesomplete.list = list;
 		return list;
 	});
+}
+
+// The patient's immunisation schedule: each dose given, due, overdue or not
+// yet due, with Record Dose (royce_health_ke.immunisation).
+const KE_IMM_COLOUR = {
+	Given: "green",
+	Due: "orange",
+	Overdue: "red",
+	"Not yet due": "gray",
+	"Too late": "gray",
+	"When needed": "blue",
+};
+
+function ke_immunisations(patient) {
+	const d = new frappe.ui.Dialog({ title: __("Immunisations"), size: "extra-large" });
+	const load = () =>
+		frappe.xcall("royce_health_ke.immunisation.schedule", { patient }).then((r) => {
+			const esc = frappe.utils.escape_html;
+			const can = frappe.model.can_create("Immunisation");
+			const rows = (r.rows || [])
+				.map(
+					(x) => `<tr>
+					<td><b>${esc(x.dose)}</b><div class="small text-muted">${esc(x.vaccine || "")}</div></td>
+					<td><span class="indicator-pill ${KE_IMM_COLOUR[x.status] || "gray"}">${esc(
+						__(x.status)
+					)}</span></td>
+					<td>${x.due ? esc(frappe.datetime.str_to_user(x.due)) : ""}</td>
+					<td class="small">${(x.given || [])
+						.map(
+							(g) =>
+								`${esc(frappe.datetime.str_to_user(g.on))}${
+									g.here ? "" : ` (${__("from card")})`
+								}${g.batch ? ` · ${__("batch")} ${esc(g.batch)}` : ""}`
+						)
+						.join("<br>")}</td>
+					<td>${
+						can && x.status !== "Given" && x.status !== "Too late"
+							? `<button class="btn btn-xs btn-primary ke-imm-rec" data-dose="${esc(
+									x.dose
+							  )}">${__("Record Dose")}</button>`
+							: ""
+					}</td></tr>`
+				)
+				.join("");
+			d.$body.html(`<div class="mb-2">${esc(r.patient_name)} · ${esc(r.age || "")}</div>
+				<div class="table-responsive"><table class="table table-sm table-bordered" style="font-size:13px">
+				<thead><tr><th>${__("Dose")}</th><th>${__("Status")}</th><th>${__("Due")}</th><th>${__(
+				"Given"
+			)}</th><th></th></tr></thead><tbody>${
+				rows ||
+				`<tr><td colspan="5" class="text-muted">${__(
+					"No doses for this patient's age."
+				)}</td></tr>`
+			}</tbody></table></div>`);
+			d.$body
+				.find(".ke-imm-rec")
+				.on("click", (e) => record($(e.currentTarget).data("dose")));
+		});
+	const record = (dose) =>
+		frappe.prompt(
+			[
+				{
+					fieldname: "given_on",
+					fieldtype: "Date",
+					label: __("Given On"),
+					default: frappe.datetime.get_today(),
+					reqd: 1,
+				},
+				{ fieldname: "batch_number", fieldtype: "Data", label: __("Batch Number") },
+				{
+					fieldname: "given_here",
+					fieldtype: "Check",
+					label: __("Given at this facility"),
+					default: 1,
+					description: __("Untick for a dose copied from the child's card."),
+				},
+				{ fieldname: "notes", fieldtype: "Small Text", label: __("Notes") },
+			],
+			(v) =>
+				frappe
+					.xcall("royce_health_ke.immunisation.record", { patient, dose, ...v })
+					.then(() => {
+						frappe.show_alert({
+							message: __("{0} recorded", [dose]),
+							indicator: "green",
+						});
+						load();
+					}),
+			dose,
+			__("Record")
+		);
+	d.show();
+	load();
 }

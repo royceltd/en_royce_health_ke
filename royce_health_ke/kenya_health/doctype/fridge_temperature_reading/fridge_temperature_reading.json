@@ -1,0 +1,151 @@
+{
+ "name": "Fridge Temperature Reading",
+ "actions": [],
+ "creation": "2026-11-21 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-21 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "reading_date",
+ "sort_order": "DESC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "FTR-.YYYY.-",
+   "default": "FTR-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "fridge",
+   "fieldtype": "Link",
+   "label": "Fridge",
+   "options": "Cold Chain Fridge",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "reading_date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "default": "Today",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "session",
+   "fieldtype": "Select",
+   "label": "Session",
+   "options": "Morning\nEvening",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "reading_time",
+   "fieldtype": "Time",
+   "label": "Time",
+   "default": "Now"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "temperature",
+   "fieldtype": "Float",
+   "label": "Temperature (°C)",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "out_of_range",
+   "fieldtype": "Select",
+   "label": "Out of Range",
+   "options": "\nToo warm\nToo cold",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "action_taken",
+   "fieldtype": "Small Text",
+   "label": "Action Taken",
+   "description": "Needed when the temperature is out of the safe range."
+  },
+  {
+   "fieldname": "recorded_by",
+   "fieldtype": "Link",
+   "label": "Recorded By",
+   "options": "User",
+   "read_only": 1
+  }
+ ],
+ "field_order": [
+  "naming_series",
+  "fridge",
+  "reading_date",
+  "session",
+  "reading_time",
+  "cb1",
+  "temperature",
+  "out_of_range",
+  "action_taken",
+  "recorded_by"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1
+  },
+  {
+   "role": "Pharmacist",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "naming_series:",
+ "description": "One morning or evening reading of a vaccine fridge (the monthly temperature recording sheet)."
+}

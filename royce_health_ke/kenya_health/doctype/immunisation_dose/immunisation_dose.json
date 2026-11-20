@@ -1,0 +1,131 @@
+{
+ "name": "Immunisation Dose",
+ "actions": [],
+ "creation": "2026-11-21 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "links": [],
+ "modified": "2026-11-21 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kenya Health",
+ "owner": "Administrator",
+ "sort_field": "sequence",
+ "sort_order": "ASC",
+ "states": [],
+ "fields": [
+  {
+   "fieldname": "dose_name",
+   "fieldtype": "Data",
+   "label": "Dose",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "e.g. Pentavalent 1"
+  },
+  {
+   "fieldname": "vaccine",
+   "fieldtype": "Data",
+   "label": "Vaccine",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "for_whom",
+   "fieldtype": "Select",
+   "label": "For",
+   "options": "Child\nGirl\nWoman",
+   "default": "Child",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "due_age_days",
+   "fieldtype": "Int",
+   "label": "Due at Age (days)",
+   "in_list_view": 1,
+   "description": "0 = at birth, 42 = 6 weeks, 270 = 9 months. Empty for doses given by event (e.g. Td in pregnancy)."
+  },
+  {
+   "fieldname": "repeat_every_days",
+   "fieldtype": "Int",
+   "label": "Repeat Every (days)",
+   "description": "For a dose given again and again, e.g. Vitamin A every 182 days."
+  },
+  {
+   "fieldname": "until_age_days",
+   "fieldtype": "Int",
+   "label": "Until Age (days)",
+   "description": "Not offered after this age."
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "counts_for_fic",
+   "fieldtype": "Check",
+   "label": "Needed for Fully Immunised Child",
+   "description": "A child under 1 year with every ticked dose counts as fully immunised (MOH 710)."
+  },
+  {
+   "fieldname": "sequence",
+   "fieldtype": "Int",
+   "label": "Sequence (MOH 710 order)"
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled",
+   "description": "e.g. Yellow Fever or Malaria vaccine where the county does not give it."
+  }
+ ],
+ "field_order": [
+  "dose_name",
+  "vaccine",
+  "for_whom",
+  "due_age_days",
+  "repeat_every_days",
+  "until_age_days",
+  "cb1",
+  "counts_for_fic",
+  "sequence",
+  "disabled"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Healthcare Administrator",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Nursing User",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  },
+  {
+   "role": "Physician",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "autoname": "field:dose_name",
+ "description": "A dose of the immunisation schedule (KEPI): when it is due, who it is for and how MOH 710 counts it. The schedule is the hospital's data.",
+ "title_field": "dose_name"
+}
