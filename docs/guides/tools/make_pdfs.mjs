@@ -63,6 +63,8 @@ const temporaryGuides = [
   ["v0.41-testing.md", "Version 0.41 No Consultation or Triage Before Payment Testing Guide", "18 November 2026"],
   ["v0.42-it-feedback-guide.md", "Your Feedback of 17 November: Payment Before Service, Queues, Service Prices and Categories", "18 November 2026"],
   ["v0.44-testing.md", "Version 0.44.1 Changes from the 17 and 18 November Demos Testing Guide", "18 November 2026"],
+  ["v0.50-to-v0.53-testing.md", "Versions 0.50 to 0.53 Your Feedback of 20 November Testing Guide", "20 November 2026",
+    "Written 20 November 2026 for testing versions 0.50 to 0.53.0 on the demo hospital (Kijani Valley Hospital Ltd, hospital.royceltd.com). All patients, staff and records are fictional."],
   ["v0.53-testing.md", "Version 0.53 The Inpatient Screen: a Form and a Table for Every Entry Testing Guide", "20 November 2026",
     "Written 20 November 2026 for testing version 0.53.0 on the demo hospital (Kijani Valley Hospital Ltd, hospital.royceltd.com). All patients, staff and records are fictional."],
   ["v0.52-testing.md", "Version 0.52 The Drug Screen on the Consultation and the Ward Testing Guide", "20 November 2026",
