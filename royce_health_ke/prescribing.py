@@ -553,9 +553,23 @@ def ward_lists(inpatient_record: str) -> dict:
 	draft = next((r.name for r in today_rounds if r.docstatus == 0), None)
 	out["encounter"] = draft
 	out["pending"] = _pending(frappe.get_doc(DT, draft)) if draft else []
-	out["can_prescribe"] = cint(
-		bool(_practitioner())
-		and frappe.has_permission(DT, "create")
-		and ip.status in ("Admitted", "Discharge Scheduled")
-	)
+	out["why_not"] = _why_not_prescribe(ip)
+	out["can_prescribe"] = cint(not out["why_not"])
 	return out
+
+
+def _why_not_prescribe(ip):
+	"""Why this user can't prescribe on the ward, or "" when they can. The ward's
+	prescription form is always shown, with this reason when it is locked
+	(Bethesda, 21 Nov 2026: "Add one on the left" with no form on the left)."""
+	if ip.status not in ("Admitted", "Discharge Scheduled"):
+		return _("The patient is not admitted, so no new drugs can be prescribed.")
+	if not frappe.has_permission(DT, "create"):
+		return _("Only doctors prescribe. Ask the doctor to add the drug here.")
+	if not _practitioner():
+		return _(
+			"Your user is not linked to a Healthcare Practitioner, so a prescription can't carry your "
+			"name. Ask the administrator to open your Healthcare Practitioner record and set its User "
+			"field to {0}, then reload this page."
+		).format(frappe.session.user)
+	return ""

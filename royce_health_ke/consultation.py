@@ -634,6 +634,18 @@ def _requests(doc):
 	)
 
 
+@frappe.whitelist()
+def request_status(encounter: str) -> dict:
+	"""The Requests tab's table (v0.58): each placed request's status and
+	where it goes, by Service Request."""
+	doc = _encounter(encounter, "read")
+	out = {}
+	for r in _requests(doc):
+		label = r.status.split("-Request")[0].replace("-", " ").title() if r.status else ""
+		out[r.name] = {"status": label, "service_point": r.ke_service_point or ""}
+	return out
+
+
 def next_stations(doc):
 	"""Where the patient goes next, the suggested place first."""
 	visit = doc.get("ke_patient_visit")

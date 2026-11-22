@@ -73,6 +73,8 @@ USES = {
 		"manages_medication_stock",
 	),
 	"get_intake_output_summary": ("api.intake_output", "get_intake_output_summary"),
+	"get_due_medications": ("api.medication", "get_due_medications"),
+	"record_administration": ("api.medication", "record_administration"),
 	"get_medical_codes": ("utils", "get_medical_codes"),
 }
 

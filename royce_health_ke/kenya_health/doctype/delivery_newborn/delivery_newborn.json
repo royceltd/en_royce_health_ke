@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "links": [],
- "modified": "2026-11-21 09:00:00.000000",
+ "modified": "2026-11-22 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Delivery Newborn",
@@ -17,7 +17,7 @@
    "fieldname": "sex",
    "fieldtype": "Select",
    "label": "Sex",
-   "options": "Female\nMale\nIndeterminate",
+   "options": "\nFemale\nMale\nIndeterminate",
    "reqd": 1,
    "in_list_view": 1,
    "columns": 1

@@ -14,3 +14,5 @@ royce_health_ke.patches.v0_38.payment_status_per_order
 royce_health_ke.patches.v0_47.selling_price_list_on_admissions
 royce_health_ke.patches.v0_48.inpatient_tabs
 royce_health_ke.patches.v0_55.theatre_requests
+royce_health_ke.patches.v0_58.code_legacy_diagnoses
+royce_health_ke.patches.v0_58.partograph_draft_defaults

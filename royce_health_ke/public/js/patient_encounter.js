@@ -18,6 +18,8 @@ frappe.ui.form.on("Patient Encounter", {
 		ke_unsent_requests(frm);
 		ke_latest_vitals(frm);
 		ke_request_type(frm);
+		ke_request_entry(frm);
+		ke_icd11_titles(frm);
 		// Admit to Ward (royce_health_ke.inpatient): the admission order with ward,
 		// urgency, date, reason and notes; the patient goes to the ward's list
 		if (
@@ -93,6 +95,20 @@ function ke_resolve_diagnosis(frm, cdt, cdn, args) {
 	});
 }
 
+// The ICD-11 Code column shows the code (1F03), not the Code Value's title
+// ("Measles", which the Diagnosis column already shows): Code Value links show
+// their title, so this column's titles are set to the code (Bethesda, 21 Nov 2026).
+// Code Value names are "<code>-ICD-11" (codes.code_value_name).
+function ke_icd11_titles(frm) {
+	(frm.doc.diagnosis || []).forEach((row) => {
+		const name = row.ke_icd11_code;
+		if (name && /-ICD-11$/.test(name))
+			frappe.utils.add_link_title("Code Value", name, name.replace(/-ICD-11$/, ""));
+	});
+	const grid = frm.fields_dict.diagnosis && frm.fields_dict.diagnosis.grid;
+	if (grid) grid.refresh();
+}
+
 frappe.ui.form.on("Patient Encounter Diagnosis", {
 	diagnosis(frm, cdt, cdn) {
 		const row = locals[cdt][cdn];
@@ -102,6 +118,7 @@ frappe.ui.form.on("Patient Encounter Diagnosis", {
 		const row = locals[cdt][cdn];
 		if (row.ke_icd11_code)
 			ke_resolve_diagnosis(frm, cdt, cdn, { code_value: row.ke_icd11_code });
+		setTimeout(() => ke_icd11_titles(frm), 300);
 	},
 });
 
@@ -197,8 +214,10 @@ async function ke_request_type(frm) {
 	KE_REQUEST_FIELDS.forEach(([table, _field, k]) => {
 		show[table] = show[table] || !kind || k === kind;
 	});
+	// v0.58: with the request form, the tables show only on "Show the full tables"
+	const tables = !frm.fields_dict.ke_request_entry_html || Boolean(frm.__ke_full_tables);
 	Object.entries(KE_REQUEST_SECTIONS).forEach(([table, section]) => {
-		if (frm.fields_dict[section]) frm.toggle_display(section, show[table]);
+		if (frm.fields_dict[section]) frm.toggle_display(section, tables && show[table]);
 	});
 	const lab =
 		frm.fields_dict.lab_test_prescription && frm.fields_dict.lab_test_prescription.grid;
@@ -210,6 +229,203 @@ async function ke_request_type(frm) {
 			kind === "Lab Test" ? 1 : 0
 		);
 		lab.refresh();
+	}
+}
+
+// The Requests tab as on the ward (Bethesda, 21 Nov 2026: "the same form and
+// table"): Request Type -> Service with this patient's price -> Urgency ->
+// Notes -> Add, and the consultation's requests in one table under it. The
+// Marley tables stay behind it (they hold the rows); "Show the full tables"
+// opens them for anything the form doesn't cover.
+const KE_REQUEST_KINDS = {
+	"Lab Test": [
+		"lab_test_prescription",
+		"lab_test_code",
+		"lab_test_comment",
+		"Lab Test Template",
+	],
+	Imaging: [
+		"lab_test_prescription",
+		"observation_template",
+		"lab_test_comment",
+		"Observation Template",
+	],
+	Procedure: ["procedure_prescription", "procedure", "comments", "Clinical Procedure Template"],
+	Therapy: ["therapies", "therapy_type", null, "Therapy Type"],
+};
+
+function ke_request_rows(frm) {
+	const kind_of = (table, row) =>
+		table === "lab_test_prescription"
+			? row.observation_template
+				? "Imaging"
+				: "Lab Test"
+			: table === "procedure_prescription"
+			? "Procedure"
+			: "Therapy";
+	return Object.values(KE_REQUEST_KINDS)
+		.map((k) => k[0])
+		.filter((t, i, all) => all.indexOf(t) === i)
+		.flatMap((table) =>
+			(frm.doc[table] || []).map((row) => {
+				const kind = kind_of(table, row);
+				const [, field, comment] = KE_REQUEST_KINDS[kind];
+				return {
+					table,
+					row,
+					kind,
+					service: row[field],
+					note: comment ? row[comment] : "",
+					urgency: (row.priority || "").replace(/-Priority$/, ""),
+				};
+			})
+		)
+		.filter((r) => r.service);
+}
+
+function ke_request_entry(frm) {
+	const field = frm.fields_dict.ke_request_entry_html;
+	if (!field) return;
+	const esc = frappe.utils.escape_html;
+	const $w = field.$wrapper.empty();
+	const show_tables = Boolean(frm.__ke_full_tables);
+	frm.toggle_display("ke_request_type", show_tables);
+	const editable = frm.doc.docstatus === 0 && frm.perm[0] && frm.perm[0].write;
+	if (editable) {
+		const $card =
+			$(`<div class="p-3 mb-3" style="border:1px solid var(--border-color);border-radius:8px">
+			<div class="mb-2"><b>${__("New Request")}</b></div><div class="ke-req-form"></div>
+			<div class="text-right"><button class="btn btn-sm btn-primary ke-req-add">${__(
+				"Add Request"
+			)}</button></div></div>`).appendTo($w);
+		const fg = new frappe.ui.FieldGroup({
+			body: $card.find(".ke-req-form"),
+			fields: [
+				{
+					fieldname: "category",
+					fieldtype: "Link",
+					options: "Request Category",
+					label: __("Request Type"),
+					reqd: 1,
+				},
+				{ fieldtype: "Column Break" },
+				{
+					fieldname: "template",
+					fieldtype: "Dynamic Link",
+					options: "template_dt",
+					get_options: () => fg.get_value("template_dt"),
+					label: __("Service"),
+					reqd: 1,
+					description: __("Each service shows this patient's price."),
+					get_query: () => ({
+						query: "royce_health_ke.routing.template_query",
+						filters: {
+							category: fg.get_value("category") || "",
+							kind: fg.__kind || "",
+							encounter: frm.is_new() ? "" : frm.doc.name,
+						},
+					}),
+				},
+				{ fieldname: "template_dt", fieldtype: "Data", hidden: 1 },
+				{ fieldtype: "Column Break" },
+				{
+					fieldname: "urgency",
+					fieldtype: "Select",
+					label: __("Urgency"),
+					options: "Routine\nUrgent\nSTAT",
+					default: "Routine",
+				},
+				{ fieldtype: "Section Break" },
+				{ fieldname: "note", fieldtype: "Small Text", label: __("Notes") },
+			],
+		});
+		fg.make();
+		fg.fields_dict.category.df.onchange = async () => {
+			const cat = fg.get_value("category");
+			const r = cat
+				? await frappe.db.get_value("Request Category", cat, "request_kind")
+				: null;
+			fg.__kind = (r && r.message && r.message.request_kind) || "";
+			fg.set_value("template_dt", (KE_REQUEST_KINDS[fg.__kind] || [])[3] || "");
+			fg.set_value("template", "");
+		};
+		$card.find(".ke-req-add").on("click", async () => {
+			const v = fg.get_values();
+			if (!v) return;
+			const spec = KE_REQUEST_KINDS[fg.__kind];
+			if (!spec) frappe.throw(__("Choose the request type."));
+			const [table, field, comment] = spec;
+			const row = frm.add_child(table, { [field]: v.template });
+			if (comment && v.note) row[comment] = v.note;
+			if (v.urgency) {
+				const code = `${v.urgency}-Priority`;
+				if ((await frappe.db.exists("Code Value", code)) === true) row.priority = code;
+			}
+			frm.dirty();
+			$card.find(".ke-req-add").prop("disabled", true);
+			try {
+				await frm.save();
+			} catch (e) {
+				$card.find(".ke-req-add").prop("disabled", false);
+				throw e;
+			}
+		});
+	}
+	const rows = ke_request_rows(frm);
+	const $table = $(`<div class="ke-req-table"></div>`).appendTo($w);
+	const draw = (status) => {
+		const body = rows.length
+			? rows
+					.map((r) => {
+						const placed = r.row.service_request && status[r.row.service_request];
+						const state = r.row.service_request
+							? `<span class="indicator-pill blue">${esc(
+									(placed && placed.status) || __("Sent")
+							  )}</span>`
+							: `<span class="indicator-pill orange">${__("Not sent")}</span>`;
+						const remove =
+							editable && !r.row.service_request
+								? `<button class="btn btn-xs btn-default ke-req-remove" data-table="${esc(
+										r.table
+								  )}" data-name="${esc(r.row.name)}">${__("Remove")}</button>`
+								: "";
+						return `<tr><td>${esc(__(r.kind))}</td><td>${esc(r.service)}</td>
+							<td>${esc(r.urgency || "")}</td><td>${esc(r.note || "")}</td>
+							<td>${esc((placed && placed.service_point) || "")}</td><td>${state}</td><td>${remove}</td></tr>`;
+					})
+					.join("")
+			: `<tr><td colspan="7" class="text-muted">${__("No requests yet.")}</td></tr>`;
+		$table.html(`<table class="table table-sm table-bordered" style="font-size:12px">
+			<thead><tr><th>${__("Type")}</th><th>${__("Request")}</th><th>${__("Urgency")}</th><th>${__(
+			"Notes"
+		)}</th><th>${__("Goes to")}</th><th>${__("Status")}</th><th></th></tr></thead>
+			<tbody>${body}</tbody></table>
+			<div class="small"><a class="ke-req-tables">${
+				show_tables ? __("Hide the full tables") : __("Show the full tables")
+			}</a></div>`);
+		$table.find(".ke-req-remove").on("click", (e) => {
+			const $b = $(e.currentTarget);
+			const grid = frm.fields_dict[$b.data("table")].grid;
+			const grid_row = grid.grid_rows_by_docname[$b.data("name")];
+			if (grid_row) grid_row.remove();
+			else {
+				frm.doc[$b.data("table")] = (frm.doc[$b.data("table")] || []).filter(
+					(d) => d.name !== $b.data("name")
+				);
+				frm.dirty();
+			}
+			frm.save();
+		});
+		$table.find(".ke-req-tables").on("click", () => {
+			frm.__ke_full_tables = !show_tables;
+			ke_request_type(frm).then(() => ke_request_entry(frm));
+		});
+	};
+	draw({});
+	if (!frm.is_new() && rows.some((r) => r.row.service_request)) {
+		frappe
+			.xcall("royce_health_ke.consultation.request_status", { encounter: frm.doc.name })
+			.then((status) => draw(status || {}));
 	}
 }
 

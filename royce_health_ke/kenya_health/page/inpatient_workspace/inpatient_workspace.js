@@ -576,6 +576,9 @@ class InpatientWorkspace {
 						fieldtype: "Link",
 						options: "Code Value",
 						label: __("ICD-11 Code"),
+						description: __(
+							"Needed: filled from the diagnosis when it has one, else choose it."
+						),
 						get_query: () => ({ query: "royce_health_ke.diagnosis.icd11_query" }),
 						onchange: () =>
 							this.resolve_diagnosis(fg, { code_value: fg.get_value("code_value") }),
@@ -607,9 +610,14 @@ class InpatientWorkspace {
 		if (fg.__resolving || !(args.diagnosis || args.code_value)) return;
 		frappe.xcall("royce_health_ke.diagnosis.resolve", args).then((r) => {
 			if (!r) return;
+			// a hospital diagnosis without a code: the code chosen is added to it,
+			// the name stays (inpatient.add_diagnosis)
+			if (args.diagnosis) fg.__uncoded = r.code_value ? null : r.diagnosis;
+			const keep =
+				args.code_value && fg.__uncoded && fg.__uncoded === fg.get_value("diagnosis");
 			fg.__resolving = true;
 			const set = {};
-			if (r.diagnosis && fg.get_value("diagnosis") !== r.diagnosis)
+			if (!keep && r.diagnosis && fg.get_value("diagnosis") !== r.diagnosis)
 				set.diagnosis = r.diagnosis;
 			if (r.code_value && fg.get_value("code_value") !== r.code_value)
 				set.code_value = r.code_value;
@@ -1265,13 +1273,26 @@ class InpatientWorkspace {
 	// the admission's Delivery Record. Server side: royce_health_ke/partograph.py.
 	async partograph_view() {
 		const $panel = this.$panel;
-		const d = await frappe.xcall("royce_health_ke.partograph.get", {
-			inpatient_record: this.ip,
-		});
+		const $loading = $(
+			`<p class="text-muted">${__("Loading the partograph...")}</p>`
+		).appendTo($panel);
 		const root = this.$panel;
-		this.$panel = $panel;
 		try {
+			const d = await frappe.xcall("royce_health_ke.partograph.get", {
+				inpatient_record: this.ip,
+			});
+			$loading.remove();
+			this.$panel = $panel;
 			this.partograph_render(d);
+		} catch (e) {
+			// never a blank panel (Bethesda, 21 Nov 2026: "the partograph hangs")
+			console.error(e); // eslint-disable-line no-console
+			$loading.remove();
+			$panel.append(
+				`<div class="alert alert-danger">${__(
+					"The partograph could not open. Reload the page with Ctrl+Shift+R and try again; if it still fails, send the administrator this message:"
+				)}<br><code>${iw_esc((e && (e.message || e.exc_type)) || String(e))}</code></div>`
+			);
 		} finally {
 			this.$panel = root;
 		}
@@ -1663,7 +1684,8 @@ class InpatientWorkspace {
 	}
 
 	drug_log(d) {
-		this.buttons([[__("Medication Round"), () => this.nursing("medication"), true]]);
+		this.buttons([[__("Medication Round"), () => this.nursing("medication"), false]]);
+		if (frappe.model.can_write("Medication Administration")) this.give_dose_card();
 		const doses = (d.doses || []).map((x) => [
 			iw_esc(frappe.datetime.str_to_user(x.scheduled_time)),
 			iw_esc(x.drug_name || ""),
@@ -1688,6 +1710,86 @@ class InpatientWorkspace {
 				doses
 			)
 		);
+	}
+
+	// Give Dose (v0.58): a form over the treatment sheet, as on the other tabs.
+	// The dose list is the round's (due now, held, refused, recently missed).
+	give_dose_card() {
+		const fg = this.entry_card(
+			__("Give Dose"),
+			[
+				{
+					fieldname: "administration",
+					fieldtype: "Select",
+					label: __("Dose"),
+					reqd: 1,
+					options: [""],
+				},
+				{ fieldtype: "Column Break" },
+				{
+					fieldname: "status",
+					fieldtype: "Select",
+					label: __("Status"),
+					options: "Given\nHeld\nRefused\nNot Available",
+					default: "Given",
+					reqd: 1,
+				},
+				{ fieldtype: "Column Break" },
+				{
+					fieldname: "route",
+					fieldtype: "Select",
+					label: __("Route"),
+					options:
+						"\nOral\nIV\nIM\nSC\nSublingual\nTopical\nInhalation\nRectal\nNasogastric\nOther",
+				},
+				{ fieldtype: "Section Break" },
+				{
+					fieldname: "second_check_by",
+					fieldtype: "Link",
+					options: "User",
+					label: __("Second Check By"),
+				},
+				{ fieldtype: "Column Break" },
+				{
+					fieldname: "reason",
+					fieldtype: "Small Text",
+					label: __("Comment"),
+					description: __("Needed when the dose is not given."),
+				},
+			],
+			__("Record Dose"),
+			(v) =>
+				frappe.xcall(IW + "give_dose", {
+					inpatient_record: this.ip,
+					administration: v.administration,
+					status: v.status,
+					route: v.route,
+					reason: v.reason,
+					second_check_by: v.second_check_by,
+				})
+		);
+		frappe.xcall(IW + "due_doses", { inpatient_record: this.ip }).then((doses) => {
+			const f = fg.fields_dict.administration;
+			const when = (t) => frappe.datetime.str_to_user(t);
+			f.df.options = [{ label: "", value: "" }].concat(
+				(doses || []).map((x) => ({
+					value: x.name,
+					label: `${when(x.scheduled_time)} · ${x.drug_name} ${x.dosage || ""} ${
+						x.dosage_form || ""
+					}${x.status === "Scheduled" ? "" : " (" + __(x.status) + ")"}`,
+				}))
+			);
+			f.df.description = (doses || []).length
+				? ""
+				: __(
+						"No doses due. A dose shows here once the pharmacy has sent the drug to the bed."
+				  );
+			f.refresh();
+			f.df.onchange = () => {
+				const x = (doses || []).find((y) => y.name === fg.get_value("administration"));
+				if (x && x.route) fg.set_value("route", x.route);
+			};
+		});
 	}
 
 	render_billing(d) {

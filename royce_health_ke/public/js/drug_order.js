@@ -349,7 +349,20 @@ royce_health_ke.DrugOrder = class DrugOrder {
 			this.data = await this.call("current", { encounter: name });
 		}
 		const open = this.ward ? this.data.can_prescribe : this.data.open;
-		this.$w.find(".ke-do-left, .ke-do-actions").toggle(Boolean(open));
+		if (this.ward) {
+			// the ward: the form always shows; locked, with why, when this user can't prescribe
+			this.$w.find(".ke-do-why").remove();
+			this.$w.find(".ke-do-actions").toggle(Boolean(open));
+			this.$w.find(".ke-do-left button").not(".ke-do-reset").prop("disabled", !open);
+			if (!open && this.data.why_not)
+				$(
+					`<div class="alert alert-warning small ke-do-why">${frappe.utils.escape_html(
+						this.data.why_not
+					)}</div>`
+				).prependTo(this.$w.find(".ke-do-left > div"));
+		} else {
+			this.$w.find(".ke-do-left, .ke-do-actions").toggle(Boolean(open));
+		}
 		this.render();
 	}
 
@@ -465,7 +478,9 @@ royce_health_ke.DrugOrder = class DrugOrder {
 			$t.html(
 				`<p class="text-muted text-center my-4">${
 					this.list === "pending"
-						? __("No drugs waiting. Add one on the left.")
+						? this.ward && !this.data.can_prescribe
+							? __("No drugs waiting.")
+							: __("No drugs waiting. Add one on the left.")
 						: __("None.")
 				}</p>`
 			);

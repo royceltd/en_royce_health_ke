@@ -25,6 +25,8 @@ SIGNATURES = {
 	"get_intake_output_summary": ["patient", "hours"],
 	"make_discharge_summary": ["source_name"],
 	"get_medical_codes": ["template_dt", "template_dn", "code_standard"],
+	"get_due_medications": ["patient", "hours"],
+	"record_administration": ["administration", "status", "reason", "route", "second_check_by"],
 }
 
 

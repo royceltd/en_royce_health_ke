@@ -1470,6 +1470,70 @@ def record_vitals(inpatient_record: str, values: str | dict, taken_at: str | Non
 	return doc.name
 
 
+# Give Dose (v0.58): the Administration Log's form, as well as Marley's
+# Medication Round dialog (Bethesda, 21 Nov 2026: "a form and its table").
+DOSE_STATUSES = ("Given", "Held", "Refused", "Not Available")
+
+
+@frappe.whitelist()
+def due_doses(inpatient_record: str) -> list:
+	"""The doses on this admission's round (due, held, refused, recently missed)."""
+	from royce_health_ke.marley import get_due_medications
+
+	_check(WARD_ROLES)
+	ip = frappe.get_doc(IR, inpatient_record)
+	ip.check_permission("read")
+	if not (
+		frappe.has_permission("Medication Administration", "write")
+		and frappe.has_permission("Medication Administration", "create")
+	):
+		return []
+	return [
+		{
+			"name": d.name,
+			"drug_name": d.drug_name or d.drug_code,
+			"dosage": d.dosage,
+			"dosage_form": d.dosage_form,
+			"route": d.route,
+			"scheduled_time": d.scheduled_time,
+			"status": d.status,
+		}
+		for d in get_due_medications(ip.patient)
+		if frappe.db.get_value("Medication Administration", d.name, "inpatient_record") in (ip.name, None)
+	]
+
+
+@frappe.whitelist()
+def give_dose(
+	inpatient_record: str,
+	administration: str,
+	status: str,
+	route: str | None = None,
+	reason: str | None = None,
+	second_check_by: str | None = None,
+) -> str:
+	"""Record one dose: given, or held / refused / not available with why.
+	Marley's own record_administration, so the ward stock and the charge
+	follow as from the Medication Round."""
+	from royce_health_ke.marley import record_administration
+
+	_check(WARD_ROLES)
+	ip = frappe.get_doc(IR, inpatient_record)
+	ip.check_permission("read")
+	if status not in DOSE_STATUSES:
+		frappe.throw(_("Choose what happened to the dose."))
+	dose = frappe.db.get_value(
+		"Medication Administration", administration, ["patient", "inpatient_record"], as_dict=True
+	)
+	if not dose or dose.patient != ip.patient or (dose.inpatient_record or ip.name) != ip.name:
+		frappe.throw(_("This dose is not for this patient."))
+	if status != "Given" and not (reason or "").strip():
+		frappe.throw(_("Say why the dose was not given."))
+	return record_administration(
+		administration, status, reason=reason or None, route=route or None, second_check_by=second_check_by
+	)
+
+
 def _ward_round(ip):
 	from royce_health_ke.prescribing import ward_encounter
 
@@ -1484,12 +1548,32 @@ def add_diagnosis(inpatient_record: str, diagnosis: str | None = None, code_valu
 	ip.check_permission("read")
 	from royce_health_ke import diagnosis as dx
 
-	resolved = dx.resolve(diagnosis=diagnosis, code_value=code_value) or {}
+	if (
+		diagnosis
+		and code_value
+		and frappe.db.exists("Diagnosis", diagnosis)
+		and not dx.icd11_of(diagnosis)[0]
+	):
+		# the hospital's diagnosis without a code keeps its name and takes this code (sync_rows)
+		resolved = {"diagnosis": diagnosis, "code_value": code_value}
+	else:
+		resolved = dx.resolve(diagnosis=diagnosis, code_value=code_value) or {}
 	name = resolved.get("diagnosis") or diagnosis
 	if not name:
 		frappe.throw(_("Choose the diagnosis or its ICD-11 code."))
+	code = resolved.get("code_value") or code_value
+	# every ward diagnosis is coded (MOH reporting, claims; Bethesda 21 Nov 2026):
+	# a hospital diagnosis without a code gets the one chosen here (diagnosis.sync_rows)
+	if not code:
+		frappe.throw(
+			_(
+				"{0} has no ICD-11 code yet. Choose its ICD-11 Code too: it is saved on the diagnosis "
+				"for next time."
+			).format(frappe.bold(name)),
+			title=_("ICD-11 code needed"),
+		)
 	doc = _ward_round(ip)
-	doc.append("diagnosis", {"diagnosis": name, "ke_icd11_code": resolved.get("code_value") or code_value})
+	doc.append("diagnosis", {"diagnosis": name, "ke_icd11_code": code})
 	doc.save()
 	return doc.name
 

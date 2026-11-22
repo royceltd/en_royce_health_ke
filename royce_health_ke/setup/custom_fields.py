@@ -424,6 +424,13 @@ CONSULTATION_TABS = [
 		"insert_after": "ke_request_type_section",
 		"description": "Choose a type to list only its requests, with this patient's price. Blank = all.",
 	},
+	# v0.58: the request form + table (patient_encounter.js ke_request_entry), as on the ward
+	{
+		"fieldname": "ke_request_entry_html",
+		"fieldtype": "HTML",
+		"label": "New Request",
+		"insert_after": "ke_request_type",
+	},
 	{
 		"fieldname": "ke_tab_requests",
 		"fieldtype": "Tab Break",

@@ -179,7 +179,14 @@ def get(inpatient_record: str) -> dict:
 		p = frappe.db.get_value(
 			"Pregnancy Record", pregnancy, (*PREGNANCY, "blood_group", "hb_flag"), as_dict=True
 		)
-		out["values"].update({k: v for k, v in p.items() if _given(v) and k != "blood_group"})
+		# a pregnancy's Hb left empty is stored as 0.0: not shown (gravida and parity 0 are real)
+		out["values"].update(
+			{
+				k: v
+				for k, v in p.items()
+				if _given(v) and k != "blood_group" and not (k == "haemoglobin" and not flt(v))
+			}
+		)
 		if p.blood_group:
 			out["values"]["blood_group"] = p.blood_group[:-1]
 			out["values"]["rhesus"] = _("Positive") if p.blood_group.endswith("+") else _("Negative")
@@ -191,8 +198,10 @@ def get(inpatient_record: str) -> dict:
 	for f in DELIVERY:
 		if _given(_shown(d, f)):
 			v[f] = _shown(d, f)
+	# a check is shown once ticked: an unticked one may just not be recorded yet
 	for f in DELIVERY_CHECKS:
-		v[f] = _yes_no(d.get(f))
+		if cint(d.get(f)):
+			v[f] = _yes_no(1)
 	if d.onset_of_labour:
 		v["induction"] = _yes_no(d.onset_of_labour == "Induced")
 	for label, f in COMPLICATIONS.items():
@@ -207,7 +216,8 @@ def get(inpatient_record: str) -> dict:
 			if _given(_shown(b, f)):
 				v[f] = _shown(b, f)
 		for f in BABY_CHECKS:
-			v[f] = _yes_no(b.get(f))
+			if cint(b.get(f)):
+				v[f] = _yes_no(1)
 	out.update(
 		delivery=d.name,
 		docstatus=d.docstatus,
@@ -299,7 +309,10 @@ def _save_pregnancy(ip, values, name):
 			}
 		)
 	)
-	changed = p.is_new()
+	# a new record is always saved: is_new() is false on a document built from a
+	# dict, which left a first entry without pregnancy details failing with
+	# "Pregnancy Record None not found" (Bethesda, 21 Nov 2026)
+	changed = not name
 	for f in PREGNANCY:
 		if _given(values.get(f)) and str(p.get(f) or "") != str(values.get(f)):
 			p.set(f, values.get(f))
@@ -326,3 +339,25 @@ def complete(inpatient_record: str) -> str:
 		return d.name
 	d.submit()
 	return d.name
+
+
+def clear_default_mode_of_delivery():
+	"""Drafts saved before v0.58 took the first mode of delivery ("Spontaneous
+	vaginal delivery") without anyone choosing it: the Select had no blank
+	choice. Where the delivery isn't recorded yet (no delivery time), clear the
+	mode and the maternity package chosen from it."""
+	for name in frappe.get_all(
+		"Delivery Record",
+		filters={
+			"docstatus": 0,
+			"mode_of_delivery": "Spontaneous vaginal delivery",
+			"delivery_datetime": ["is", "not set"],
+		},
+		pluck="name",
+	):
+		frappe.db.set_value(
+			"Delivery Record",
+			name,
+			{"mode_of_delivery": None, "maternity_package": None},
+			update_modified=False,
+		)

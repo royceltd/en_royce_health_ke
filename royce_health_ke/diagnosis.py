@@ -227,3 +227,33 @@ def _encounter_codes(doc):
 				"display": code.display,
 			},
 		)
+
+
+def code_uncoded_by_title():
+	"""Give the hospital's diagnoses without an ICD-11 code the code whose title
+	is the same name (case aside): "PNEUMONIA" -> CA40 Pneumonia (v0.58; the
+	demo's older diagnoses were made by hand). A name that matches no title, or
+	more than one, is left for the doctor to code. Returns the names coded."""
+	if not frappe.db.exists("Code System", ICD11):
+		return []
+	coded = set(
+		frappe.get_all("Codification Table", filters={"parenttype": DX, "code_system": ICD11}, pluck="parent")
+	)
+	done = []
+	for name in frappe.get_all(DX, pluck="name"):
+		if name in coded:
+			continue
+		matches = frappe.db.sql(
+			"""select code_value, display from `tabCode Value`
+			where code_system = %s and lower(display) = lower(%s) limit 2""",
+			(ICD11, name.strip()),
+			as_dict=True,
+		)
+		if len(matches) != 1:
+			continue
+		doc = frappe.get_doc(DX, name)
+		set_coding(doc, ICD11, matches[0].code_value, matches[0].display)
+		doc.flags.ignore_permissions = True
+		doc.save()
+		done.append(name)
+	return done
