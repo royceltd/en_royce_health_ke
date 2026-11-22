@@ -325,6 +325,7 @@ def _service_units(company, a):
 		},
 	)
 	maternity_ward(company, a, hospital.name)
+	casualty_unit(company, a, hospital.name)
 	for i in range(1, 5):
 		ensure(
 			"Healthcare Service Unit",
@@ -622,3 +623,52 @@ def medication(item_code):
 	return frappe.db.get_value(
 		"Medication Linked Item", {"item": item_code}, "parent"
 	) or frappe.db.get_value("Medication Linked Item", {"item_code": item_code}, "parent")
+
+
+def casualty_unit(company, a, hospital):
+	"""The Casualty Unit (casualty.py): 3 observation beds charged per hour, so
+	the demo shows a casualty stay, its charge and admission to a ward."""
+	if not frappe.db.exists("Healthcare Service Unit Type", "Casualty Observation Bed"):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Healthcare Service Unit Type",
+				"service_unit_type": "Casualty Observation Bed",
+				"inpatient_occupancy": 1,
+				"is_billable": 1,
+				"item_code": "CAS-OBS",
+				"item_group": "Services",
+				"uom": "Nos",
+				"rate": 300,
+				"no_of_hours": 1,
+				"minimum_billable_qty": 1,
+				"description": "Casualty observation bed, per hour",
+			}
+		)
+		doc.insert(ignore_permissions=True)
+		set_item_tax(company, "CAS-OBS")
+	unit = ensure(
+		"Healthcare Service Unit",
+		f"Casualty - {a}",
+		{
+			"healthcare_service_unit_name": "Casualty",
+			"is_group": 1,
+			"parent_healthcare_service_unit": hospital,
+			"company": company,
+		},
+	)
+	if unit.meta.has_field("ke_casualty") and not unit.get("ke_casualty"):
+		frappe.db.set_value("Healthcare Service Unit", unit.name, "ke_casualty", 1)
+	for i in (1, 2, 3):
+		ensure(
+			"Healthcare Service Unit",
+			f"CAS Bed 0{i} - {a}",
+			{
+				"healthcare_service_unit_name": f"CAS Bed 0{i}",
+				"parent_healthcare_service_unit": unit.name,
+				"service_unit_type": "Casualty Observation Bed",
+				"inpatient_occupancy": 1,
+				"occupancy_status": "Vacant",
+				"company": company,
+			},
+		)
+	return unit.name

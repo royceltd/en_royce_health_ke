@@ -73,10 +73,12 @@ class InpatientWorkspace {
 			booking: this.booking,
 		});
 		this.page.set_title(this.data.patient_name);
-		this.page.set_secondary_action(this.booking ? __("Theatre List") : __("Ward"), () =>
-			this.booking
-				? frappe.set_route("query-report", "Theatre List")
-				: frappe.set_route("ward")
+		this.page.set_secondary_action(
+			this.booking ? __("Theatre List") : this.data.casualty ? __("Casualty") : __("Ward"),
+			() =>
+				this.booking
+					? frappe.set_route("query-report", "Theatre List")
+					: frappe.set_route(this.data.casualty ? "casualty" : "ward")
 		);
 		this.render_banner();
 		this.$tabs.html(
@@ -828,7 +830,10 @@ class InpatientWorkspace {
 			[__("Plan Discharge"), () => this.plan_discharge()],
 			this.data.transfer_to
 				? [__("Cancel Transfer"), () => this.cancel_transfer()]
-				: [__("Transfer to Ward"), () => this.transfer()],
+				: [
+						this.data.casualty ? __("Admit to Ward") : __("Transfer to Ward"),
+						() => this.transfer(),
+				  ],
 		]);
 		this.$panel.append(`<div class="small">
 			<p><b>${__("Outcome")}:</b> ${iw_esc(__(d.outcome || "Not set"))}${

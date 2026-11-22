@@ -138,7 +138,12 @@ doc_events = {
 		"on_cancel": "royce_health_ke.payment_status.coverage_changed",
 		"on_update_after_submit": "royce_health_ke.payment_status.coverage_changed",
 	},
-	"Patient Visit": {"on_update": "royce_health_ke.payment_status.visit_changed"},
+	"Patient Visit": {
+		"on_update": [
+			"royce_health_ke.payment_status.visit_changed",
+			"royce_health_ke.casualty.visit_updated",
+		]
+	},
 	"Inpatient Record": {
 		"validate": "royce_health_ke.inpatient.selling_price_list",
 		"on_update": "royce_health_ke.payment_status.inpatient_changed",
@@ -296,7 +301,11 @@ extend_bootinfo = [
 # include js, css files in header of desk.html
 app_include_css = "/assets/royce_health_ke/css/royce_health_ke.css"
 # Success messages close by themselves (public/js/desk.js)
-app_include_js = ["/assets/royce_health_ke/js/desk.js", "/assets/royce_health_ke/js/drug_order.js"]
+app_include_js = [
+	"/assets/royce_health_ke/js/desk.js",
+	"/assets/royce_health_ke/js/drug_order.js",
+	"/assets/royce_health_ke/js/ward_page.js",
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/royce_health_ke/css/royce_health_ke.css"

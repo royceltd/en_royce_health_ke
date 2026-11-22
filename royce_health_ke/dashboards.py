@@ -277,12 +277,20 @@ def revenue_card(filters=None):
 
 
 def beds(company):
-	"""Bookable beds: leaf service units that take inpatient occupancy."""
-	return frappe.get_all(
-		"Healthcare Service Unit",
-		filters={"company": company, "inpatient_occupancy": 1, "is_group": 0},
-		fields=["name", "parent_healthcare_service_unit as ward", "occupancy_status"],
-	)
+	"""Bookable beds: leaf service units that take inpatient occupancy, the
+	Casualty Units' left out (casualty.py: casualty stays are not admissions)."""
+	from royce_health_ke.casualty import units
+
+	casualty = set(units())
+	return [
+		b
+		for b in frappe.get_all(
+			"Healthcare Service Unit",
+			filters={"company": company, "inpatient_occupancy": 1, "is_group": 0},
+			fields=["name", "parent_healthcare_service_unit as ward", "occupancy_status"],
+		)
+		if b.ward not in casualty
+	]
 
 
 def bed_occupancy_by_ward_data(company):

@@ -130,14 +130,18 @@ def selling_price_list(doc, method=None):
 
 
 def wards():
-	"""Wards: groups of beds (Healthcare Service Units with inpatient occupancy)."""
+	"""Wards: groups of beds (Healthcare Service Units with inpatient
+	occupancy). Casualty Units are not wards (casualty.units)."""
+	from royce_health_ke.casualty import units
+
 	parents = frappe.get_all(
 		"Healthcare Service Unit",
 		filters={"is_group": 0, "inpatient_occupancy": 1},
 		pluck="parent_healthcare_service_unit",
 		distinct=True,
 	)
-	return sorted(p for p in parents if p)
+	casualty = set(units())
+	return sorted(p for p in parents if p and p not in casualty)
 
 
 @frappe.whitelist()
@@ -297,9 +301,18 @@ def _days(since):
 
 
 @frappe.whitelist()
-def admission_list(ward: str | None = None) -> dict:
-	"""Awaiting admission, and on the ward, for the Ward page."""
+def admission_list(ward: str | None = None, casualty: int = 0) -> dict:
+	"""Awaiting admission, and on the ward, for the Ward page. With
+	`casualty`, the Casualty list: the Casualty Units only; without, the
+	wards only (casualty.py)."""
+	from royce_health_ke import casualty as cas
+
 	_check(WARD_ROLES)
+	casualty = cint(casualty)
+	casualty_units = cas.units()
+	shown = set(casualty_units) if casualty else set(wards())
+	if ward and ward not in shown:
+		ward = None
 	fields = [
 		"name",
 		"patient",
@@ -330,15 +343,20 @@ def admission_list(ward: str | None = None) -> dict:
 	urgency_rank = {u: i for i, u in enumerate(reversed(URGENCIES))}
 	out_waiting, out_ward, incoming = [], [], []
 	for r in waiting:
-		if ward and r.ke_ward != ward:
+		if (ward and r.ke_ward != ward) or (r.ke_ward and r.ke_ward not in shown):
 			continue
 		out_waiting.append(r)
 	out_waiting.sort(key=lambda r: (urgency_rank.get(r.ke_urgency, 9), str(r.admission_ordered_for)))
 	for r in on_ward:
 		r.ward = ward_of(r.name)
-		if r.ke_transfer_to and (not ward or r.ke_transfer_to == ward) and r.ke_transfer_to != r.ward:
+		if (
+			r.ke_transfer_to
+			and r.ke_transfer_to in shown
+			and (not ward or r.ke_transfer_to == ward)
+			and r.ke_transfer_to != r.ward
+		):
 			incoming.append(r)
-		if ward and r.ward != ward:
+		if (ward and r.ward != ward) or (r.ward and r.ward not in shown):
 			continue
 		bed = current_bed(r.name)
 		r.bed = bed.service_unit if bed else None
@@ -367,7 +385,14 @@ def admission_list(ward: str | None = None) -> dict:
 	for r in incoming:
 		bed = current_bed(r.name)
 		r.bed = bed.service_unit if bed else None
-	return {"waiting": out_waiting, "on_ward": out_ward, "incoming": incoming, "wards": wards()}
+	return {
+		"waiting": out_waiting,
+		"on_ward": out_ward,
+		"incoming": incoming,
+		"wards": sorted(shown),
+		"casualty": casualty,
+		"casualty_units": casualty_units,
+	}
 
 
 @frappe.whitelist()
@@ -451,6 +476,9 @@ def receive_transfer(inpatient_record: str, bed: str) -> str:
 	doc.reload()
 	doc.db_set({"ke_ward": to, **dict.fromkeys(TRANSFER_FIELDS)})
 	doc.add_comment("Info", _("Transferred from {0} to {1}, bed {2}").format(from_ward, to, bed))
+	from royce_health_ke.casualty import received_on_ward
+
+	received_on_ward(doc.name, to)
 	return bed
 
 
@@ -475,17 +503,21 @@ def workspace(inpatient_record: str, booking: str | None = None) -> dict:
 		"Patient", ip.patient, ["patient_name", "sex", "dob", "allergies", "blood_group"], as_dict=True
 	)
 	bed = current_bed(ip.name)
-	profile = (
-		_setting("theatre_workspace_profile", THEATRE_PROFILE)
-		if theatre
-		else _setting("inpatient_workspace_profile", DEFAULT_PROFILE)
-	)
+	from royce_health_ke import casualty
+
+	in_casualty = not theatre and casualty.is_stay(ip)
+	if theatre:
+		profile, default_panels = _setting("theatre_workspace_profile", THEATRE_PROFILE), THEATRE_PANELS
+	elif in_casualty:
+		profile, default_panels = casualty.profile(), [p for p, _label in casualty.PANELS]
+	else:
+		profile, default_panels = _setting("inpatient_workspace_profile", DEFAULT_PROFILE), PANELS
 	tabs = frappe.get_all(
 		"Patient Workspace Tab",
 		filters={"parent": profile, "parenttype": "Patient Workspace Profile", "hidden": 0},
 		fields=["panel", "label"],
 		order_by="idx",
-	) or [{"panel": p, "label": p} for p in (THEATRE_PANELS if theatre else PANELS)]
+	) or [{"panel": p, "label": p} for p in default_panels]
 	return {
 		"name": ip.name,
 		"patient": ip.patient,
@@ -515,6 +547,7 @@ def workspace(inpatient_record: str, booking: str | None = None) -> dict:
 		"money": money(ip),
 		"tabs": tabs,
 		"theatre": theatre,
+		"casualty": int(bool(in_casualty)),
 	}
 
 
@@ -943,17 +976,36 @@ def money(ip, detail=False):
 	billed = sum(flt(i.grand_total) for i in invoices)
 	outstanding = sum(flt(i.outstanding_amount) for i in invoices)
 	lines = []
-	# beds: each occupancy's days at its bed type's price
+	# beds: each occupancy's time at its bed type's price, in the bed type's
+	# units (No of Hours: 24 = per day, 1 = per hour, as a casualty bed; at
+	# least its minimum); a bed type not billable costs nothing
 	for occ in ip.inpatient_occupancies or []:
 		if occ.invoiced:
 			continue
 		unit_type = frappe.db.get_value("Healthcare Service Unit", occ.service_unit, "service_unit_type")
-		item = unit_type and frappe.db.get_value("Healthcare Service Unit Type", unit_type, "item")
+		t = unit_type and frappe.db.get_value(
+			"Healthcare Service Unit Type",
+			unit_type,
+			["item", "is_billable", "no_of_hours", "minimum_billable_qty"],
+			as_dict=True,
+		)
+		if t and not t.is_billable:
+			continue
+		item = t and t.item
 		end = get_datetime(occ.check_out) if occ.left and occ.check_out else now_datetime()
-		days = max(math.ceil((end - get_datetime(occ.check_in)).total_seconds() / 86400), 1)
+		hours = flt((t and t.no_of_hours) or 24)
+		units = max(
+			math.ceil((end - get_datetime(occ.check_in)).total_seconds() / (3600 * hours)),
+			cint(t and t.minimum_billable_qty) or 1,
+		)
 		rate = fees.price(item, ip.company) if item else 0
 		lines.append(
-			{"what": _("Bed {0}").format(occ.service_unit), "qty": days, "rate": rate, "amount": days * rate}
+			{
+				"what": _("Bed {0}").format(occ.service_unit),
+				"qty": units,
+				"rate": rate,
+				"amount": units * rate,
+			}
 		)
 	for item in ip.items or []:
 		# drugs and consumables issued (Marley bills a row once it carries its

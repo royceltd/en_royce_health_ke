@@ -7,6 +7,7 @@ Downloading code sets (ICD-11) is left to an explicit action - a migrate must
 not depend on WHO's servers being reachable."""
 
 from royce_health_ke import (
+	casualty,
 	charts,
 	clinical,
 	codes,
@@ -53,6 +54,7 @@ def run():
 	forms.apply()
 	routing.seed()
 	inpatient.seed()
+	casualty.seed()
 	charts.seed()
 	seed_moh_registers()
 	inpatient.sync_drug_charge()

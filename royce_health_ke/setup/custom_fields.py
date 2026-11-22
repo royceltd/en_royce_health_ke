@@ -1286,6 +1286,14 @@ INPATIENT_RECORD = [
 		"insert_after": "ke_transfer_requested_by",
 		"read_only": 1,
 	},
+	{
+		"fieldname": "ke_casualty",
+		"fieldtype": "Check",
+		"label": "Casualty Stay",
+		"insert_after": "ke_transfer_requested_at",
+		"read_only": 1,
+		"description": "A stay in casualty: not an admission until the patient is moved to a ward.",
+	},
 ]
 
 # The ward's notes carry the patient's condition (Bethesda's notes, PDF (9))
@@ -1902,6 +1910,16 @@ SERVICE_UNIT = [
 		"insert_after": "warehouse",
 		"depends_on": "is_group",
 		"description": "Where this ward's clean linen is kept (laundry module).",
+	},
+	# Casualty (v0.59, casualty.py): a ward whose stays are casualty stays
+	{
+		"fieldname": "ke_casualty",
+		"fieldtype": "Check",
+		"label": "Casualty Unit",
+		"insert_after": "ke_linen_warehouse",
+		"depends_on": "is_group",
+		"description": "Patients here are casualty stays: the Casualty tabs on their screen, the Casualty "
+		"list, and not counted as admissions (MOH 717, bed occupancy) unless moved to a ward.",
 	},
 ]
 

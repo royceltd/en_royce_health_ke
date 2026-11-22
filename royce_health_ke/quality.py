@@ -182,12 +182,16 @@ def alerts_answered(m, company, start, end):
 
 
 def inpatient_deaths(m, company, start, end):
+	from royce_health_ke.casualty import not_casualty_filter
+
 	discharges = frappe.get_all(
 		"Inpatient Record",
-		filters={
-			"company": company,
-			"discharge_datetime": ["between", [f"{start} 00:00:00", f"{end} 23:59:59"]],
-		},
+		filters=not_casualty_filter(
+			{
+				"company": company,
+				"discharge_datetime": ["between", [f"{start} 00:00:00", f"{end} 23:59:59"]],
+			}
+		),
 		pluck="ke_discharge_outcome",
 	)
 	return sum(1 for o in discharges if o == "Died"), len(discharges)

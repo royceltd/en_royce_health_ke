@@ -88,6 +88,7 @@
   "ward_drug_charge",
   "inpatient_workspace_profile",
   "theatre_workspace_profile",
+  "casualty_workspace_profile",
   "inpatient_cb",
   "admission_deposit",
   "over_deposit_action",
@@ -630,6 +631,13 @@
    "description": "The tabs a patient opened from the Theatre List shows (Drug Administration, Theatre Doctor Notes, ...)."
   },
   {
+   "fieldname": "casualty_workspace_profile",
+   "fieldtype": "Link",
+   "options": "Patient Workspace Profile",
+   "label": "Casualty Patient Screen Tabs",
+   "description": "The tabs of a patient in a Casualty Unit (Casualty Drugs, Care Plan, ...)."
+  },
+  {
    "fieldname": "inpatient_cb",
    "fieldtype": "Column Break"
   },
@@ -674,7 +682,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-21 13:00:00.000000",
+ "modified": "2026-11-22 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kenya Health",
  "name": "Kenya Health Settings",

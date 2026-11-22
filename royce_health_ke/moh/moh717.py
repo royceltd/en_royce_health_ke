@@ -184,12 +184,17 @@ def _inpatient(company, start, end, section, add):
 			unit_type = frappe.db.get_value("Healthcare Service Unit", unit_type, "service_unit_type")
 		return ward_of.get(unit_type) or "Other Wards"
 
+	from royce_health_ke.casualty import not_casualty_filter
+
+	# casualty stays are not admissions (casualty.py); one moved to a ward is
 	admitted = frappe.get_all(
 		"Inpatient Record",
-		filters={
-			"company": company,
-			"admitted_datetime": ["between", [f"{start} 00:00:00", f"{end} 23:59:59"]],
-		},
+		filters=not_casualty_filter(
+			{
+				"company": company,
+				"admitted_datetime": ["between", [f"{start} 00:00:00", f"{end} 23:59:59"]],
+			}
+		),
 		fields=["name", "dob", "admitted_datetime", "admission_service_unit_type"],
 	)
 	admissions = Counter()
@@ -200,11 +205,13 @@ def _inpatient(company, start, end, section, add):
 
 	left = frappe.get_all(
 		"Inpatient Record",
-		filters={
-			"company": company,
-			"status": "Discharged",
-			"discharge_datetime": ["between", [f"{start} 00:00:00", f"{end} 23:59:59"]],
-		},
+		filters=not_casualty_filter(
+			{
+				"company": company,
+				"status": "Discharged",
+				"discharge_datetime": ["between", [f"{start} 00:00:00", f"{end} 23:59:59"]],
+			}
+		),
 		fields=["name", "admission_service_unit_type", "ke_discharge_outcome"],
 	)
 	outcomes = Counter((ward(r), r.ke_discharge_outcome or "Discharged") for r in left)

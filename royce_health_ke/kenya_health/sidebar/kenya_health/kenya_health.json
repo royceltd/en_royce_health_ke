@@ -617,11 +617,27 @@
    "show_arrow": 0,
    "child": 1,
    "icon": "",
+   "label": "Casualty",
+   "link_to": "casualty",
+   "link_type": "Page",
+   "type": "Link",
+   "idx": 39
+  },
+  {
+   "collapsible": 1,
+   "doctype": "Sidebar Item",
+   "indent": 0,
+   "keep_closed": 0,
+   "parentfield": "items",
+   "parenttype": "Sidebar",
+   "show_arrow": 0,
+   "child": 1,
+   "icon": "",
    "label": "Nursing Worklist",
    "link_to": "nursing-worklist",
    "link_type": "Page",
    "type": "Link",
-   "idx": 39
+   "idx": 40
   },
   {
    "collapsible": 1,
@@ -637,7 +653,7 @@
    "link_to": "Nursing Chart Template",
    "link_type": "DocType",
    "type": "Link",
-   "idx": 40
+   "idx": 41
   },
   {
    "collapsible": 1,
@@ -652,7 +668,7 @@
    "label": "Laboratory",
    "link_type": "DocType",
    "type": "Section Break",
-   "idx": 41
+   "idx": 42
   },
   {
    "collapsible": 1,
@@ -668,7 +684,7 @@
    "link_to": "lab-worklist",
    "link_type": "Page",
    "type": "Link",
-   "idx": 42
+   "idx": 43
   },
   {
    "collapsible": 1,
@@ -684,7 +700,7 @@
    "link_to": "results-inbox",
    "link_type": "Page",
    "type": "Link",
-   "idx": 43
+   "idx": 44
   },
   {
    "collapsible": 1,
@@ -700,7 +716,7 @@
    "link_to": "Lab Test",
    "link_type": "DocType",
    "type": "Link",
-   "idx": 44
+   "idx": 45
   },
   {
    "collapsible": 1,
@@ -715,7 +731,7 @@
    "label": "Pharmacy",
    "link_type": "DocType",
    "type": "Section Break",
-   "idx": 45
+   "idx": 46
   },
   {
    "collapsible": 1,
@@ -731,7 +747,7 @@
    "link_to": "pharmacy-worklist",
    "link_type": "Page",
    "type": "Link",
-   "idx": 46
+   "idx": 47
   },
   {
    "collapsible": 1,
@@ -747,14 +763,14 @@
    "link_to": "Delivery Note",
    "link_type": "DocType",
    "type": "Link",
-   "idx": 47
+   "idx": 48
   },
   {
    "child": 0,
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "scan",
-   "idx": 48,
+   "idx": 49,
    "indent": 1,
    "keep_closed": 0,
    "label": "Radiology",
@@ -769,7 +785,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 49,
+   "idx": 50,
    "indent": 0,
    "keep_closed": 0,
    "label": "Radiology Worklist",
@@ -785,7 +801,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "utensils",
-   "idx": 50,
+   "idx": 51,
    "indent": 1,
    "keep_closed": 0,
    "label": "Kitchen and Laundry",
@@ -800,7 +816,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 51,
+   "idx": 52,
    "indent": 0,
    "keep_closed": 0,
    "label": "Diet Order",
@@ -816,7 +832,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 52,
+   "idx": 53,
    "indent": 0,
    "keep_closed": 0,
    "label": "Ward Diet List",
@@ -832,7 +848,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 53,
+   "idx": 54,
    "indent": 0,
    "keep_closed": 0,
    "label": "Linen Movement",
@@ -848,7 +864,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 54,
+   "idx": 55,
    "indent": 0,
    "keep_closed": 0,
    "label": "Linen Status",
@@ -864,7 +880,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "shield",
-   "idx": 55,
+   "idx": 56,
    "indent": 1,
    "keep_closed": 0,
    "label": "Insurance",
@@ -879,7 +895,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 56,
+   "idx": 57,
    "indent": 0,
    "keep_closed": 0,
    "label": "Insurance Claim",
@@ -895,7 +911,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 57,
+   "idx": 58,
    "indent": 0,
    "keep_closed": 0,
    "label": "Patient Insurance Coverage",
@@ -919,7 +935,7 @@
    "label": "Disease Surveillance",
    "type": "Section Break",
    "link_type": "DocType",
-   "idx": 58
+   "idx": 59
   },
   {
    "child": 1,
@@ -935,7 +951,7 @@
    "type": "Link",
    "link_type": "DocType",
    "link_to": "Notifiable Disease Case",
-   "idx": 59
+   "idx": 60
   },
   {
    "child": 1,
@@ -951,7 +967,7 @@
    "type": "Link",
    "link_type": "DocType",
    "link_to": "Public Health Event",
-   "idx": 60
+   "idx": 61
   },
   {
    "child": 1,
@@ -967,7 +983,7 @@
    "type": "Link",
    "link_type": "Report",
    "link_to": "IDSR Weekly Report",
-   "idx": 61
+   "idx": 62
   },
   {
    "child": 1,
@@ -983,14 +999,14 @@
    "type": "Link",
    "link_type": "DocType",
    "link_to": "Notifiable Disease",
-   "idx": 62
+   "idx": 63
   },
   {
    "child": 0,
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "file-text",
-   "idx": 63,
+   "idx": 64,
    "indent": 1,
    "keep_closed": 0,
    "label": "Reports",
@@ -1005,7 +1021,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 64,
+   "idx": 65,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 705 Outpatient Summary",
@@ -1021,7 +1037,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 65,
+   "idx": 66,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 706 Laboratory Summary",
@@ -1037,7 +1053,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 66,
+   "idx": 67,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 710 Immunization Summary",
@@ -1053,7 +1069,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 67,
+   "idx": 68,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 711 Integrated Summary",
@@ -1069,7 +1085,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 68,
+   "idx": 69,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 717 Service Workload",
@@ -1085,7 +1101,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 69,
+   "idx": 70,
    "indent": 0,
    "keep_closed": 0,
    "label": "Commodity Report (F-CDRR)",
@@ -1101,7 +1117,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 70,
+   "idx": 71,
    "indent": 0,
    "keep_closed": 0,
    "label": "Fridge Temperature Sheet",
@@ -1117,7 +1133,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 71,
+   "idx": 72,
    "indent": 0,
    "keep_closed": 0,
    "label": "Pharmacy Stock Status",
@@ -1142,7 +1158,7 @@
    "parenttype": "Sidebar",
    "show_arrow": 0,
    "type": "Link",
-   "idx": 72
+   "idx": 73
   },
   {
    "child": 1,
@@ -1158,7 +1174,7 @@
    "parenttype": "Sidebar",
    "show_arrow": 0,
    "type": "Link",
-   "idx": 73
+   "idx": 74
   },
   {
    "child": 1,
@@ -1174,7 +1190,7 @@
    "parenttype": "Sidebar",
    "show_arrow": 0,
    "type": "Link",
-   "idx": 74
+   "idx": 75
   },
   {
    "child": 1,
@@ -1190,7 +1206,7 @@
    "label": "Clinical Alert Summary",
    "link_type": "Report",
    "link_to": "Clinical Alert Summary",
-   "idx": 75
+   "idx": 76
   },
   {
    "child": 1,
@@ -1206,14 +1222,14 @@
    "label": "Quality Measures",
    "link_type": "Report",
    "link_to": "Quality Measures",
-   "idx": 76
+   "idx": 77
   },
   {
    "child": 0,
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "settings",
-   "idx": 77,
+   "idx": 78,
    "indent": 1,
    "keep_closed": 0,
    "label": "Setup",
@@ -1228,7 +1244,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 78,
+   "idx": 79,
    "indent": 0,
    "keep_closed": 0,
    "label": "Kenya Health Settings",
@@ -1244,7 +1260,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 79,
+   "idx": 80,
    "indent": 0,
    "keep_closed": 0,
    "label": "Compliance Check",
@@ -1260,7 +1276,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 80,
+   "idx": 81,
    "indent": 0,
    "keep_closed": 0,
    "label": "Patient Data Requests",
@@ -1276,7 +1292,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 81,
+   "idx": 82,
    "indent": 0,
    "keep_closed": 0,
    "label": "Data Breach Register",
@@ -1292,7 +1308,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 82,
+   "idx": 83,
    "indent": 0,
    "keep_closed": 0,
    "label": "Patient Consent Log",
@@ -1317,14 +1333,14 @@
    "parenttype": "Sidebar",
    "show_arrow": 0,
    "type": "Link",
-   "idx": 83
+   "idx": 84
   },
   {
    "child": 1,
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 84,
+   "idx": 85,
    "indent": 0,
    "keep_closed": 0,
    "label": "Patient Record Access",
@@ -1340,7 +1356,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 85,
+   "idx": 86,
    "indent": 0,
    "keep_closed": 0,
    "label": "Maternity Package",
@@ -1356,7 +1372,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 86,
+   "idx": 87,
    "indent": 0,
    "keep_closed": 0,
    "label": "Diet Type",
@@ -1372,7 +1388,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 87,
+   "idx": 88,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 705 Indicator",
@@ -1388,7 +1404,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 88,
+   "idx": 89,
    "indent": 0,
    "keep_closed": 0,
    "label": "MOH 706 Indicator",
@@ -1404,7 +1420,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 89,
+   "idx": 90,
    "indent": 0,
    "keep_closed": 0,
    "label": "Commodity Report Form",
@@ -1420,7 +1436,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 90,
+   "idx": 91,
    "indent": 0,
    "keep_closed": 0,
    "label": "Immunisation Dose",
@@ -1436,7 +1452,7 @@
    "collapsible": 1,
    "doctype": "Sidebar Item",
    "icon": "",
-   "idx": 91,
+   "idx": 92,
    "indent": 0,
    "keep_closed": 0,
    "label": "Cold Chain Fridge",
@@ -1461,7 +1477,7 @@
    "label": "Clinical Alert Rule",
    "link_type": "DocType",
    "link_to": "Clinical Alert Rule",
-   "idx": 92
+   "idx": 93
   },
   {
    "child": 1,
@@ -1477,12 +1493,12 @@
    "label": "Quality Measure",
    "link_type": "DocType",
    "link_to": "Quality Measure",
-   "idx": 93
+   "idx": 94
   }
  ],
  "module": "Kenya Health",
  "name": "Kenya Health",
  "standard": 1,
  "title": "Kenya Health",
- "modified": "2026-11-21 12:00:00.000000"
+ "modified": "2026-11-22 20:00:00.000000"
 }
