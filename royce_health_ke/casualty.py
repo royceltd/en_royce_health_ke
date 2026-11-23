@@ -69,6 +69,62 @@ def is_stay(ip):
 	return bool(frappe.db.get_value(IR, name, "ke_casualty")) or is_unit(ward_of(name))
 
 
+BED_TYPE = "Casualty Bed"
+
+
+def make_unit(company, parent, beds=4, name="Casualty", prefix="CAS Bed", rate=0, hours=1):
+	"""A Casualty Unit with its beds, under `parent` (the hospital's group).
+	Beds not charged (rate 0, Bethesda 23 Nov 2026), else `rate` per `hours`.
+	Existing unit and beds are kept; returns the unit."""
+	if not frappe.db.exists("Healthcare Service Unit Type", BED_TYPE):
+		values = {
+			"doctype": "Healthcare Service Unit Type",
+			"service_unit_type": BED_TYPE,
+			"inpatient_occupancy": 1,
+			"is_billable": 1 if rate else 0,
+		}
+		if rate:
+			values.update(
+				item_code="CAS-BED",
+				item_group="Services",
+				uom="Nos",
+				rate=rate,
+				no_of_hours=hours,
+				minimum_billable_qty=1,
+				description=_("Casualty bed, per {0} hour(s)").format(hours),
+			)
+		frappe.get_doc(values).insert(ignore_permissions=True)
+	abbr = frappe.db.get_value("Company", company, "abbr")
+	unit = f"{name} - {abbr}"
+	if not frappe.db.exists(UNIT, unit):
+		frappe.get_doc(
+			{
+				"doctype": UNIT,
+				"healthcare_service_unit_name": name,
+				"is_group": 1,
+				"parent_healthcare_service_unit": parent,
+				"company": company,
+			}
+		).insert(ignore_permissions=True)
+	frappe.db.set_value(UNIT, unit, "ke_casualty", 1)
+	for i in range(1, int(beds) + 1):
+		bed = f"{prefix} {i:02d}"
+		if frappe.db.exists(UNIT, f"{bed} - {abbr}"):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": UNIT,
+				"healthcare_service_unit_name": bed,
+				"parent_healthcare_service_unit": unit,
+				"service_unit_type": BED_TYPE,
+				"inpatient_occupancy": 1,
+				"occupancy_status": "Vacant",
+				"company": company,
+			}
+		).insert(ignore_permissions=True)
+	return unit
+
+
 def seed():
 	"""The Casualty tab set, once (afterwards the hospital's)."""
 	from royce_health_ke.inpatient import SETTINGS

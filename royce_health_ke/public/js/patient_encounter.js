@@ -753,6 +753,8 @@ function ke_next_station(frm, info, completed) {
 	const FINISH = __("Finish visit (patient goes home)");
 	const STAY = __("Stay with me (results later)");
 	const options = [...info.stations];
+	// casualty receives patients as a department (Bethesda, 23 Nov 2026)
+	if (!options.includes("Casualty")) options.push("Casualty");
 	if (completed) options.push(FINISH);
 	else options.push(STAY);
 	const d = new frappe.ui.Dialog({

@@ -67,7 +67,9 @@ class WardPage {
 				}</td>
 				<td><button class="btn btn-xs btn-primary wd-admit" data-ip="${wd_esc(
 					p.name
-				)}" data-ward="${wd_esc(p.ke_ward || "")}">${__("Give Bed")}</button></td></tr>`
+				)}" data-ward="${wd_esc(p.ke_ward || "")}">${
+					this.casualty ? __("Receive") : __("Give Bed")
+				}</button></td></tr>`
 			)
 			.join("");
 		const incoming = (r.incoming || [])
@@ -247,15 +249,16 @@ class WardPage {
 					})
 					.then(() => {
 						frappe.show_alert({
-							message: transfer
-								? __("Received into {0}", [v.bed])
-								: __("Admitted to {0}", [v.bed]),
+							message:
+								transfer || this.casualty
+									? __("Received into {0}", [v.bed])
+									: __("Admitted to {0}", [v.bed]),
 							indicator: "green",
 						});
 						frappe.set_route("inpatient-workspace", ip);
 					}),
-			__("Give a bed on {0}", [ward]),
-			transfer ? __("Receive") : __("Admit")
+			this.casualty ? __("Receive into {0}", [ward]) : __("Give a bed on {0}", [ward]),
+			transfer || this.casualty ? __("Receive") : __("Admit")
 		);
 	}
 }
