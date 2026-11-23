@@ -35,10 +35,15 @@ class TestStarterServices(IntegrationTestCase):
 		)
 
 	def test_casualty_unit_with_free_beds(self):
+		from royce_health_ke import inpatient
+
+		# under the hospital (a ward's parent), with its own bed names
 		parent = frappe.db.get_value(
-			"Healthcare Service Unit", {"is_group": 1, "company": self.company}, "name", order_by="lft"
+			"Healthcare Service Unit", inpatient.wards()[0], "parent_healthcare_service_unit"
 		)
-		unit = casualty.make_unit(self.company, parent, beds=2, name="_Test Casualty V061")
+		unit = casualty.make_unit(
+			self.company, parent, beds=2, name="_Test Casualty V061", prefix="_T061 Bed"
+		)
 		self.assertIn(unit, casualty.units())
 		beds = frappe.get_all(
 			"Healthcare Service Unit",
@@ -53,4 +58,7 @@ class TestStarterServices(IntegrationTestCase):
 			self.assertEqual(
 				frappe.db.get_value("Healthcare Service Unit Type", casualty.BED_TYPE, "is_billable"), 0
 			)
-		self.assertEqual(casualty.make_unit(self.company, parent, beds=2, name="_Test Casualty V061"), unit)
+		self.assertEqual(
+			casualty.make_unit(self.company, parent, beds=2, name="_Test Casualty V061", prefix="_T061 Bed"),
+			unit,
+		)

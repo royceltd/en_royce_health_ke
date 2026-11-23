@@ -109,8 +109,11 @@ class TestCasualty(InpatientCase):
 
 	def test_casualty_bed_by_the_hour_on_the_bill(self):
 		unit_type = frappe.db.get_value("Healthcare Service Unit", self.bed, "service_unit_type")
-		hours = frappe.db.get_value("Healthcare Service Unit Type", unit_type, "no_of_hours")
-		frappe.db.set_value("Healthcare Service Unit Type", unit_type, "no_of_hours", 1)
+		hours, billable = frappe.db.get_value(
+			"Healthcare Service Unit Type", unit_type, ["no_of_hours", "is_billable"]
+		)
+		# charged by the hour for this test (casualty beds are free by default)
+		frappe.db.set_value("Healthcare Service Unit Type", unit_type, {"no_of_hours": 1, "is_billable": 1})
 		try:
 			ip = self.sent()
 			inpatient.admit(ip, self.bed)
@@ -126,4 +129,6 @@ class TestCasualty(InpatientCase):
 			)
 			self.assertEqual(bed["qty"], 4)
 		finally:
-			frappe.db.set_value("Healthcare Service Unit Type", unit_type, "no_of_hours", hours)
+			frappe.db.set_value(
+				"Healthcare Service Unit Type", unit_type, {"no_of_hours": hours, "is_billable": billable}
+			)
