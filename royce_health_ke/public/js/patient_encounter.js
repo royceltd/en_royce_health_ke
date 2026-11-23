@@ -80,10 +80,36 @@ function ke_diagnosis_setup(frm) {
 	grid.update_docfield_property("diagnosis", "ignore_link_validation", 1);
 }
 
+// A diagnosis typed but not picked, matching nothing exactly: the nearest choices
+function ke_diagnosis_not_found(r) {
+	const esc = frappe.utils.escape_html;
+	frappe.msgprint({
+		title: __("Choose the diagnosis"),
+		indicator: "orange",
+		message:
+			__("{0} is not a diagnosis or an ICD-11 title. Choose one from the list.", [
+				`<b>${esc(r.not_found)}</b>`,
+			]) +
+			((r.suggestions || []).length
+				? `<div class="mt-2">${__("For example")}:<ul>${r.suggestions
+						.map((x) => `<li>${esc(x)}</li>`)
+						.join("")}</ul></div>`
+				: ""),
+	});
+}
+
 function ke_resolve_diagnosis(frm, cdt, cdn, args) {
 	const row = locals[cdt][cdn];
 	if (row.__ke_resolving) return;
 	frappe.xcall("royce_health_ke.diagnosis.resolve", args).then((r) => {
+		if (r && r.not_found) {
+			ke_diagnosis_not_found(r);
+			row.__ke_resolving = true;
+			frappe.model
+				.set_value(cdt, cdn, "diagnosis", "")
+				.finally(() => (row.__ke_resolving = false));
+			return;
+		}
 		if (!r || !r.diagnosis) return;
 		row.__ke_resolving = true;
 		const sets = [];

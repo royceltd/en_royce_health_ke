@@ -612,6 +612,25 @@ class InpatientWorkspace {
 		if (fg.__resolving || !(args.diagnosis || args.code_value)) return;
 		frappe.xcall("royce_health_ke.diagnosis.resolve", args).then((r) => {
 			if (!r) return;
+			if (r.not_found) {
+				frappe.msgprint({
+					title: __("Choose the diagnosis"),
+					indicator: "orange",
+					message:
+						__(
+							"{0} is not a diagnosis or an ICD-11 title. Choose one from the list.",
+							[`<b>${iw_esc(r.not_found)}</b>`]
+						) +
+						((r.suggestions || []).length
+							? `<div class="mt-2">${__("For example")}: ${r.suggestions
+									.map(iw_esc)
+									.join(", ")}</div>`
+							: ""),
+				});
+				fg.__resolving = true;
+				fg.set_value("diagnosis", "").finally(() => (fg.__resolving = false));
+				return;
+			}
 			// a hospital diagnosis without a code: the code chosen is added to it,
 			// the name stays (inpatient.add_diagnosis)
 			if (args.diagnosis) fg.__uncoded = r.code_value ? null : r.diagnosis;

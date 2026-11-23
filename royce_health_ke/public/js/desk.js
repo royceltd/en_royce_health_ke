@@ -1,3 +1,4 @@
+/* global royce_health_ke */
 // Copyright (c) 2026, Royce Technologies LTD and contributors
 // For license information, please see license.txt
 
@@ -20,7 +21,8 @@
 		}
 		return {};
 	};
-	const is_success = (data) => data.indicator === "green" && !data.primary_action && !data.secondary_action;
+	const is_success = (data) =>
+		data.indicator === "green" && !data.primary_action && !data.secondary_action;
 
 	frappe.msgprint = function (msg) {
 		// The dialog empties when it closes: empty now means this message starts it.
@@ -39,7 +41,8 @@
 			const token = ++shown;
 			dialog.__ke_close_token = token;
 			setTimeout(() => {
-				if (dialog.__ke_close_token === token && !dialog.__ke_keep && dialog.display) dialog.hide();
+				if (dialog.__ke_close_token === token && !dialog.__ke_keep && dialog.display)
+					dialog.hide();
 			}, SECONDS * 1000);
 		} catch (e) {
 			console.error(e);
@@ -63,7 +66,7 @@ royce_health_ke.close_visit = (visit, on_closed) => {
 	frappe.xcall("royce_health_ke.visit_close.visit_open_items", { visit }).then((r) => {
 		if (!r.items.length) {
 			frappe.confirm(__("Complete this visit? The patient leaves every waiting list."), () =>
-				frappe.xcall("royce_health_ke.visits.complete", { visit }).then(done),
+				frappe.xcall("royce_health_ke.visits.complete", { visit }).then(done)
 			);
 			return;
 		}
@@ -74,7 +77,9 @@ royce_health_ke.close_visit = (visit, on_closed) => {
 			frappe.msgprint({
 				title: __("Visit not finished"),
 				indicator: "orange",
-				message: list + `<p>${__("Finish them first, or ask a manager to close the visit.")}</p>`,
+				message:
+					list +
+					`<p>${__("Finish them first, or ask a manager to close the visit.")}</p>`,
 			});
 			return;
 		}
@@ -93,7 +98,9 @@ royce_health_ke.close_visit = (visit, on_closed) => {
 			primary_action_label: __("Close Anyway"),
 			primary_action(v) {
 				d.hide();
-				frappe.xcall("royce_health_ke.visits.complete", { visit, reason: v.reason }).then(done);
+				frappe
+					.xcall("royce_health_ke.visits.complete", { visit, reason: v.reason })
+					.then(done);
 			},
 		});
 		d.show();
@@ -107,7 +114,9 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 		frappe.xcall("royce_health_ke.cashier.payment_context", { invoice }),
 	]).then(([modes, ctx]) => {
 		if (!modes.length) {
-			frappe.msgprint(__("Set up a Mode of Payment with an account for {0} first.", [company]));
+			frappe.msgprint(
+				__("Set up a Mode of Payment with an account for {0} first.", [company])
+			);
 			return;
 		}
 		const credit = flt(ctx.credit);
@@ -202,9 +211,9 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 				])}</div>`;
 			}
 			if (is_cash(v.mode_of_payment) && received > left) {
-				html += `<div class="alert alert-success mb-0" style="font-size: 1.25em">${__("Change to give")}: <b>${money(
-					received - left
-				)}</b></div>`;
+				html += `<div class="alert alert-success mb-0" style="font-size: 1.25em">${__(
+					"Change to give"
+				)}: <b>${money(received - left)}</b></div>`;
 			} else if (received > left) {
 				html += `<div class="alert alert-info mb-0">${__(
 					"More than owed: {0} stays on the patient's account as credit for the next bill.",
@@ -219,7 +228,9 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 			d.fields_dict.change_html.$wrapper.html(html);
 		};
 		d.fields_dict.due_html.$wrapper.html(
-			`<div class="mb-2" style="font-size: 1.25em">${__("To pay")}: <b>${money(due)}</b></div>`
+			`<div class="mb-2" style="font-size: 1.25em">${__("To pay")}: <b>${money(
+				due
+			)}</b></div>`
 		);
 		d.show();
 		update();
@@ -280,17 +291,25 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 							w.hide();
 							frappe.msgprint({
 								title: __("Payment taken"),
-								message: __("M-Pesa {0} received.", [frappe.utils.escape_html(s.mpesa_receipt || "")]),
+								message: __("M-Pesa {0} received.", [
+									frappe.utils.escape_html(s.mpesa_receipt || ""),
+								]),
 								indicator: "green",
 							});
 							on_paid && on_paid({ invoice: r.invoice });
-						} else if (["Failed", "Cancelled", "Needs Review"].includes(s.status) || tries > 40) {
+						} else if (
+							["Failed", "Cancelled", "Needs Review"].includes(s.status) ||
+							tries > 40
+						) {
 							clearInterval(timer);
 							w.hide();
 							frappe.msgprint({
 								title: __("M-Pesa payment not completed"),
 								message: frappe.utils.escape_html(
-									s.result_desc || __("No answer from the phone yet. Check again later on the bill.")
+									s.result_desc ||
+										__(
+											"No answer from the phone yet. Check again later on the bill."
+										)
 								),
 								indicator: "orange",
 							});
@@ -305,9 +324,14 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 	function paid_message(r) {
 		const lines = [`${__("Paid")}: <b>${money(r.paid)}</b>`];
 		if (r.change > 0) {
-			lines.push(`<span style="font-size: 1.4em">${__("Change to give")}: <b>${money(r.change)}</b></span>`);
+			lines.push(
+				`<span style="font-size: 1.4em">${__("Change to give")}: <b>${money(
+					r.change
+				)}</b></span>`
+			);
 		}
-		if (r.credit_used > 0) lines.push(`${__("Paid from credit")}: <b>${money(r.credit_used)}</b>`);
+		if (r.credit_used > 0)
+			lines.push(`${__("Paid from credit")}: <b>${money(r.credit_used)}</b>`);
 		if (r.credit_added > 0) {
 			lines.push(`${__("Kept as the patient's credit")}: <b>${money(r.credit_added)}</b>`);
 		}
@@ -394,7 +418,7 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 					<div style="font-size:1.1em;font-weight:600;margin-bottom:4px">${__("Screen locked")}</div>
 					<div class="text-muted small" style="margin-bottom:16px">${__(
 						"{0}, type your password to carry on. Your unsaved work is still here.",
-						[name],
+						[name]
 					)}</div>
 					<input type="password" class="form-control" autocomplete="current-password"
 						placeholder="${__("Password")}" required>
@@ -419,7 +443,9 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 					method: "royce_health_ke.security.unlock",
 					args: { password: input.val() },
 					type: "POST",
-					error_handlers: { 429: () => error.text(__("Too many tries. Wait a minute.")) },
+					error_handlers: {
+						429: () => error.text(__("Too many tries. Wait a minute.")),
+					},
 				})
 				.then(({ message }) => {
 					if (message) {
@@ -460,7 +486,7 @@ royce_health_ke.take_payment = ({ invoice, company, due, currency, on_paid }) =>
 	}
 
 	["mousemove", "mousedown", "keydown", "scroll", "touchstart", "wheel"].forEach((event) =>
-		window.addEventListener(event, activity, { passive: true, capture: true }),
+		window.addEventListener(event, activity, { passive: true, capture: true })
 	);
 	window.addEventListener("storage", (e) => {
 		if (e.key === UNLOCKED && overlay) unlock();
@@ -486,7 +512,9 @@ royce_health_ke.lab_walk_in = (opts = {}) => {
 				reqd: 1,
 				default: opts.patient,
 				read_only: opts.patient ? 1 : 0,
-				description: opts.patient ? "" : __("Register a new patient first if they are not found."),
+				description: opts.patient
+					? ""
+					: __("Register a new patient first if they are not found."),
 			},
 			{
 				fieldtype: "MultiSelectList",
@@ -539,10 +567,10 @@ royce_health_ke.lab_walk_in = (opts = {}) => {
 				.then((r) => {
 					d.hide();
 					frappe.show_alert({
-						message: __("{0} requests on visit {1}. Cash patients pay at the Cashier first.", [
-							r.message.requests.length,
-							r.message.visit,
-						]),
+						message: __(
+							"{0} requests on visit {1}. Cash patients pay at the Cashier first.",
+							[r.message.requests.length, r.message.visit]
+						),
 						indicator: "green",
 					});
 					opts.on_done && opts.on_done(r.message);
@@ -552,3 +580,45 @@ royce_health_ke.lab_walk_in = (opts = {}) => {
 	d.show();
 	return d;
 };
+
+// The sidebar keeps one section open (Bethesda, 23 Nov 2026: "auto close the
+// sidebar tabs to avoid confusion"). Frappe remembers every section a user ever
+// opened, so the menu grew into one long list. Now: opening a section closes
+// the others, and going to a page leaves only that page's section open.
+(() => {
+	const Sidebar = frappe.ui.Sidebar;
+	const Section = frappe.ui.sidebar_item && frappe.ui.sidebar_item.TypeSectionBreak;
+	if (!Sidebar || !Section) return;
+
+	const sections = (sidebar) =>
+		(sidebar.items || []).filter(
+			(s) => s instanceof Section && s.$drop_icon && s.$nested_items && s.items.length
+		);
+	const close = (section) => {
+		if (section.collapsed) return;
+		section.close();
+		section.save_section_break_state && section.save_section_break_state();
+	};
+
+	const highlight = Sidebar.prototype.highlight_active_item;
+	Sidebar.prototype.highlight_active_item = function (...args) {
+		const out = highlight.apply(this, args);
+		const active = this.active_item && this.active_item.get(0);
+		if (active) {
+			sections(this).forEach((s) => {
+				if (!s.wrapper.get(0).contains(active)) close(s);
+			});
+		}
+		return out;
+	};
+
+	const listen = Section.prototype.setup_event_listner;
+	Section.prototype.setup_event_listner = function (...args) {
+		const out = listen.apply(this, args);
+		$(this.wrapper.find(".standard-sidebar-item")[0]).on("click", () => {
+			if (this.collapsed || !frappe.app.sidebar) return;
+			sections(frappe.app.sidebar).forEach((s) => s !== this && close(s));
+		});
+		return out;
+	};
+})();

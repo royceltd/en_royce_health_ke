@@ -156,12 +156,35 @@ def resolve(diagnosis: str | None = None, code_value: str | None = None) -> dict
 		}
 	if not diagnosis:
 		return {}
-	if frappe.db.exists(DX, diagnosis):
-		cv, code = icd11_of(diagnosis)
-		return {"diagnosis": diagnosis, "code_value": cv, "code": code}
-	cv = _code_by_title(diagnosis)
+	found = match(diagnosis)
+	if not found:
+		# typed, not picked from the list: say so with the nearest choices, no error
+		# (Bethesda, 23 Nov 2026: name and code fill each other)
+		return {
+			"not_found": diagnosis,
+			"suggestions": [r[0] for r in diagnosis_query(DX, diagnosis, "name", 0, 5, {})],
+		}
+	return found
+
+
+def match(text):
+	"""{diagnosis, code_value, code} for a diagnosis typed rather than picked:
+	the hospital's diagnosis of that name, an ICD-11 code typed in the name
+	(1F4Z), or an ICD-11 title (case aside, as the database compares). None
+	when nothing matches exactly."""
+	text = (text or "").strip()
+	if not text:
+		return None
+	name = frappe.db.get_value(DX, text, "name")
+	if name:
+		cv, code = icd11_of(name)
+		return {"diagnosis": name, "code_value": cv, "code": code}
+	by_code = frappe.db.get_value(
+		"Code Value", {"code_system": ICD11, "code_value": text.upper()}, ["name", "code_value"], as_dict=True
+	)
+	cv = by_code or _code_by_title(text)
 	if not cv:
-		frappe.throw(_("{0} is not a diagnosis or an ICD-11 title.").format(frappe.bold(diagnosis)))
+		return None
 	return {"diagnosis": ensure_diagnosis(cv.name), "code_value": cv.name, "code": cv.code_value}
 
 
@@ -186,10 +209,17 @@ def sync_rows(doc, method=None):
 		if row.get("ke_icd11_code") and not row.get("diagnosis"):
 			row.diagnosis = ensure_diagnosis(row.ke_icd11_code)
 		elif row.get("diagnosis") and not frappe.db.exists(DX, row.diagnosis):
-			cv = _code_by_title(row.diagnosis)
-			if cv:
-				row.diagnosis = ensure_diagnosis(cv.name)
-				row.ke_icd11_code = cv.name
+			found = match(row.diagnosis)
+			if found:
+				row.diagnosis = found["diagnosis"]
+				row.ke_icd11_code = found["code_value"]
+			else:
+				frappe.throw(
+					_(
+						"Row {0} of the diagnosis: {1} is not a diagnosis or an ICD-11 title. Choose one from the list."
+					).format(row.idx, frappe.bold(row.diagnosis)),
+					title=_("Choose the diagnosis"),
+				)
 		elif row.get("diagnosis") and row.get("ke_icd11_code"):
 			# a code chosen for a hospital diagnosis without one: record it there
 			cv, _code = icd11_of(row.diagnosis)

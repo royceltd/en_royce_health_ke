@@ -1610,6 +1610,14 @@ def add_diagnosis(inpatient_record: str, diagnosis: str | None = None, code_valu
 		resolved = {"diagnosis": diagnosis, "code_value": code_value}
 	else:
 		resolved = dx.resolve(diagnosis=diagnosis, code_value=code_value) or {}
+	if resolved.get("not_found"):
+		frappe.throw(
+			_("{0} is not a diagnosis or an ICD-11 title. Choose one from the list{1}.").format(
+				frappe.bold(diagnosis),
+				(": " + ", ".join(resolved.get("suggestions") or [])) if resolved.get("suggestions") else "",
+			),
+			title=_("Choose the diagnosis"),
+		)
 	name = resolved.get("diagnosis") or diagnosis
 	if not name:
 		frappe.throw(_("Choose the diagnosis or its ICD-11 code."))
